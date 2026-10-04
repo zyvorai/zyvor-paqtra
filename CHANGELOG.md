@@ -54,9 +54,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **API no longer hangs at startup on a large flow backlog.** Flow-history
   retention deleted every expired row in one statement before the server
-  bound its port, so a multi-GB `flows.db` kept the pod unready past its
-  probes. Purge now deletes at most 20,000 rows per pass through the time
-  index; the backlog drains across ingest batches.
+  bound its port, and again after every ingest batch; on a spinning disk a
+  multi-GB `flows.db` kept the pod unready until the liveness probe killed it.
+  Retention now runs on a background thread, 500 rows per chunk through the
+  time index with a pause between chunks, never on the startup or ingest path.
+- **Agent memory.** The agent sets `MALLOC_ARENA_MAX=2` (glibc per-thread
+  arenas doubled its RSS on a 12-core node) and its default limit is 512Mi:
+  ~20k series with the hour-long buffer settle near 250Mi.
 - **Agent pod list is bounded.** The metrics pod index listed every pod ever
   scheduled on the node, including evicted ones (12k on one lab node, 150 MB
   of JSON), and was OOM-killed. It now skips `Failed`/`Succeeded` pods
