@@ -56,6 +56,10 @@ spec:
                   fieldPath: spec.nodeName
             - name: RUST_LOG
               value: {{ .Values.api.env.rustLog | quote }}
+            # glibc keeps a malloc arena per thread; on many-core nodes the
+            # per-second collector batches fragment them to twice the live heap.
+            - name: MALLOC_ARENA_MAX
+              value: "2"
             {{- with .Values.agent.metrics }}
             - name: PAQTRA_METRICS
               value: {{ .enabled | quote }}

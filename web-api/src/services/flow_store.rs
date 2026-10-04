@@ -16,10 +16,14 @@ use crate::models::flow::Flow;
 
 pub const DEFAULT_RETENTION_DAYS: i64 = 7;
 const MAX_MEMORY_FLOWS: usize = 50_000;
-/// Expired rows deleted per purge. Purge runs at open and after every ingest
-/// batch while holding the writer lock, so a large backlog drains a chunk at a
-/// time instead of blocking startup or ingest behind one huge DELETE.
-const PURGE_CHUNK: i64 = 20_000;
+/// Expired rows deleted per purge, under the writer lock. Each row touches four
+/// b-trees; on a cold spinning disk that is ~40 random reads per row, so a
+/// chunk must stay small or ingest stalls behind it.
+const PURGE_CHUNK: i64 = 500;
+/// Pause between chunks while a backlog drains, so ingest gets the lock.
+const PURGE_PAUSE: Duration = Duration::from_secs(2);
+/// Pause once nothing is left to delete.
+const PURGE_IDLE: Duration = Duration::from_secs(600);
 /// A read that runs longer than this is cut off. The store is one SQLite file
 /// holding millions of rows; a filter with no usable index (a namespace on the
 /// destination side, a pod-name LIKE) is a full scan, and without a limit it
@@ -484,8 +488,35 @@ impl FlowStore {
             gap_events: Mutex::new(Vec::new()),
             rate_window: Mutex::new(Vec::new()),
         };
-        let _ = store.purge_expired();
         Ok(store)
+    }
+
+    /// Drains expired rows in the background, a chunk at a time. Retention is
+    /// never enforced on the startup or ingest path: a multi-GB backlog would
+    /// keep the API from binding its port. Stops when the store is dropped.
+    pub fn spawn_purger(self: &Arc<Self>) {
+        if self.db.is_none() {
+            return;
+        }
+        let weak = Arc::downgrade(self);
+        let spawned = std::thread::Builder::new()
+            .name("flow-purge".into())
+            .spawn(move || loop {
+                let Some(store) = weak.upgrade() else { return };
+                let pause = match store.purge_expired() {
+                    Ok(n) if n as i64 >= PURGE_CHUNK => PURGE_PAUSE,
+                    Ok(_) => PURGE_IDLE,
+                    Err(e) => {
+                        tracing::warn!("flow retention purge: {e}");
+                        PURGE_IDLE
+                    }
+                };
+                drop(store);
+                std::thread::sleep(pause);
+            });
+        if let Err(e) = spawned {
+            tracing::warn!("flow retention purge not started: {e}");
+        }
     }
 
     /// The connection reads use: the read-only one, else the writer.
@@ -734,9 +765,6 @@ impl FlowStore {
                 }
             }
             tx.commit()?;
-            // Drop the connection lock before purge (purge re-locks).
-            drop(conn);
-            let _ = self.purge_expired();
             return Ok(rows.len());
         }
 
@@ -1120,7 +1148,7 @@ mod tests {
             tx.commit().unwrap();
         }
         store.insert_batch(&[sample("fresh")]).unwrap();
-        // insert_batch already purged one chunk.
+        assert_eq!(store.purge_expired().unwrap(), PURGE_CHUNK as usize);
         assert_eq!(store.purge_expired().unwrap(), 5);
         assert_eq!(store.purge_expired().unwrap(), 0);
         let rows = store
@@ -1647,6 +1675,7 @@ mod tests {
             row("new", &recent, ("a", "p"), ("a", "q"), 1, "FORWARDED"),
         ];
         store.insert_batch(&rows).unwrap();
+        store.purge_expired().unwrap();
         assert_eq!(
             ids(&store, &FlowQuery::default()),
             vec!["new"],
@@ -1656,6 +1685,7 @@ mod tests {
         // flow arriving again must not become a second row.
         store.insert_batch(&rows).unwrap();
         store.insert_batch(&rows[1..]).unwrap();
+        store.purge_expired().unwrap();
         assert_eq!(store.count(&FlowQuery::default()).unwrap(), 1);
         drop(store);
         let _ = std::fs::remove_dir_all(dir);
