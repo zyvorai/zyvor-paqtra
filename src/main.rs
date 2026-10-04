@@ -9,6 +9,7 @@ mod endpoints;
 mod hubble;
 mod integration;
 mod kubernetes;
+mod metrics;
 mod modules;
 mod policies;
 mod tui;
@@ -139,6 +140,25 @@ enum Commands {
     Ebpf {
         #[command(subcommand)]
         command: EbpfCommands,
+    },
+    /// Per-second node, pod and Hubble metrics through the API (read-only)
+    Metrics {
+        /// Paqtra API base URL
+        #[arg(
+            long,
+            env = "PAQTRA_API_URL",
+            default_value = "http://127.0.0.1:9191",
+            global = true
+        )]
+        api: String,
+        /// Paqtra API token (env PAQTRA_API_TOKEN)
+        #[arg(long, env = "PAQTRA_API_TOKEN", hide_env_values = true, global = true)]
+        api_token: Option<String>,
+        /// Output format: summary | json
+        #[arg(short, long, default_value = "summary", global = true)]
+        output: String,
+        #[command(subcommand)]
+        command: MetricsCommands,
     },
     /// Display client, release and server versions
     Version {
@@ -345,6 +365,62 @@ enum EbpfCommands {
     },
 }
 
+#[derive(Subcommand, Debug)]
+enum MetricsCommands {
+    /// Ingest, alert engine and exporter status
+    Status,
+    /// Nodes streaming metrics
+    Nodes,
+    /// List metric contexts
+    Contexts {
+        /// Substring filter on context or title
+        #[arg(long, default_value = "")]
+        filter: String,
+        /// Comma-separated node globs
+        #[arg(long, default_value = "")]
+        nodes: String,
+    },
+    /// Query one context: last, average and max per dimension with a sparkline
+    Query {
+        context: String,
+        /// Window: negative seconds (default the last 10 minutes)
+        #[arg(long, default_value_t = -600, allow_hyphen_values = true)]
+        after: i64,
+        #[arg(long, default_value_t = 120)]
+        points: usize,
+        #[arg(long, default_value = "")]
+        dimensions: String,
+        #[arg(long, default_value = "")]
+        nodes: String,
+        #[arg(long, default_value = "")]
+        charts: String,
+        /// k=v,k2=v2 label globs
+        #[arg(long, default_value = "")]
+        labels: String,
+        /// dimension, chart, node, instance, all or label:<key>
+        #[arg(long, default_value = "")]
+        group_by: String,
+        /// avg, min, max, sum, last, p50, p90, p95, p99
+        #[arg(long, default_value = "")]
+        group: String,
+    },
+    /// CPU, memory, load and network per node right now
+    Top,
+    /// Anomaly rate per node and the most anomalous dimensions
+    Anomalies {
+        #[arg(long, default_value_t = -3600, allow_hyphen_values = true)]
+        after: i64,
+        #[arg(long, default_value_t = 20)]
+        top: usize,
+    },
+    /// Raised metric alerts and recent transitions
+    Alerts {
+        /// Include clear and undefined instances
+        #[arg(long)]
+        all: bool,
+    },
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
@@ -364,6 +440,7 @@ async fn main() -> Result<()> {
             | Some(Commands::Completion { .. })
             | Some(Commands::Features { .. })
             | Some(Commands::Ebpf { .. })
+            | Some(Commands::Metrics { .. })
     );
     if !quiet_cmds || args.verbose {
         tracing_subscriber::fmt()
@@ -495,6 +572,56 @@ async fn main() -> Result<()> {
             EbpfCommands::Attachments { output } => cli::cmd_ebpf_attachments(&output),
             EbpfCommands::Drift { output } => cli::cmd_ebpf_drift(&output),
         },
+        Some(Commands::Metrics {
+            api,
+            api_token,
+            output,
+            command,
+        }) => {
+            use cli::metrics as m;
+            let api = m::Api {
+                url: api,
+                token: api_token,
+            };
+            tokio::task::spawn_blocking(move || match command {
+                MetricsCommands::Status => m::cmd_status(&api, &output),
+                MetricsCommands::Nodes => m::cmd_nodes(&api, &output),
+                MetricsCommands::Contexts { filter, nodes } => {
+                    m::cmd_contexts(&api, &filter, &nodes, &output)
+                }
+                MetricsCommands::Query {
+                    context,
+                    after,
+                    points,
+                    dimensions,
+                    nodes,
+                    charts,
+                    labels,
+                    group_by,
+                    group,
+                } => m::cmd_query(
+                    &api,
+                    &m::QueryOpts {
+                        context: &context,
+                        after,
+                        points,
+                        dimensions: &dimensions,
+                        nodes: &nodes,
+                        charts: &charts,
+                        labels: &labels,
+                        group_by: &group_by,
+                        group: &group,
+                    },
+                    &output,
+                ),
+                MetricsCommands::Top => m::cmd_top(&api, &output),
+                MetricsCommands::Anomalies { after, top } => {
+                    m::cmd_anomalies(&api, after, top, &output)
+                }
+                MetricsCommands::Alerts { all } => m::cmd_alerts(&api, all, &output),
+            })
+            .await?
+        }
         Some(Commands::Version { client, output }) => {
             cli::cmd_version(&args.global, client, &output).await
         }

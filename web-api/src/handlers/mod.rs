@@ -16,6 +16,7 @@ pub mod flows;
 pub mod health;
 pub mod investigate;
 pub mod metrics;
+pub mod metrics_platform;
 pub mod modules;
 pub mod nodes;
 pub mod notifications;

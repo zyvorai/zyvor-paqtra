@@ -18,6 +18,11 @@
 | [docs/rootcause.md](rootcause.md) | Root-cause analysis |
 | [docs/ebpf-integration.md](ebpf-integration.md) | eBPF integration |
 | [docs/tui.md](tui.md) | TUI integration |
+| [docs/metrics.md](metrics.md) | Per-second metrics platform (agent → API, tiers, query, exporters) |
+| [docs/metric-alerts.md](metric-alerts.md) | Metric alert rules, built-ins, silences |
+| [docs/anomaly-detection.md](anomaly-detection.md) | Per-dimension anomaly models and correlation |
+| [docs/app-collectors.md](app-collectors.md) | Application collectors and pod annotations |
+| [web-api/paqtra-metrics/](../web-api/paqtra-metrics/) | Shared metrics crate (collectors, tsdb, anomaly, alerts, export, stream) |
 | [docs/auto-install.md](auto-install.md) | Auto-install |
 | [docs/autopolicy-quickstart.md](autopolicy-quickstart.md) | AutoPolicy quick start |
 | [docs/client/](client/) | Client HTML (API ref, security whitepaper, …) |

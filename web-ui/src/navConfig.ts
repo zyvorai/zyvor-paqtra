@@ -80,6 +80,21 @@ export const NAV_GROUPS: NavGroup[] = [
         blurb: 'Cluster and Cilium health score — nodes, pods, endpoints, components.',
       },
       {
+        path: '/node-metrics',
+        label: 'Node Metrics',
+        blurb: 'Per-second host, network, pod, Hubble and app metrics streamed by every agent.',
+      },
+      {
+        path: '/metric-anomalies',
+        label: 'Metric Anomalies',
+        blurb: 'Unsupervised per-dimension anomaly scores; highlight a window to see what changed.',
+      },
+      {
+        path: '/metric-alerts',
+        label: 'Metric Alerts',
+        blurb: 'Threshold and anomaly rules over the per-second metrics, with ack and silences.',
+      },
+      {
         path: '/latency',
         label: 'Path',
         blurb: 'Latency and path pressure across services.',
@@ -269,6 +284,24 @@ export const PAGE_HEROES: Record<string, PageHeroCopy> = {
     title: 'TCP and cluster from the kernel.',
     lede: 'Cluster and Cilium health score — nodes, pods, endpoints, components.',
     tint: 'green',
+  },
+  '/node-metrics': {
+    eyebrow: 'Diagnostics',
+    title: 'Every node, every second.',
+    lede: 'Host, network, pod, Hubble and application metrics, streamed live and kept in tiers.',
+    tint: 'green',
+  },
+  '/metric-anomalies': {
+    eyebrow: 'Diagnostics',
+    title: 'What looks unusual.',
+    lede: 'Per-dimension anomaly models; drag across the timeline to rank what changed.',
+    tint: 'amber',
+  },
+  '/metric-alerts': {
+    eyebrow: 'Diagnostics',
+    title: 'Alerts from the metrics.',
+    lede: 'Built-in and custom rules over per-second metrics. Alerts never apply policy.',
+    tint: 'amber',
   },
   '/latency': {
     eyebrow: 'Diagnostics',

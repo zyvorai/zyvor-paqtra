@@ -155,6 +155,10 @@ jobs:
       - run: cargo check
       - run: cargo clippy -- -D warnings
       - run: cargo test
+      # Metrics platform crate shared by the agent and the API.
+      - run: cargo fmt --manifest-path paqtra-metrics/Cargo.toml -- --check
+      - run: cargo clippy --manifest-path paqtra-metrics/Cargo.toml --all-targets -- -D warnings
+      - run: cargo test --manifest-path paqtra-metrics/Cargo.toml
 
   # ─── Web UI ────────────────────────────────────────────────────────────
   web-ui-build:

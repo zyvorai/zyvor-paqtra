@@ -14,6 +14,7 @@ mod hubble;
 mod info;
 mod install;
 mod kube;
+pub mod metrics;
 mod portforward;
 mod preflight;
 mod redact;

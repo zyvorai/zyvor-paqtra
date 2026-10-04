@@ -72,6 +72,7 @@ clap_complete = "4.6.11"
 sha2 = "0.11.0"
 http = "1.5.0"
 zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
+paqtra-metrics = { path = "web-api/paqtra-metrics" }
 
 [build-dependencies]
 tonic-prost-build = { version = "0.14", optional = true }

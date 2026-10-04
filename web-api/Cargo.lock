@@ -1659,6 +1659,7 @@ dependencies = [
  "dashmap",
  "dotenvy",
  "jsonwebtoken",
+ "paqtra-metrics",
  "prost",
  "prost-types",
  "protox",
@@ -1682,6 +1683,17 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "uuid",
+]
+
+[[package]]
+name = "paqtra-metrics"
+version = "2.2.2"
+dependencies = [
+ "flate2",
+ "libc",
+ "serde",
+ "serde_json",
+ "serde_yaml",
 ]
 
 [[package]]

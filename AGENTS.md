@@ -24,6 +24,12 @@ platform; see `docs/paqtra-vs-packetwolf.md`). Suite sibling to **Netra**
 - Do not introduce a second CNI or compete with Cilium’s datapath.
 - Prefer Hubble for flows; maps for node-local enrichment only.
 - Details: `docs/cilium-brotherhood.md`, `docs/ebpf-integration.md`.
+- Metrics platform (`web-api/paqtra-metrics`, `src/metrics`,
+  `/api/v1/metrics/*`): collectors are read-only; the process collector uses
+  `comm` only, never `cmdline` or `environ`. App credentials come only from env
+  vars named in config (`username_env` / `password_env` / `bearer_env`), never
+  from Secrets read through the API. Metric alerts and anomaly endpoints
+  notify only and are never wired to policy apply. Details: `docs/metrics.md`.
 
 ## Validation
 

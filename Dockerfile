@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y pkg-config libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 COPY Cargo.toml Cargo.lock build.rs ./
 COPY src ./src
+COPY web-api/paqtra-metrics ./web-api/paqtra-metrics
 # The Helm chart is compiled into the binary (src/cli/chart.rs).
 COPY chart ./chart
 RUN cargo build --release

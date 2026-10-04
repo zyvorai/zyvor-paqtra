@@ -1,0 +1,19 @@
+[package]
+name = "paqtra-metrics"
+version = "2.2.2"
+edition = "2021"
+authors = ["Paqtra Contributors"]
+description = "Per-second metrics platform for Paqtra: collectors, tiered store, anomalies, metric alerts, exporters"
+license = "Apache-2.0"
+repository = "https://github.com/zyvorai/paqtra"
+publish = false
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+flate2 = "1.1"
+libc = "0.2"
+
+[dev-dependencies]
+tempfile = "3"

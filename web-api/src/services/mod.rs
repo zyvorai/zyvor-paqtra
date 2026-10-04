@@ -16,6 +16,7 @@ pub mod incidents;
 pub mod investigate;
 pub mod k8s;
 pub mod login_guard;
+pub mod metrics_platform;
 pub mod notifier;
 pub mod prometheus;
 pub mod slo;

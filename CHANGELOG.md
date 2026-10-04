@@ -7,6 +7,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Per-second metrics platform.** The agent collects host, CPU, memory, PSI,
+  disk, filesystem, interface, IP/TCP/UDP, conntrack, pod cgroup and
+  process-group metrics every second, keeps a local replay buffer and streams
+  gzip batches to `POST /api/v1/agents/metrics`, authenticated by a shared
+  `PAQTRA_AGENT_KEY` (generated and kept by the Helm chart). The API stores
+  them per node in Gorilla-compressed 1 s / 1 min / 1 h tiers with a disk
+  quota and serves `/api/v1/metrics/{nodes,contexts,data,status}` plus a
+  one-second WebSocket feed. Collectors are read-only; the process collector
+  reads `comm` only, never `cmdline` or `environ`. See `docs/metrics.md`.
+- **Hubble-derived series.** Flows the API already ingests become
+  `hubble.flows`, `hubble.policy_verdicts`, `hubble.drop_reasons`,
+  `hubble.http` and `hubble.dns` under node `hubble`.
+- **Anomaly detection.** Per-dimension k-means models flag samples on the
+  agent; `/api/v1/metrics/anomalies` ranks nodes and dimensions, and
+  `/api/v1/metrics/correlations` ranks what changed in a window
+  (Kolmogorov–Smirnov). See `docs/anomaly-detection.md`.
+- **Metric alerts.** A Netdata-style rule engine with 45 built-in rules (host,
+  disk, network, TCP, conntrack, pods, apps, Hubble drops, denials, HTTP 5xx,
+  DNS errors, anomaly rate), hysteresis, delays, repeat, ack and silences,
+  delivered through the existing notifier as `metric:<rule>`. Alerts never
+  apply policy. See `docs/metric-alerts.md`.
+- **Application collectors.** nginx, Apache, HAProxy, Redis, Memcached, Envoy,
+  CoreDNS, etcd and any Prometheus endpoint, from a static file or pod
+  annotations (`paqtra.io/app-kind`, `prometheus.io/scrape`) on the agent's
+  node. Credentials come only from env vars named in config. See
+  `docs/app-collectors.md`.
+- **Exporters.** Prometheus remote write, OTLP/HTTP and Graphite, with
+  per-series progress so outages are backfilled.
+- **Console and CLI.** Node Metrics, Metric Anomalies and Metric Alerts pages
+  with live canvas charts, and `paqtra metrics
+  {status,nodes,contexts,query,top,anomalies,alerts}`.
+
+### Changed
+
+- **Helm agent host access.** With `agent.metrics.hostAccess` (default on) the
+  agent DaemonSet uses the host network and PID namespaces and mounts `/`
+  read-only at `/host` so node metrics describe the host.
+- **web-ui TypeScript pinned back to 5.9.** The Dependabot bump to TypeScript
+  7 broke `npm ci` (typescript-eslint peer range), ESLint and `tsconfig`
+  `baseUrl`.
+
 ## [2.2.2] - 2026-09-27
 
 ### Fixed

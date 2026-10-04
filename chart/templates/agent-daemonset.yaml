@@ -17,13 +17,24 @@ spec:
     metadata:
       labels:
         {{- include "paqtra.agent.selectorLabels" . | nindent 8 }}
+      {{- if and .Values.agent.metrics.enabled .Values.agent.metrics.apps }}
+      annotations:
+        checksum/apps: {{ toYaml .Values.agent.metrics.apps | sha256sum }}
+      {{- end }}
     spec:
       serviceAccountName: {{ include "paqtra.serviceAccountName" . }}
       {{- with .Values.global.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      hostNetwork: false
+      {{- $hostAccess := and .Values.agent.metrics.enabled .Values.agent.metrics.hostAccess }}
+      # Host metrics read /proc, /sys and cgroups of the node (read-only), so
+      # the agent shares the host network and PID namespaces.
+      hostNetwork: {{ $hostAccess }}
+      hostPID: {{ $hostAccess }}
+      {{- if $hostAccess }}
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
       tolerations:
         {{- toYaml .Values.agent.tolerations | nindent 8 }}
       containers:
@@ -45,6 +56,46 @@ spec:
                   fieldPath: spec.nodeName
             - name: RUST_LOG
               value: {{ .Values.api.env.rustLog | quote }}
+            {{- with .Values.agent.metrics }}
+            - name: PAQTRA_METRICS
+              value: {{ .enabled | quote }}
+            {{- if .enabled }}
+            - name: PAQTRA_METRICS_API
+              value: {{ printf "http://%s-api.%s.svc:%v" (include "paqtra.fullname" $) ($.Values.global.namespace | default $.Release.Namespace) $.Values.api.service.port | quote }}
+            - name: PAQTRA_AGENT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paqtra.fullname" $ }}-secret
+                  key: PAQTRA_AGENT_KEY
+            {{- if .hostAccess }}
+            - name: PAQTRA_METRICS_PROC
+              value: /host/proc
+            - name: PAQTRA_METRICS_SYS
+              value: /host/sys
+            - name: PAQTRA_METRICS_FS_ROOT
+              value: /host
+            - name: PAQTRA_METRICS_CGROUP_ROOT
+              value: /host/sys/fs/cgroup
+            {{- end }}
+            - name: PAQTRA_METRICS_PROCESS_GROUPS
+              value: {{ .processGroups | quote }}
+            - name: PAQTRA_METRICS_CONTAINERS
+              value: {{ .containers | quote }}
+            - name: PAQTRA_METRICS_APP_DISCOVERY
+              value: {{ .appDiscovery | quote }}
+            - name: PAQTRA_METRICS_ANOMALY
+              value: {{ .anomaly | quote }}
+            - name: PAQTRA_METRICS_BUFFER_SECONDS
+              value: {{ .bufferSeconds | quote }}
+            {{- if .apps }}
+            - name: PAQTRA_METRICS_APPS_FILE
+              value: /etc/paqtra/apps.yaml
+            {{- end }}
+            {{- with .extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- end }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /health
@@ -75,6 +126,17 @@ spec:
             - name: cilium-run
               mountPath: /var/run/cilium
               readOnly: true
+            {{- if $hostAccess }}
+            - name: host-root
+              mountPath: /host
+              readOnly: true
+              mountPropagation: HostToContainer
+            {{- end }}
+            {{- if and .Values.agent.metrics.enabled .Values.agent.metrics.apps }}
+            - name: apps
+              mountPath: /etc/paqtra
+              readOnly: true
+            {{- end }}
       volumes:
         - name: bpf
           hostPath:
@@ -84,4 +146,14 @@ spec:
           hostPath:
             path: /var/run/cilium
             type: DirectoryOrCreate
+        {{- if $hostAccess }}
+        - name: host-root
+          hostPath:
+            path: /
+        {{- end }}
+        {{- if and .Values.agent.metrics.enabled .Values.agent.metrics.apps }}
+        - name: apps
+          configMap:
+            name: {{ include "paqtra.fullname" . }}-agent-apps
+        {{- end }}
 {{- end }}

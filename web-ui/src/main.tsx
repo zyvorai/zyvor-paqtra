@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles.css';
 import './styles/story.css';
+import './styles/metrics.css';
 import './index.css';
 import { applyTheme, readStoredTheme } from './theme';
 

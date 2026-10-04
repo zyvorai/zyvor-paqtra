@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
 
 # Copy manifests and lock file for dependency caching
 COPY Cargo.toml Cargo.lock ./
+COPY paqtra-metrics/ paqtra-metrics/
 RUN mkdir src && echo "fn main() {}" > src/main.rs && cargo build --release && rm -rf src
 
 # Copy real source and build. build.rs compiles the vendored Hubble protos

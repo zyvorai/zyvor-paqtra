@@ -27,4 +27,5 @@ Full endpoint list: [docs/web-architecture.md](web-architecture.md) and [docs/cl
 | Web dashboard | `http://<host>:9191` |
 | REST API | `http://<host>:9191/api/v1/` |
 | WebSocket | `ws://<host>:9191/api/v1/ws/metrics` |
+| Live node metrics | `ws://<host>:9191/api/v1/ws/metrics/live` (see [metrics.md](metrics.md)) |
 | Health check | `http://<host>:9191/health` |

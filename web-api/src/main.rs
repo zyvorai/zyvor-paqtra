@@ -110,6 +110,15 @@ async fn main() -> anyhow::Result<()> {
         tracing::info!("PrometheusService not configured (set PROMETHEUS_URL to enable)");
     }
 
+    let metrics_platform = Arc::new(services::metrics_platform::MetricsPlatform::from_env(
+        config.data_dir.as_deref(),
+    )?);
+    if metrics_platform.agent_key.is_none() && !config.auth_disabled {
+        tracing::warn!(
+            "PAQTRA_AGENT_KEY not set: agents cannot stream per-second metrics to this API"
+        );
+    }
+
     // Build shared application state
     let app_state = Arc::new(AppState {
         config: config.clone(),
@@ -119,7 +128,12 @@ async fn main() -> anyhow::Result<()> {
         flow_store,
         prometheus,
         metrics: AppMetrics::default(),
+        metrics_platform,
     });
+
+    // Per-second metrics: maintenance, Hubble-derived series, metric alerts, exporters
+    services::metrics_platform::spawn_metrics_platform(app_state.clone());
+    tracing::info!("Metrics platform started");
 
     // Start background export pipeline
     services::exporter::spawn_export_pipeline(app_state.clone());
@@ -220,7 +234,10 @@ async fn main() -> anyhow::Result<()> {
             post(handlers::policies::simulate_policy),
         )
         // Hubble / Cilium observability
-        .route("/api/v1/hubble/nodes", get(handlers::cilium_obs::hubble_nodes))
+        .route(
+            "/api/v1/hubble/nodes",
+            get(handlers::cilium_obs::hubble_nodes),
+        )
         .route(
             "/api/v1/hubble/metrics",
             get(handlers::cilium_obs::hubble_metrics),
@@ -444,6 +461,57 @@ async fn main() -> anyhow::Result<()> {
             "/api/v1/metrics/summary",
             get(handlers::extended::metrics_summary),
         )
+        // Per-second metrics platform (agents stream, API stores and queries)
+        .route(
+            "/api/v1/agents/metrics",
+            post(handlers::metrics_platform::ingest)
+                .layer(DefaultBodyLimit::max(paqtra_metrics::wire::MAX_COMPRESSED)),
+        )
+        .route(
+            "/api/v1/metrics/nodes",
+            get(handlers::metrics_platform::nodes),
+        )
+        .route(
+            "/api/v1/metrics/contexts",
+            get(handlers::metrics_platform::contexts),
+        )
+        .route(
+            "/api/v1/metrics/data",
+            get(handlers::metrics_platform::data),
+        )
+        .route(
+            "/api/v1/metrics/anomalies",
+            get(handlers::metrics_platform::anomalies),
+        )
+        .route(
+            "/api/v1/metrics/correlations",
+            get(handlers::metrics_platform::correlations),
+        )
+        .route(
+            "/api/v1/metrics/status",
+            get(handlers::metrics_platform::status),
+        )
+        .route(
+            "/api/v1/metrics/exporters",
+            get(handlers::metrics_platform::exporters),
+        )
+        .route(
+            "/api/v1/metrics/alerts",
+            get(handlers::metrics_platform::alerts),
+        )
+        .route(
+            "/api/v1/metrics/alerts/{id}/ack",
+            post(handlers::metrics_platform::ack_alert),
+        )
+        .route(
+            "/api/v1/metrics/silences",
+            post(handlers::metrics_platform::create_silence),
+        )
+        .route(
+            "/api/v1/metrics/silences/{id}",
+            axum::routing::delete(handlers::metrics_platform::delete_silence),
+        )
+        .route("/api/v1/ws/metrics/live", get(websocket::ws_live_metrics))
         // Host Info
         .route("/api/v1/host/info", get(handlers::extended2::host_info))
         // Policy Templates
@@ -903,4 +971,5 @@ pub struct AppState {
     pub flow_store: Arc<services::flow_store::FlowStore>,
     pub prometheus: PrometheusService,
     pub metrics: AppMetrics,
+    pub metrics_platform: Arc<services::metrics_platform::MetricsPlatform>,
 }

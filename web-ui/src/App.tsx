@@ -32,6 +32,9 @@ const ServiceDeps = React.lazy(() => import('./views/ServiceDeps'));
 const SecurityDash = React.lazy(() => import('./views/SecurityDash'));
 const EbpfProfiler = React.lazy(() => import('./views/EbpfProfiler'));
 const MetricsDash = React.lazy(() => import('./views/MetricsDash'));
+const NodeMetrics = React.lazy(() => import('./views/NodeMetrics'));
+const MetricAnomalies = React.lazy(() => import('./views/MetricAnomalies'));
+const MetricAlerts = React.lazy(() => import('./views/MetricAlerts'));
 const HostInfo = React.lazy(() => import('./views/HostInfo'));
 const PolicyTemplates = React.lazy(() => import('./views/PolicyTemplates'));
 const Diagnostics = React.lazy(() => import('./views/Diagnostics'));
@@ -147,6 +150,9 @@ const App: React.FC = () => {
                   <Route path="/security" element={<V><SecurityDash /></V>} />
                   <Route path="/ebpf" element={<V><EbpfProfiler /></V>} />
                   <Route path="/metrics" element={<V><MetricsDash /></V>} />
+                  <Route path="/node-metrics" element={<V><NodeMetrics /></V>} />
+                  <Route path="/metric-anomalies" element={<V><MetricAnomalies /></V>} />
+                  <Route path="/metric-alerts" element={<V><MetricAlerts /></V>} />
                   <Route path="/host" element={<V><HostInfo /></V>} />
                   <Route path="/templates" element={<V><PolicyTemplates /></V>} />
                   <Route path="/diagnostics" element={<V><Diagnostics /></V>} />

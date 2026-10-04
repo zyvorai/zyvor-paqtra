@@ -56,11 +56,13 @@ api-build: ## Build web-api release binary
 api-dev: ## Run web-api in dev mode
 	cd web-api && cargo run
 
-api-check: ## Check web-api code
+api-check: ## Check web-api code (and the shared paqtra-metrics crate)
 	cd web-api && cargo check && cargo clippy -- -D warnings
+	cd web-api && cargo clippy --manifest-path paqtra-metrics/Cargo.toml --all-targets -- -D warnings
 
-api-test: ## Run web-api tests
+api-test: ## Run web-api tests (and the shared paqtra-metrics crate)
 	cd web-api && cargo test
+	cd web-api && cargo test --manifest-path paqtra-metrics/Cargo.toml
 
 # ─── Web UI ────────────────────────────────────────────────────────────
 ui-install: ## Install web-ui dependencies

@@ -373,3 +373,146 @@ async fn handle_live_flows(
         }
     }
 }
+
+/// `GET /api/v1/ws/metrics/live`: the client sends
+/// `{"subscribe": [{id, context, charts, nodes, labels, window, points,
+/// groupBy, group, aggregate}]}` (at most 50 queries) and receives
+/// `{"results": {id: result}}` once a second.
+#[derive(Debug, Deserialize)]
+pub struct LiveMetricsAuth {
+    pub token: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct LiveSub {
+    id: String,
+    context: String,
+    #[serde(default)]
+    charts: Vec<String>,
+    #[serde(default)]
+    nodes: Vec<String>,
+    #[serde(default)]
+    labels: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    window: i64,
+    #[serde(default)]
+    points: usize,
+    #[serde(default)]
+    group_by: String,
+    #[serde(default)]
+    group: String,
+    #[serde(default)]
+    aggregate: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct LiveSubscribe {
+    subscribe: Vec<LiveSub>,
+}
+
+const MAX_LIVE_QUERIES: usize = 50;
+
+pub async fn ws_live_metrics(
+    ws: WebSocketUpgrade,
+    State(state): State<Arc<AppState>>,
+    Query(q): Query<LiveMetricsAuth>,
+) -> Response {
+    let auth = WsAuthQuery {
+        token: q.token,
+        namespace: None,
+    };
+    if let Err((status, msg)) = validate_ws_token(&state, &auth).await {
+        return (status, msg).into_response();
+    }
+    let guard = match WsConnectionGuard::try_acquire() {
+        Some(g) => g,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                "Too many WebSocket connections",
+            )
+                .into_response()
+        }
+    };
+    ws.on_upgrade(move |socket| handle_live_metrics(socket, state, guard))
+}
+
+fn live_query(s: &LiveSub) -> paqtra_metrics::tsdb::Query {
+    let window = s.window.clamp(10, 3600);
+    paqtra_metrics::tsdb::Query {
+        context: s.context.clone(),
+        charts: s.charts.clone(),
+        nodes: s.nodes.clone(),
+        labels: s.labels.clone(),
+        after: -window,
+        before: 0,
+        points: if s.points == 0 {
+            window.min(300) as usize
+        } else {
+            s.points.min(600)
+        },
+        group: s.group.clone(),
+        group_by: s.group_by.clone(),
+        aggregate: s.aggregate.clone(),
+        ..Default::default()
+    }
+}
+
+async fn handle_live_metrics(
+    mut socket: WebSocket,
+    state: Arc<AppState>,
+    _guard: WsConnectionGuard,
+) {
+    let mut subs: Vec<LiveSub> = Vec::new();
+    let mut tick = tokio::time::interval(tokio::time::Duration::from_secs(1));
+    let mut ping = tokio::time::interval(tokio::time::Duration::from_secs(PING_INTERVAL_SECS));
+    loop {
+        tokio::select! {
+            _ = tick.tick() => {
+                if subs.is_empty() {
+                    continue;
+                }
+                let (p, qs) = (state.metrics_platform.clone(), subs.clone());
+                let res = tokio::task::spawn_blocking(move || {
+                    let sources = p.sources();
+                    let now = chrono::Utc::now().timestamp();
+                    let mut results = serde_json::Map::new();
+                    let mut error = None;
+                    for s in &qs {
+                        match paqtra_metrics::tsdb::run(&sources, live_query(s), now) {
+                            Ok(r) => {
+                                results.insert(s.id.clone(), serde_json::to_value(r).unwrap_or_default());
+                            }
+                            Err(e) => error = Some(e),
+                        }
+                    }
+                    serde_json::json!({ "results": results, "error": error })
+                })
+                .await;
+                let Ok(body) = res else { break };
+                if socket.send(Message::Text(body.to_string().into())).await.is_err() {
+                    break;
+                }
+            }
+            _ = ping.tick() => {
+                if !ws_ping(&mut socket, "LiveMetrics").await { break; }
+            }
+            msg = socket.recv() => {
+                if let Some(Ok(Message::Text(t))) = &msg {
+                    match serde_json::from_str::<LiveSubscribe>(t) {
+                        Ok(s) => {
+                            subs = s.subscribe.into_iter().filter(|q| !q.context.is_empty()).take(MAX_LIVE_QUERIES).collect();
+                            tick.reset_immediately();
+                        }
+                        Err(e) => {
+                            let _ = socket.send(Message::Text(serde_json::json!({ "error": format!("bad subscribe message: {e}") }).to_string().into())).await;
+                        }
+                    }
+                    continue;
+                }
+                if !handle_ws_message(msg, "LiveMetrics") { break; }
+            }
+        }
+    }
+}

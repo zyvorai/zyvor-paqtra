@@ -19,6 +19,7 @@ COPY web-api/Cargo.toml web-api/Cargo.lock ./
 COPY web-api/build.rs ./build.rs
 COPY web-api/proto ./proto
 COPY web-api/src ./src
+COPY web-api/paqtra-metrics ./paqtra-metrics
 RUN cargo build --release
 
 # ── Stage 3: Runtime ─────────────────────────────────────────

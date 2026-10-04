@@ -55,6 +55,7 @@ tonic = "0.14"
 tonic-prost = "0.14"
 prost = "0.14"
 prost-types = "0.14"
+paqtra-metrics = { path = "paqtra-metrics" }
 tokio-stream = "0.1.19"
 
 [profile.release]
