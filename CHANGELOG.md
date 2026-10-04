@@ -59,8 +59,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   Retention now runs on a background thread, 500 rows per chunk through the
   time index with a pause between chunks, never on the startup or ingest path.
 - **Agent memory.** The agent sets `MALLOC_ARENA_MAX=2` (glibc per-thread
-  arenas doubled its RSS on a 12-core node) and its default limit is 512Mi:
-  ~20k series with the hour-long buffer settle near 250Mi.
+  arenas doubled its RSS on a 12-core node) and its default limits are 512Mi
+  and 1 CPU: ~20k series with the hour-long buffer settle near 250Mi and
+  ~300m, and the old 200m limit throttled the sender until it fell behind.
 - **Agent pod list is bounded.** The metrics pod index listed every pod ever
   scheduled on the node, including evicted ones (12k on one lab node, 150 MB
   of JSON), and was OOM-killed. It now skips `Failed`/`Succeeded` pods

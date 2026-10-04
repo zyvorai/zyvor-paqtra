@@ -151,14 +151,15 @@ agent:
     pullPolicy: IfNotPresent
   port: 9192
   # Metrics keep agent.metrics.bufferSeconds of per-second samples in memory:
-  # ~20k series (100+ pods with per-container cgroups) settle near 250Mi.
+  # ~20k series (100+ pods with per-container cgroups) settle near 250Mi and
+  # ~300m CPU; a 200m limit throttles collection and the sender falls behind.
   resources:
     requests:
       memory: "128Mi"
-      cpu: "50m"
+      cpu: "100m"
     limits:
       memory: "512Mi"
-      cpu: "200m"
+      cpu: "1"
   tolerations:
     - operator: Exists
   updateStrategy:
