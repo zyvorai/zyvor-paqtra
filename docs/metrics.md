@@ -34,7 +34,10 @@ Related docs: [metric-alerts.md](metric-alerts.md),
   `X-Paqtra-Agent-Key` header. When the API is unreachable it keeps up to
   `PAQTRA_METRICS_BUFFER_SECONDS` of history and replays it when the API comes
   back. If the API reports a gap, the agent resends from the API's last
-  sample.
+  sample. A batch carries up to 500,000 points; each batch repeats the
+  metadata of every series in it, so large batches are what let a node with
+  ~20k series clear a backlog faster than it collects (about 15 minutes of
+  backlog in a minute on the lab node).
 - The API keeps one store per node under `PAQTRA_METRICS_DIR` (default
   `${PAQTRA_DATA_DIR}/metrics`). Tier 0 chunks use Gorilla compression; tiers 1
   and 2 keep min, max, sum, count and the anomalous count per bucket, so
@@ -60,7 +63,10 @@ Privacy rules:
 - The process collector reads `comm` (the 15-byte kernel name). It never
   reads `cmdline` or `environ`.
 - Pod metadata comes from a pod list for the agent's own node
-  (`spec.nodeName=<node>`). The agent never reads Secrets.
+  (`spec.nodeName=<node>`), refreshed every 30 s. Finished pods
+  (`Failed`/`Succeeded`, including evicted ones) are excluded server-side and
+  the list is paged 250 pods at a time, so thousands of leftover pods on a
+  node do not inflate the agent's memory. The agent never reads Secrets.
 - No payloads are collected.
 
 Hubble series are per node (`hubble.flows`, `hubble.policy_verdicts`,
@@ -161,11 +167,12 @@ Metric names are `<prefix>_<context>` with dots replaced by underscores
 | `NODE_NAME` | hostname | Node name for the stream. |
 | `PAQTRA_METRICS_PROC`, `_SYS`, `_FS_ROOT`, `_CGROUP_ROOT` | `/proc`, `/sys`, none, `/sys/fs/cgroup` | Host paths; the chart sets `/host/...`. |
 | `PAQTRA_METRICS_PROCESS_GROUPS` | `64` | Process groups kept (by CPU); `0` disables the collector. |
-| `PAQTRA_METRICS_CONTAINERS` | `true` | Pod cgroup metrics. |
+| `PAQTRA_METRICS_CONTAINERS` | `false` (chart: `true`) | Chart each container cgroup as well as each pod cgroup. Roughly triples cgroup series. |
 | `PAQTRA_METRICS_APPS_FILE` | empty | Static app collectors, see [app-collectors.md](app-collectors.md). |
 | `PAQTRA_METRICS_APP_DISCOVERY` | `true` | Scrape annotated pods on this node. |
 | `PAQTRA_METRICS_ANOMALY` | `true` | Agent-side anomaly models. |
 | `PAQTRA_METRICS_BUFFER_SECONDS` | `3600` | Local history (minimum 300) used for replay. |
+| `MALLOC_ARENA_MAX` | chart: `2` | glibc allocator arenas. Unbounded, per-thread arenas roughly doubled the agent's RSS on a 12-core node. |
 
 ### API
 
@@ -188,8 +195,13 @@ agent:
     enabled: true
     hostAccess: true    # hostNetwork + hostPID + / mounted read-only at /host
     processGroups: 64
+    containers: true    # per-container cgroup charts as well as per-pod
     appDiscovery: true
+    bufferSeconds: 3600
     apps: []
+  resources:
+    requests: {memory: 128Mi, cpu: 100m}
+    limits: {memory: 512Mi, cpu: "1"}
 api:
   metrics:
     diskQuotaMB: 128    # per store; keep the total under api.persistence.size
@@ -207,6 +219,26 @@ With `hostAccess`, the agent shares the host network and PID namespaces and
 mounts `/` read-only at `/host` (propagation `HostToContainer`). The mount is
 needed to read host interfaces, disks and pod cgroups. Without it, the agent
 reports only what its own container can see.
+
+## Sizing
+
+Agent cost grows with the number of series, which is dominated by cgroups
+(about 40 series per pod, ~3x that with `containers: true`), interfaces and
+scraped applications. Measured on a 12-core lab node with ~130 live pods,
+16 scraped apps and ~21k series:
+
+| | Agent | API (ingest for that node) |
+|---|---|---|
+| CPU | 300–450m | ~230m |
+| Memory | ~200 MiB with the 1-hour buffer full | grows with tier-0 retention |
+
+- The chart's agent limits are 512Mi and 1 CPU. The previous 200m CPU limit
+  throttled 80% of CPU periods and the sender fell behind; 256Mi was
+  OOM-killed. Lower them only on small nodes, and check
+  `GET /metrics/status` on the agent: `sender.cursor` should stay within a
+  few seconds of now and collectors should report `skipped: 0`.
+- To shrink a large node: set `containers: false`, lower `processGroups`, or
+  lower `bufferSeconds` (memory scales with it).
 
 ## Limits
 
