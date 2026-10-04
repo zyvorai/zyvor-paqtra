@@ -83,7 +83,7 @@ async fn run_follow_session(state: &AppState) -> anyhow::Result<()> {
     if let Ok((flows, src)) = state.hubble.get_flows_with_source(INGEST_BATCH, None).await {
         let (rows, skipped) = rows_for_store(&flows, src);
         state.flow_store.note_skipped_no_time(skipped as u64);
-        let n = state.flow_store.insert_batch(&rows)?;
+        let n = store_rows(state, rows).await?;
         state.flow_store.record_ingest(true, n as u64, src);
     }
 
@@ -111,19 +111,19 @@ async fn run_follow_session(state: &AppState) -> anyhow::Result<()> {
                     state.flow_store.note_stream_event();
                     buf.push(*f);
                     if buf.len() >= STREAM_BATCH_FLUSH {
-                        flush_batch(state, &mut buf, stream_source)?;
+                        flush_batch(state, &mut buf, stream_source).await?;
                     }
                 }
                 Some(LiveEvent::Ended(why)) => {
                     if !buf.is_empty() {
-                        flush_batch(state, &mut buf, stream_source)?;
+                        flush_batch(state, &mut buf, stream_source).await?;
                     }
                     state.flow_store.set_stream_connected(false);
                     anyhow::bail!("stream ended: {why}");
                 }
                 None => {
                     if !buf.is_empty() {
-                        flush_batch(state, &mut buf, stream_source)?;
+                        flush_batch(state, &mut buf, stream_source).await?;
                     }
                     state.flow_store.set_stream_connected(false);
                     anyhow::bail!("stream channel closed");
@@ -131,14 +131,26 @@ async fn run_follow_session(state: &AppState) -> anyhow::Result<()> {
             },
             _ = flush_tick.tick() => {
                 if !buf.is_empty() {
-                    flush_batch(state, &mut buf, stream_source)?;
+                    flush_batch(state, &mut buf, stream_source).await?;
                 }
             }
         }
     }
 }
 
-fn flush_batch(state: &AppState, buf: &mut Vec<Flow>, source: FlowSource) -> anyhow::Result<()> {
+/// SQLite writes block on the disk, so they run off the async workers: the
+/// API's CPU limit can leave tokio a single worker, and one stalled insert
+/// would then stop every request, health probes included.
+async fn store_rows(state: &AppState, rows: Vec<StoredFlow>) -> anyhow::Result<usize> {
+    let store = state.flow_store.clone();
+    tokio::task::spawn_blocking(move || store.insert_batch(&rows)).await?
+}
+
+async fn flush_batch(
+    state: &AppState,
+    buf: &mut Vec<Flow>,
+    source: FlowSource,
+) -> anyhow::Result<()> {
     state.metrics_platform.observe_flows(buf);
     let (rows, skipped) = rows_for_store(buf, source);
     buf.clear();
@@ -147,7 +159,7 @@ fn flush_batch(state: &AppState, buf: &mut Vec<Flow>, source: FlowSource) -> any
             "Hubble returned {skipped} flow(s) with no usable timestamp; these cannot be placed on a timeline and are not stored"
         );
     }
-    let n = state.flow_store.insert_batch(&rows)?;
+    let n = store_rows(state, rows).await?;
     state.flow_store.record_ingest(true, n as u64, source);
     Ok(())
 }
@@ -166,12 +178,11 @@ pub async fn ingest_now(state: &AppState) -> anyhow::Result<usize> {
     };
     let (rows, skipped) = rows_for_store(&flows, source);
     state.flow_store.note_skipped_no_time(skipped as u64);
-    let n = state.flow_store.insert_batch(&rows)?;
-    state.flow_store.record_ingest(
-        !rows.is_empty() || source != FlowSource::Unavailable,
-        n as u64,
-        source,
-    );
+    let any = !rows.is_empty();
+    let n = store_rows(state, rows).await?;
+    state
+        .flow_store
+        .record_ingest(any || source != FlowSource::Unavailable, n as u64, source);
     Ok(n)
 }
 

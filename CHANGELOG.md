@@ -58,6 +58,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   multi-GB `flows.db` kept the pod unready until the liveness probe killed it.
   Retention now runs on a background thread, 500 rows per chunk through the
   time index with a pause between chunks, never on the startup or ingest path.
+- **Flow ingest no longer freezes the API on a slow disk.** SQLite inserts
+  ran on the async workers; under a 1-CPU limit tokio has one, so a stalled
+  insert stopped every request and the liveness probe restarted the pod.
+  Inserts now run on the blocking pool.
+- **Metrics catch-up outpaces collection.** The API stores each series'
+  points under one lookup instead of cloning metadata per point, and agent
+  batches carry up to 500k points (metadata is repeated per batch); at ~20k
+  series the old path only kept pace and a backlog never cleared.
 - **Agent memory.** The agent sets `MALLOC_ARENA_MAX=2` (glibc per-thread
   arenas doubled its RSS on a 12-core node) and its default limits are 512Mi
   and 1 CPU: ~20k series with the hour-long buffer settle near 250Mi and
