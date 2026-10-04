@@ -95,6 +95,15 @@ struct SeriesState {
 
 type SeriesRef = Arc<Mutex<SeriesState>>;
 
+fn update_meta(s: &mut SeriesState, m: &Series) {
+    if !m.units.is_empty() || !m.title.is_empty() || !m.family.is_empty() {
+        s.meta.units.clone_from(&m.units);
+        s.meta.title.clone_from(&m.title);
+        s.meta.family.clone_from(&m.family);
+        s.meta.chart_type.clone_from(&m.chart_type);
+    }
+}
+
 #[derive(Default)]
 struct Index {
     by_key: HashMap<String, SeriesRef>,
@@ -275,26 +284,51 @@ impl Db {
         if s.last_t != 0 && smp.t <= s.last_t {
             return Err(Error::OutOfOrder);
         }
-        let m = &smp.series;
-        if !m.units.is_empty() || !m.title.is_empty() || !m.family.is_empty() {
-            s.meta.units.clone_from(&m.units);
-            s.meta.title.clone_from(&m.title);
-            s.meta.family.clone_from(&m.family);
-            s.meta.chart_type.clone_from(&m.chart_type);
+        update_meta(&mut s, &smp.series);
+        self.append_point(&mut s, smp.t, smp.v, smp.a)
+    }
+
+    /// Stores one series' points with a single index lookup and lock,
+    /// skipping out-of-order ones. Returns the number stored and the first
+    /// error that was not `OutOfOrder`, after which the rest are dropped.
+    pub fn append_points(
+        &self,
+        meta: &Series,
+        points: impl IntoIterator<Item = (i64, f64, bool)>,
+    ) -> (usize, Option<Error>) {
+        let s = match self.get_or_create(meta) {
+            Ok(s) => s,
+            Err(e) => return (0, Some(e)),
+        };
+        let mut s = s.lock().unwrap();
+        update_meta(&mut s, meta);
+        let mut n = 0;
+        for (t, v, a) in points {
+            if s.last_t != 0 && t <= s.last_t {
+                continue;
+            }
+            if let Err(e) = self.append_point(&mut s, t, v, a) {
+                return (n, Some(e));
+            }
+            n += 1;
         }
+        (n, None)
+    }
+
+    fn append_point(&self, s: &mut SeriesState, t: i64, v: f64, a: bool) -> Result<(), Error> {
         if s.chunks.last().is_none_or(|c| c.full()) {
             s.chunks.push(Chunk::default());
         }
-        s.chunks.last_mut().unwrap().append(smp.t, smp.v, smp.a);
+        s.chunks.last_mut().unwrap().append(t, v, a);
         if s.first_t == 0 {
-            s.first_t = smp.t;
+            s.first_t = t;
         }
-        s.last_t = smp.t;
-        s.last_v = smp.v;
-        s.last_a = smp.a;
+        s.last_t = t;
+        s.last_v = v;
+        s.last_a = a;
         let id = s.id;
         for (i, res) in [TIER1_RESOLUTION, TIER2_RESOLUTION].into_iter().enumerate() {
-            let start = smp.t - smp.t.rem_euclid(res);
+            let start = t - t.rem_euclid(res);
             if s.agg[i].count > 0 && s.agg[i].start != start {
                 self.tiers[i].write(id, s.agg[i])?;
                 s.agg[i] = Rollup::default();
@@ -302,7 +336,7 @@ impl Db {
             if s.agg[i].count == 0 {
                 s.agg[i].start = start;
             }
-            s.agg[i].add(smp.v, smp.a);
+            s.agg[i].add(v, a);
         }
         Ok(())
     }
@@ -607,6 +641,36 @@ mod tests {
         let rows = &r[&s.key()];
         assert_eq!(rows.len(), 11);
         assert_eq!(rows[1].count, 60);
+    }
+
+    #[test]
+    fn append_points_matches_per_sample_append() {
+        let (a, b) = (
+            Db::open(Options::default()).unwrap(),
+            Db::open(Options::default()).unwrap(),
+        );
+        let s = series("system.cpu", "user");
+        let pts: Vec<(i64, f64, bool)> = (1000..1200).map(|t| (t, t as f64, t == 1100)).collect();
+        for &(t, v, an) in &pts {
+            a.append(&Sample {
+                series: s.clone(),
+                t,
+                v,
+                a: an,
+            })
+            .unwrap();
+        }
+        assert_eq!(b.append_points(&s, pts.iter().copied()), (200, None));
+        assert_eq!(
+            b.append_points(&s, [(1150, 0.0, false), (1199, 0.0, false)]),
+            (0, None),
+            "already-stored seconds are skipped"
+        );
+        assert_eq!(a.points(&s.key(), 0, 2000), b.points(&s.key(), 0, 2000));
+        assert_eq!(
+            a.rollups(1, &[s.key()], 0, 2000).unwrap()[&s.key()].len(),
+            b.rollups(1, &[s.key()], 0, 2000).unwrap()[&s.key()].len()
+        );
     }
 
     #[test]
