@@ -20,8 +20,11 @@ const MAX_MEMORY_FLOWS: usize = 50_000;
 /// b-trees; on a cold spinning disk that is ~40 random reads per row, so a
 /// chunk must stay small or ingest stalls behind it.
 const PURGE_CHUNK: i64 = 500;
-/// Pause between chunks while a backlog drains, so ingest gets the lock.
+/// Minimum pause between chunks while a backlog drains, so ingest gets the lock.
 const PURGE_PAUSE: Duration = Duration::from_secs(2);
+/// Pause after a chunk as a multiple of the time it took: the purge gets at
+/// most a fifth of the disk, whose random-read budget it otherwise saturates.
+const PURGE_DUTY: u32 = 4;
 /// Pause once nothing is left to delete.
 const PURGE_IDLE: Duration = Duration::from_secs(600);
 /// A read that runs longer than this is cut off. The store is one SQLite file
@@ -503,8 +506,11 @@ impl FlowStore {
             .name("flow-purge".into())
             .spawn(move || loop {
                 let Some(store) = weak.upgrade() else { return };
+                let started = Instant::now();
                 let pause = match store.purge_expired() {
-                    Ok(n) if n as i64 >= PURGE_CHUNK => PURGE_PAUSE,
+                    Ok(n) if n as i64 >= PURGE_CHUNK => {
+                        PURGE_PAUSE.max(started.elapsed() * PURGE_DUTY)
+                    }
                     Ok(_) => PURGE_IDLE,
                     Err(e) => {
                         tracing::warn!("flow retention purge: {e}");
