@@ -474,6 +474,87 @@ fn paths_health_and_flows() -> serde_json::Value {
             }
         },
 
+        // ---- Per-second metrics platform ----
+        "/agents/metrics": {
+            "post": {
+                "tags": ["Metrics"],
+                "summary": "Agent metrics ingest",
+                "description": "Gzip JSON batches of per-second samples from node agents. Authenticated with the `X-Paqtra-Agent-Key` header (PAQTRA_AGENT_KEY), not a user token. A `gap: true` response asks the agent to replay from `prevLastT`.",
+                "security": [],
+                "responses": {
+                    "200": { "description": "`{prevLastT, lastT, stored, gap}`" },
+                    "400": { "description": "Malformed batch" },
+                    "401": { "description": "Missing or wrong agent key" },
+                    "429": { "description": "Node limit reached" }
+                }
+            }
+        },
+        "/metrics/nodes": {
+            "get": { "tags": ["Metrics"], "summary": "Nodes streaming metrics", "description": "Per-node store stats and last ingest time. The `hubble` node holds series derived from Hubble flows.", "responses": { "200": { "description": "Nodes" } } }
+        },
+        "/metrics/contexts": {
+            "get": {
+                "tags": ["Metrics"], "summary": "Metric contexts", "description": "Every context with its charts, dimensions, units and nodes.",
+                "parameters": [
+                    { "name": "nodes", "in": "query", "schema": { "type": "string" }, "description": "Comma-separated node globs" },
+                    { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Substring filter on context or title" }
+                ],
+                "responses": { "200": { "description": "Contexts" } }
+            }
+        },
+        "/metrics/data": {
+            "get": {
+                "tags": ["Metrics"], "summary": "Query one context",
+                "description": "Reduces matching series to evenly spaced points. Tier 0 (1 s) for recent windows, 1-minute and 1-hour rollups for longer ones.",
+                "parameters": [
+                    { "name": "context", "in": "query", "required": true, "schema": { "type": "string" } },
+                    { "name": "charts", "in": "query", "schema": { "type": "string" } },
+                    { "name": "dimensions", "in": "query", "schema": { "type": "string" } },
+                    { "name": "nodes", "in": "query", "schema": { "type": "string" } },
+                    { "name": "labels", "in": "query", "schema": { "type": "string" }, "description": "k=v,k2=v2 (globs)" },
+                    { "name": "after", "in": "query", "schema": { "type": "integer" }, "description": "Unix seconds, or negative seconds relative to before (default -600)" },
+                    { "name": "before", "in": "query", "schema": { "type": "integer" } },
+                    { "name": "points", "in": "query", "schema": { "type": "integer" } },
+                    { "name": "group", "in": "query", "schema": { "type": "string" }, "description": "avg, min, max, sum, last, p50, p90, p95, p99" },
+                    { "name": "group_by", "in": "query", "schema": { "type": "string" }, "description": "dimension, chart, node, instance, all, label:<key>" },
+                    { "name": "aggregate", "in": "query", "schema": { "type": "string" } },
+                    { "name": "tier", "in": "query", "schema": { "type": "integer" } }
+                ],
+                "responses": { "200": { "description": "Query result" }, "400": { "description": "Bad query" } }
+            }
+        },
+        "/metrics/anomalies": {
+            "get": { "tags": ["Metrics"], "summary": "Anomaly summary", "description": "Per-node anomaly rates, a timeline and the most anomalous dimensions in a window.", "responses": { "200": { "description": "Summary" } } }
+        },
+        "/metrics/correlations": {
+            "get": { "tags": ["Metrics"], "summary": "What changed", "description": "Dimensions whose distribution in the window differs most from the preceding baseline (two-sample KS).", "responses": { "200": { "description": "Ranked dimensions" } } }
+        },
+        "/metrics/status": {
+            "get": { "tags": ["Metrics"], "summary": "Metrics platform status", "responses": { "200": { "description": "Status" } } }
+        },
+        "/metrics/exporters": {
+            "get": { "tags": ["Metrics"], "summary": "Exporter status", "description": "Prometheus remote write, OTLP and Graphite exporter counters.", "responses": { "200": { "description": "Exporters" } } }
+        },
+        "/metrics/alerts": {
+            "get": {
+                "tags": ["Metrics"], "summary": "Metric alerts",
+                "parameters": [
+                    { "name": "all", "in": "query", "schema": { "type": "boolean" }, "description": "Include clear and undefined instances" },
+                    { "name": "history", "in": "query", "schema": { "type": "integer" } }
+                ],
+                "responses": { "200": { "description": "Active alerts, history, rules, silences" }, "503": { "description": "Metric alerts disabled" } }
+            }
+        },
+        "/metrics/alerts/{id}/ack": {
+            "post": { "tags": ["Metrics"], "summary": "Acknowledge a raised metric alert (editor)", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Acknowledged" }, "404": { "$ref": "#/components/responses/NotFound" } } }
+        },
+        "/metrics/silences": {
+            "post": { "tags": ["Metrics"], "summary": "Silence metric alerts (editor)", "description": "Body: `{rule, node, chart, duration | until, comment}`; matchers are globs.", "responses": { "200": { "description": "Silence" }, "400": { "description": "Invalid silence" } } }
+        },
+        "/metrics/silences/{id}": {
+            "delete": { "tags": ["Metrics"], "summary": "Delete a metric alert silence (editor)", "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }], "responses": { "200": { "description": "Deleted" } } }
+        },
+
         // ---- Flows ----
         "/flows": {
             "get": {

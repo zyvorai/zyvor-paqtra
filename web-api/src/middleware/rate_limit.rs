@@ -46,7 +46,9 @@ const HEAVY_PREFIXES: &[&str] = &[
 ];
 
 /// Paths (exact) that are exempt from rate limiting.
-const EXEMPT_EXACT: &[&str] = &["/health", "/ready", "/metrics"];
+/// The agent metrics ingest is authenticated by the agent key before any
+/// decoding and is called once a second per node (more while catching up).
+const EXEMPT_EXACT: &[&str] = &["/health", "/ready", "/metrics", "/api/v1/agents/metrics"];
 
 /// Path prefixes that are exempt from rate limiting.
 const EXEMPT_PREFIXES: &[&str] = &["/swagger-ui"];

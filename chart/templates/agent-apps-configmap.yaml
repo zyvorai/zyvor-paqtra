@@ -1,0 +1,14 @@
+{{- if and .Values.agent.enabled .Values.agent.metrics.enabled .Values.agent.metrics.apps }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "paqtra.fullname" . }}-agent-apps
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "paqtra.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent
+data:
+  apps.yaml: |
+    apps:
+      {{- toYaml .Values.agent.metrics.apps | nindent 6 }}
+{{- end }}

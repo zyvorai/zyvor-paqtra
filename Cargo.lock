@@ -2048,6 +2048,7 @@ dependencies = [
  "libc",
  "nix 0.31.3",
  "owo-colors",
+ "paqtra-metrics",
  "prost",
  "ratatui",
  "regex",
@@ -2067,6 +2068,17 @@ dependencies = [
  "ureq",
  "uuid",
  "zip",
+]
+
+[[package]]
+name = "paqtra-metrics"
+version = "2.2.2"
+dependencies = [
+ "flate2",
+ "libc",
+ "serde",
+ "serde_json",
+ "serde_yaml",
 ]
 
 [[package]]

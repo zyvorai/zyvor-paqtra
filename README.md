@@ -31,6 +31,7 @@
 
 | | |
 |---|---|
+| **Per-second metrics platform** (Unreleased) | Every agent streams host, network, disk, pod, process-group and app metrics each second; the API keeps them in 1 s / 1 min / 1 h tiers, adds Hubble flow, verdict, drop, HTTP and DNS series, flags anomalies per dimension, runs 45 built-in metric alerts and exports to Prometheus remote write, OTLP or Graphite. [docs/metrics.md](docs/metrics.md) |
 | **Installs like `cilium-cli`** (2.2.0) | The Helm chart is compiled into the `paqtra` binary: `install`, `upgrade`, `status --wait`, `--with-cilium`, prerequisite checks, `doctor`. |
 | **Signed releases** (2.2.0) | Static musl Linux and macOS binaries with `sha256sums.txt`, a cosign keyless signature, an SBOM and a Homebrew formula. |
 | **Rule-level policy editing** (2.2.0) | Add, replace or delete one rule of a `CiliumNetworkPolicy`, with `?dry_run=true`, conflict detection and audit entries. |
@@ -90,6 +91,8 @@ Captured against a live lab cluster with Cilium and Hubble. Full tour on the [do
 ### Observe
 
 Live Hubble flows with verdict coloring and WebSocket streaming, a service map and an observed-traffic topology built from real flows. Real L7 DNS query/rcode/latency when Cilium DNS visibility is on; L4-only never invents SERVFAIL. [Capabilities →](docs/capabilities.md)
+
+Per-second node metrics next to the flows: CPU, memory, disks, interfaces, TCP, conntrack, pod cgroups, process groups (by `comm` only) and annotated apps (nginx, Redis, Envoy, CoreDNS, etcd, any Prometheus endpoint), with live canvas charts, per-dimension anomaly detection, "what changed here?" correlation and Netdata-style metric alerts that notify but never apply policy. `paqtra metrics …` covers the same from the terminal. [Metrics →](docs/metrics.md) · [Alerts →](docs/metric-alerts.md) · [Anomalies →](docs/anomaly-detection.md) · [Apps →](docs/app-collectors.md)
 
 ![Hubble flows with verdict coloring](docs/ux/01-flows.png)
 
@@ -223,6 +226,7 @@ Report vulnerabilities through [SECURITY.md](SECURITY.md). Deeper reading: [docs
 | Install, build and deploy | [Install guide](docs/install.md) · [QUICKSTART.md](QUICKSTART.md) · [Deploy options](docs/web-deployment.md) |
 | Call the API | [REST API](docs/rest-api.md) · [OpenAPI](docs/openapi.yaml) · [API reference](docs/client/api-reference.html) |
 | Use the terminal UI | [TUI](docs/tui.md) |
+| Watch node and app metrics | [Metrics platform](docs/metrics.md) · [Metric alerts](docs/metric-alerts.md) · [Anomaly detection](docs/anomaly-detection.md) · [App collectors](docs/app-collectors.md) |
 | Browse the repository | [Repository layout](docs/repository-layout.md) |
 | Compare with PacketWolf | [Paqtra vs PacketWolf](docs/paqtra-vs-packetwolf.md) |
 | Contribute | [CONTRIBUTING.md](CONTRIBUTING.md) · [AGENTS.md](AGENTS.md) · [CHANGELOG.md](CHANGELOG.md) |

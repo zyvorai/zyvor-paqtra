@@ -68,6 +68,78 @@ spec:
                 secretKeyRef:
                   name: {{ include "paqtra.fullname" . }}-secret
                   key: API_KEY
+            # Agents authenticate metric batches with this shared key.
+            - name: PAQTRA_AGENT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paqtra.fullname" . }}-secret
+                  key: PAQTRA_AGENT_KEY
+            {{- with .Values.api.metrics }}
+            - name: PAQTRA_METRICS_TIER0_SECONDS
+              value: {{ .tier0Seconds | quote }}
+            - name: PAQTRA_METRICS_TIER1_SECONDS
+              value: {{ .tier1Seconds | quote }}
+            - name: PAQTRA_METRICS_TIER2_SECONDS
+              value: {{ .tier2Seconds | quote }}
+            - name: PAQTRA_METRICS_DISK_QUOTA_MB
+              value: {{ .diskQuotaMB | quote }}
+            - name: PAQTRA_METRICALERT
+              value: {{ .alerts.enabled | quote }}
+            - name: PAQTRA_METRICALERT_DEFAULTS
+              value: {{ .alerts.defaults | quote }}
+            {{- if .alerts.rulesDir }}
+            - name: PAQTRA_METRICALERT_DIR
+              value: {{ .alerts.rulesDir | quote }}
+            {{- end }}
+            {{- with .export }}
+            {{- if .remoteWriteURL }}
+            - name: PAQTRA_METRICS_REMOTE_WRITE_URL
+              value: {{ .remoteWriteURL | quote }}
+            {{- end }}
+            {{- if .otlpEndpoint }}
+            - name: PAQTRA_METRICS_OTLP_ENDPOINT
+              value: {{ .otlpEndpoint | quote }}
+            {{- end }}
+            {{- if .graphiteAddr }}
+            - name: PAQTRA_METRICS_GRAPHITE_ADDR
+              value: {{ .graphiteAddr | quote }}
+            {{- end }}
+            {{- if .resolution }}
+            - name: PAQTRA_METRICS_EXPORT_RESOLUTION
+              value: {{ .resolution | quote }}
+            {{- end }}
+            {{- if .contexts }}
+            - name: PAQTRA_METRICS_EXPORT_CONTEXTS
+              value: {{ .contexts | quote }}
+            {{- end }}
+            {{- if .exclude }}
+            - name: PAQTRA_METRICS_EXPORT_EXCLUDE
+              value: {{ .exclude | quote }}
+            {{- end }}
+            {{- if .prefix }}
+            - name: PAQTRA_METRICS_EXPORT_PREFIX
+              value: {{ .prefix | quote }}
+            {{- end }}
+            {{- if .headersSecret }}
+            - name: PAQTRA_METRICS_REMOTE_WRITE_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .headersSecret }}
+                  key: remote-write-headers
+                  optional: true
+            - name: PAQTRA_METRICS_OTLP_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .headersSecret }}
+                  key: otlp-headers
+                  optional: true
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.global.clusterName }}
+            - name: PAQTRA_CLUSTER_NAME
+              value: {{ .Values.global.clusterName | quote }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: {{ .Values.api.probes.liveness.path }}

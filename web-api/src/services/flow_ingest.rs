@@ -138,11 +138,8 @@ async fn run_follow_session(state: &AppState) -> anyhow::Result<()> {
     }
 }
 
-fn flush_batch(
-    state: &AppState,
-    buf: &mut Vec<Flow>,
-    source: FlowSource,
-) -> anyhow::Result<()> {
+fn flush_batch(state: &AppState, buf: &mut Vec<Flow>, source: FlowSource) -> anyhow::Result<()> {
+    state.metrics_platform.observe_flows(buf);
     let (rows, skipped) = rows_for_store(buf, source);
     buf.clear();
     if skipped > 0 && state.flow_store.note_skipped_no_time(skipped as u64) == 0 {
@@ -158,7 +155,10 @@ fn flush_batch(
 /// One-shot ingest (tests / on-demand refresh).
 #[allow(dead_code)]
 pub async fn ingest_now(state: &AppState) -> anyhow::Result<usize> {
-    let (flows, source) = state.hubble.get_flows_with_source(INGEST_BATCH, None).await?;
+    let (flows, source) = state
+        .hubble
+        .get_flows_with_source(INGEST_BATCH, None)
+        .await?;
     let source = if state.hubble.is_healthy().await {
         source
     } else {

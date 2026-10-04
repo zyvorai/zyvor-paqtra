@@ -67,6 +67,10 @@ pub const EDITOR_WRITES: &[(&str, &str)] = &[
     ("DELETE", "/api/v1/alerts/rules/{id}"),
     ("POST", "/api/v1/alerts/silences"),
     ("DELETE", "/api/v1/alerts/silences/{id}"),
+    // Metric alert acks and silences
+    ("POST", "/api/v1/metrics/alerts/{id}/ack"),
+    ("POST", "/api/v1/metrics/silences"),
+    ("DELETE", "/api/v1/metrics/silences/{id}"),
     // SLOs
     ("POST", "/api/v1/slo/targets"),
     ("DELETE", "/api/v1/slo/targets/{id}"),
@@ -201,6 +205,8 @@ pub async fn auth_middleware(
         || path == "/ready"
         || path == "/metrics"
         || path == "/api/v1/auth/login"
+        // Agent metrics ingest checks X-Paqtra-Agent-Key in the handler.
+        || path == "/api/v1/agents/metrics"
         || path.starts_with("/api/v1/ws/")
         || path.starts_with("/api-docs/")
         || path == "/swagger-ui"

@@ -1,16 +1,20 @@
-//! Node agent: health + read-only BPF attachment / drift HTTP.
+//! Node agent: health, read-only BPF attachment / drift HTTP, and the
+//! per-second metrics collectors streaming to the API.
 
 use anyhow::{Context, Result};
 use owo_colors::OwoColorize;
 use std::net::SocketAddr;
+use std::sync::Arc;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::TcpListener;
 use tokio::signal;
 
 use crate::ebpf::attachments::{collect_inventory, drift_findings};
+use crate::metrics::{spawn_pod_watch, AgentMetrics, MetricsConfig};
 
 /// Long-running node agent for the DaemonSet.
-/// Serves `/health`, `/attachments`, and `/drift` (observe-only).
+/// Serves `/health`, `/attachments`, `/drift` and `/metrics/status`
+/// (observe-only).
 pub async fn run_agent(listen: SocketAddr) -> Result<()> {
     let node = std::env::var("NODE_NAME").unwrap_or_else(|_| "unknown".into());
     let hostname = std::env::var("HOSTNAME").unwrap_or_else(|_| "paqtra-agent".into());
@@ -27,8 +31,10 @@ pub async fn run_agent(listen: SocketAddr) -> Result<()> {
         .await
         .with_context(|| format!("bind {listen}"))?;
 
+    let metrics = start_metrics();
+
     println!(
-        "{} Agent ready — GET /health /attachments /drift",
+        "{} Agent ready — GET /health /attachments /drift /metrics/status",
         "✔".green()
     );
 
@@ -41,12 +47,13 @@ pub async fn run_agent(listen: SocketAddr) -> Result<()> {
             accept = listener.accept() => {
                 match accept {
                     Ok((mut sock, _)) => {
+                        let metrics = metrics.clone();
                         tokio::spawn(async move {
                             let mut buf = [0u8; 2048];
                             let n = sock.read(&mut buf).await.unwrap_or(0);
                             let req = String::from_utf8_lossy(&buf[..n]);
                             let path = parse_path(&req);
-                            let (status, body) = handle_path(path);
+                            let (status, body) = handle_path(path, metrics.as_deref());
                             let resp = format!(
                                 "HTTP/1.1 {status}\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
                                 body.len(),
@@ -59,7 +66,36 @@ pub async fn run_agent(listen: SocketAddr) -> Result<()> {
             }
         }
     }
+    if let Some(m) = &metrics {
+        m.stop();
+    }
     Ok(())
+}
+
+fn start_metrics() -> Option<Arc<AgentMetrics>> {
+    let cfg = MetricsConfig::from_env();
+    if !cfg.enabled {
+        return None;
+    }
+    let pods = spawn_pod_watch(cfg.node.clone());
+    let api = cfg.api.clone();
+    match AgentMetrics::start(cfg, pods) {
+        Ok(m) => {
+            if api.is_empty() {
+                println!(
+                    "{} Metrics collecting locally (set PAQTRA_METRICS_API to stream)",
+                    "→".cyan()
+                );
+            } else {
+                println!("{} Metrics streaming to {api}", "→".cyan());
+            }
+            Some(Arc::new(m))
+        }
+        Err(e) => {
+            tracing::warn!("metrics disabled: {e}");
+            None
+        }
+    }
 }
 
 fn parse_path(req: &str) -> &str {
@@ -70,7 +106,7 @@ fn parse_path(req: &str) -> &str {
     path.split('?').next().unwrap_or("/")
 }
 
-fn handle_path(path: &str) -> (&'static str, String) {
+fn handle_path(path: &str, metrics: Option<&AgentMetrics>) -> (&'static str, String) {
     match path {
         "/health" | "/" => (
             "200 OK",
@@ -97,6 +133,13 @@ fn handle_path(path: &str) -> (&'static str, String) {
                 ),
             }
         }
+        "/metrics/status" => match metrics {
+            Some(m) => ("200 OK", m.status_json().to_string()),
+            None => (
+                "200 OK",
+                r#"{"enabled":false,"hint":"PAQTRA_METRICS=false or startup failed"}"#.into(),
+            ),
+        },
         _ => ("404 Not Found", r#"{"error":"not found"}"#.into()),
     }
 }
@@ -116,7 +159,7 @@ mod tests {
             .expect("connect");
         let req = format!("GET {path} HTTP/1.1\r\nHost: localhost\r\n\r\n");
         sock.write_all(req.as_bytes()).await.unwrap();
-        let mut buf = vec![0u8; 8192];
+        let mut buf = vec![0u8; 65536];
         let n = timeout(Duration::from_secs(2), sock.read(&mut buf))
             .await
             .expect("read timeout")
@@ -150,6 +193,9 @@ mod tests {
         let drift = get(addr, "/drift").await;
         assert!(drift.contains("200"), "{drift}");
         assert!(drift.contains("kind") || drift.contains("[]"), "{drift}");
+
+        let status = get(addr, "/metrics/status").await;
+        assert!(status.contains("200"), "{status}");
 
         let missing = get(addr, "/nope").await;
         assert!(missing.contains("404"), "{missing}");

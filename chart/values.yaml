@@ -7,6 +7,8 @@ global:
   namespace: paqtra
   # -- Image pull secrets
   imagePullSecrets: []
+  # -- Cluster label on exported metrics (PAQTRA_CLUSTER_NAME)
+  clusterName: ""
 
 # -- API server configuration
 api:
@@ -78,6 +80,31 @@ api:
   # index in SQLite so investigations survive restarts. SQLite is single-writer,
   # so enabling this pins the API to 1 replica (strategy Recreate) and disables
   # the HPA. Leave disabled only for HA memory-only demos.
+  # -- Metrics platform storage, alerts and exporters (docs/metrics.md).
+  # Metrics live in the API process: keep one replica (the default with
+  # persistence) so every agent's stream lands in the same store.
+  metrics:
+    tier0Seconds: 3600        # per-second
+    tier1Seconds: 1209600     # per-minute, 14 days
+    tier2Seconds: 31536000    # per-hour, 365 days
+    # Per node store (and the Hubble-derived store); keep the total under
+    # persistence.size.
+    diskQuotaMB: 128
+    alerts:
+      enabled: true
+      defaults: true
+      rulesDir: ""
+    export:
+      remoteWriteURL: ""
+      otlpEndpoint: ""
+      graphiteAddr: ""
+      resolution: ""
+      contexts: ""
+      exclude: ""
+      prefix: ""
+      # Secret with optional keys remote-write-headers / otlp-headers
+      # ("Name: value, Name2: value2").
+      headersSecret: ""
   persistence:
     enabled: true
     size: 1Gi
@@ -137,6 +164,29 @@ agent:
   bpf:
     # Mount host BPF filesystem for local map access
     mountPath: /sys/fs/bpf
+  # -- Per-second node metrics streamed to the API (docs/metrics.md).
+  # Collectors are read-only; the process collector records comm only.
+  metrics:
+    enabled: true
+    # Share the host network/PID namespaces and mount / read-only at /host so
+    # host, network, filesystem and pod cgroup metrics describe the node.
+    hostAccess: true
+    processGroups: 64
+    containers: true
+    # Scrape pods on this node annotated paqtra.io/app-kind or prometheus.io/scrape.
+    appDiscovery: true
+    anomaly: true
+    # Seconds of local history kept for replay while the API is unreachable.
+    bufferSeconds: 3600
+    # Static app collectors (docs/app-collectors.md). Credentials come only
+    # from env vars named here (username_env/password_env/bearer_env); add
+    # those via extraEnv.
+    apps: []
+    # - kind: redis
+    #   name: cache
+    #   address: 10.0.0.5:6379
+    #   password_env: REDIS_PASSWORD
+    extraEnv: []
 
 # -- Ingress configuration
 ingress:
@@ -172,6 +222,9 @@ auth:
   # Empty → Helm auto-generates. Lab pin is set only by scripts/deploy-remote.sh.
   adminPassword: ""
   apiKey: ""
+  # Shared by the API and agents for metric ingest. Empty → auto-generated
+  # once and kept across upgrades.
+  agentKey: ""
 
 # -- Monitoring configuration
 monitoring:
