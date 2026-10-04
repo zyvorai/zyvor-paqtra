@@ -1,6 +1,6 @@
 # Paqtra docs site
 
-Built with [Docusaurus](https://docusaurus.io/). Serves the live docs at https://zyvorai.github.io/paqtra/.
+Built with [Docusaurus](https://docusaurus.io/). Serves the live docs at https://zyvorai.github.io/zyvor-paqtra/.
 
 ## Local development
 

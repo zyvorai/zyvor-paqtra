@@ -14,10 +14,10 @@ const config: Config = {
   },
 
   url: 'https://zyvorai.github.io',
-  baseUrl: '/paqtra/',
+  baseUrl: '/zyvor-paqtra/',
 
   organizationName: 'zyvorai',
-  projectName: 'paqtra',
+  projectName: 'zyvor-paqtra',
 
   onBrokenLinks: 'throw',
 
@@ -46,7 +46,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/zyvorai/paqtra/tree/main/website/',
+          editUrl: 'https://github.com/zyvorai/zyvor-paqtra/tree/main/website/',
         },
         blog: false,
         theme: {
@@ -59,7 +59,8 @@ const config: Config = {
   themeConfig: {
     image: 'paqtra-share-card.png',
     colorMode: {
-      respectPrefersColorScheme: true,
+      defaultMode: 'dark',
+      respectPrefersColorScheme: false,
     },
     navbar: {
       title: 'Paqtra',
@@ -85,7 +86,7 @@ const config: Config = {
           position: 'left',
         },
         {
-          href: 'https://github.com/zyvorai/paqtra',
+          href: 'https://github.com/zyvorai/zyvor-paqtra',
           label: 'GitHub',
           position: 'right',
         },
@@ -108,14 +109,14 @@ const config: Config = {
         {
           title: 'Project',
           items: [
-            {label: 'GitHub', href: 'https://github.com/zyvorai/paqtra'},
+            {label: 'GitHub', href: 'https://github.com/zyvorai/zyvor-paqtra'},
             {
               label: 'Changelog',
-              href: 'https://github.com/zyvorai/paqtra/blob/main/CHANGELOG.md',
+              href: 'https://github.com/zyvorai/zyvor-paqtra/blob/main/CHANGELOG.md',
             },
             {
               label: 'License (Apache 2.0)',
-              href: 'https://github.com/zyvorai/paqtra/blob/main/LICENSE',
+              href: 'https://github.com/zyvorai/zyvor-paqtra/blob/main/LICENSE',
             },
           ],
         },
