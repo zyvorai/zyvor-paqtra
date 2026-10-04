@@ -57,7 +57,7 @@ const config: Config = {
   ],
 
   themeConfig: {
-    image: 'paqtra-share-card.png',
+    image: 'paqtra-hero-dark.jpg',
     colorMode: {
       defaultMode: 'dark',
       respectPrefersColorScheme: false,

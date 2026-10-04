@@ -8,7 +8,7 @@
   Build: ./docs/social/build-hero-dark.sh  ->  paqtra-hero-dark.jpg (2400x1260)
 -->
 <style>
-  :root { --blue:#0071e3; --signal:#2997ff; --cyan:#64d2ff; --green:#30d158; --amber:#ff9f0a;
+  :root { --blue:#0071e3; --signal:#2997ff; --cyan:#64d2ff; --green:#30d158; --amber:#ff9f0a; --red:#ff453a;
     --sans:'SF Pro Display','Helvetica Neue',Helvetica,Arial,sans-serif; --mono:'SF Mono',Menlo,Consolas,monospace; }
   * { box-sizing:border-box; }
   html,body { margin:0; padding:0; }
@@ -35,25 +35,18 @@
   .pill span { font-family:var(--mono); font-size:13.5px; font-weight:700; padding:7px 13px; border-radius:18px; border:1.5px solid rgba(255,255,255,.2); color:#e5e5ea; background:rgba(255,255,255,.04); }
   .pill span.b { background:var(--blue); border-color:var(--blue); color:#fff; box-shadow:0 0 24px rgba(0,113,227,.55); }
 
-  .right { position:absolute; left:652px; top:96px; width:560px; z-index:2; }
-  .win { position:relative; width:560px; border-radius:16px; overflow:hidden; z-index:2;
-    background:linear-gradient(180deg, rgba(22,24,30,.94), rgba(10,11,14,.96));
-    box-shadow:0 50px 100px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.14), 0 0 90px rgba(41,151,255,.22);
-    transform:perspective(1600px) rotateY(-14deg) rotateX(4deg); transform-origin:left center; }
-  .bar { height:34px; display:flex; align-items:center; gap:8px; padding:0 14px; background:rgba(255,255,255,.05); border-bottom:1px solid rgba(255,255,255,.07); }
-  .bar i { width:11px; height:11px; border-radius:50%; background:#ff5f57; } .bar i:nth-child(2){background:#febc2e} .bar i:nth-child(3){background:#28c840}
-  .bar em { margin-left:auto; margin-right:auto; font-style:normal; font-family:var(--mono); font-size:12px; color:#8e8e93; transform:translateX(-24px); }
-  .term { min-height:214px; padding:20px 22px 24px; font-family:var(--mono); font-size:15.5px; line-height:1.75; }
-  .l { white-space:pre; overflow:hidden; text-overflow:ellipsis; color:#f5f5f7; }
-  .l .p { color:var(--signal); font-weight:700; }
-  .l.out { color:#a1a1a6; }
-  .l.cm { color:#6e6e73; }
-  .l.ok { color:#d1f7dc; } .l.ok span { color:var(--green); font-weight:700; }
-  .l.warn { color:#ffe1b0; } .l.warn span { color:var(--amber); font-weight:700; }
-  .cur { display:inline-block; width:9px; height:18px; background:var(--signal); vertical-align:-3px; box-shadow:0 0 12px var(--signal); }
-  .chips { margin:34px 0 0 38px; width:480px; display:flex; flex-wrap:wrap; gap:10px; position:relative; z-index:3; }
-  .chips span { font-family:var(--mono); font-size:13px; font-weight:700; letter-spacing:.04em; padding:7px 12px; border-radius:14px;
-    color:#cfe6ff; background:rgba(10,20,35,.82); border:1px solid rgba(41,151,255,.45); box-shadow:0 0 18px rgba(41,151,255,.18); }
+  .hive { position:absolute; left:520px; top:0; width:680px; height:630px; z-index:2; }
+  .hive svg { display:block; }
+  .lbl { position:absolute; z-index:4; font-family:var(--mono); text-align:center; transform:translate(-50%,-50%); white-space:nowrap; }
+  .lbl b { display:block; font-size:12px; letter-spacing:.16em; text-transform:uppercase; }
+  .lbl span { display:block; margin-top:3px; font-size:12.5px; color:#a1a1a6; }
+  .lbl.a b { color:#cfe6ff; } .lbl.c b { color:#fff; font-size:13px; } .lbl.ok b { color:var(--green); } .lbl.no b { color:var(--red); }
+  .why { position:absolute; z-index:5; font-family:var(--mono); font-size:13px; font-weight:700; padding:7px 12px; border-radius:14px;
+    color:#ffd7d3; background:rgba(40,8,8,.85); border:1px solid rgba(255,69,58,.7); box-shadow:0 0 22px rgba(255,69,58,.35); }
+  .why i { font-style:normal; color:var(--red); }
+  .flow { position:absolute; left:640px; bottom:30px; z-index:5; font-family:var(--mono); font-size:12.5px; line-height:1.7; color:#8e8e93;
+    padding:10px 14px; border-radius:12px; white-space:pre; background:rgba(8,10,14,.82); border:1px solid rgba(255,255,255,.1); }
+  .flow .f { color:var(--green); font-weight:700; } .flow .d { color:var(--red); font-weight:700; } .flow em { font-style:normal; color:#d1d1d6; }
 </style>
 </head>
 <body>
@@ -67,8 +60,95 @@
   <div class="stats"><div class="stat"><b>3</b><span>interfaces</span></div><div class="stat"><b>0</b><span>BPF map writes</span></div><div class="stat"><b>Rust</b><span>Axum + Ratatui</span></div></div>
 </div>
 <div class="pill"><span class="b">github.com/zyvorai/zyvor-paqtra</span><span>Apache-2.0</span></div>
-<div class="right"><div class="win"><div class="bar"><i></i><i></i><i></i><em>paqtra</em></div>
-<div class="term"><div class="l"><span class="p">$</span> paqtra install</div><div class="l out">Installing Paqtra 2.2.2 into namespace paqtra</div><div class="l ok"><span>&#10003;</span> Paqtra installed.</div><div class="l"><span class="p">$</span> paqtra status --wait</div><div class="l out">API              Ready          healthy, v2.2.2</div><div class="l ok"><span>&#10003;</span> Paqtra is running</div><div class="l"><span class="p">$</span> <i class="cur"></i></div></div></div>
-<div class="chips"><span>Cilium</span><span>Hubble</span><span>Kubernetes</span><span>Rust</span><span>Axum</span><span>React</span></div></div>
+<div class="hive"><svg id="hive" width="680" height="630" viewBox="0 0 680 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="fade" cx="52%" cy="48%" r="62%"><stop offset="0" stop-color="#fff"/><stop offset=".62" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <mask id="m"><rect width="680" height="630" fill="url(#fade)"/></mask>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs>
+  <g id="cells" mask="url(#m)"></g>
+  <g id="ambient" mask="url(#m)"></g>
+  <g id="trace"></g>
+</svg></div>
+<div id="labels"></div>
+<div class="flow"><div><em>frontend</em> &rarr; <em>backend</em>  TCP 8080  <span class="f">FORWARDED</span></div><div><em>frontend</em> &rarr; <em>db</em>       TCP 5432  <span class="d">DROPPED</span>  Policy denied</div></div>
+<script>
+(function () {
+  var NS = 'http://www.w3.org/2000/svg', S = 31, R3 = Math.sqrt(3), OX = 20, OY = 14;
+  var seed = 20261004;
+  function rnd() { seed = (seed * 1103515245 + 12345) % 2147483648; return seed / 2147483648; }
+  function el(tag, a, parent) { var e = document.createElementNS(NS, tag); for (var k in a) e.setAttribute(k, a[k]); parent.appendChild(e); return e; }
+  function px(q, r) { return [OX + S * R3 * (q + r / 2), OY + S * 1.5 * r]; }
+  function hexPts(cx, cy, s) { var p = []; for (var i = 0; i < 6; i++) { var a = Math.PI / 180 * (60 * i - 30); p.push((cx + s * Math.cos(a)).toFixed(1) + ',' + (cy + s * Math.sin(a)).toFixed(1)); } return p.join(' '); }
+  function round(q, r) { var x = q, z = r, y = -x - z, rx = Math.round(x), ry = Math.round(y), rz = Math.round(z);
+    var dx = Math.abs(rx - x), dy = Math.abs(ry - y), dz = Math.abs(rz - z);
+    if (dx > dy && dx > dz) rx = -ry - rz; else if (dy <= dz) rz = -rx - ry; return [rx, rz]; }
+  function cellAt(x, y) { var r = (y - OY) / (S * 1.5), q = (x - OX) / (S * R3) - r / 2; return round(q, r); }
+  function line(a, b) { var n = Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]), Math.abs((a[0] + a[1]) - (b[0] + b[1]))), out = [];
+    for (var i = 0; i <= n; i++) { var t = n ? i / n : 0; out.push(round(a[0] + (b[0] - a[0]) * t + 1e-6, a[1] + (b[1] - a[1]) * t + 1e-6)); } return out; }
+  function route(ws) { var out = []; for (var i = 0; i + 1 < ws.length; i++) { var l = line(ws[i], ws[i + 1]); if (i) l.shift(); out = out.concat(l); } return out; }
+  function smooth(cells) { var p = cells.map(function (c) { return px(c[0], c[1]); }), d = 'M' + p[0][0].toFixed(1) + ',' + p[0][1].toFixed(1);
+    for (var i = 0; i + 1 < p.length; i++) { var p0 = p[i - 1] || p[i], p1 = p[i], p2 = p[i + 1], p3 = p[i + 2] || p2;
+      d += ' C' + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + ',' + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1) + ' ' + (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + ',' + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1) + ' ' + p2[0].toFixed(1) + ',' + p2[1].toFixed(1); }
+    return d; }
+
+  var cells = document.getElementById('cells'), amb = document.getElementById('ambient'), tr = document.getElementById('trace');
+  var key = function (c) { return c[0] + ':' + c[1]; }, all = [];
+  for (var r = -1; r < 15; r++) for (var q = -Math.ceil(r / 2) - 1; q < 15 - Math.floor(r / 2); q++) {
+    var c = px(q, r); if (c[0] < -40 || c[0] > 720 || c[1] < -40 || c[1] > 670) continue; all.push([q, r]);
+    var heat = Math.pow(rnd(), 2.4);
+    el('polygon', { points: hexPts(c[0], c[1], S - 2.2), fill: 'rgba(41,151,255,' + (0.015 + heat * 0.13).toFixed(3) + ')', stroke: 'rgba(120,185,255,' + (0.10 + heat * 0.22).toFixed(3) + ')', 'stroke-width': 1 }, cells);
+    if (heat > 0.55) el('circle', { cx: c[0], cy: c[1], r: 1.8, fill: '#64d2ff', opacity: (0.3 + heat * 0.5).toFixed(2) }, cells);
+  }
+
+  var dirs = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
+  for (var w = 0; w < 30; w++) {
+    var cur = all[Math.floor(rnd() * all.length)], path = [cur], d = Math.floor(rnd() * 6), n = 4 + Math.floor(rnd() * 7);
+    for (var k = 0; k < n; k++) { if (rnd() < 0.35) d = (d + (rnd() < 0.5 ? 1 : 5)) % 6; cur = [cur[0] + dirs[d][0], cur[1] + dirs[d][1]]; path.push(cur); }
+    var drop = rnd() < 0.16, col = drop ? '#ff453a' : (rnd() < 0.5 ? '#30d158' : '#64d2ff'), op = (0.22 + rnd() * 0.3).toFixed(2);
+    el('polyline', { points: path.map(function (c) { var q = px(c[0], c[1]); return q[0].toFixed(1) + ',' + q[1].toFixed(1); }).join(' '), fill: 'none', 'stroke-linejoin': 'round', stroke: col, 'stroke-width': 1.3, 'stroke-linecap': 'round', opacity: op }, amb);
+    var e = px(cur[0], cur[1]);
+    if (drop) { el('path', { d: 'M' + (e[0] - 4) + ',' + (e[1] - 4) + 'l8,8m0,-8l-8,8', stroke: col, 'stroke-width': 1.6, opacity: op * 1.6 }, amb); }
+    else el('circle', { cx: e[0], cy: e[1], r: 2.6, fill: col, opacity: Math.min(1, op * 2.2) }, amb);
+  }
+
+  var A = cellAt(150, 330), C = cellAt(350, 280), B = cellAt(570, 140), D = cellAt(560, 430);
+  var fwd = route([A, cellAt(250, 350), C, cellAt(440, 200), B]);
+  var drp = route([C, cellAt(430, 380), D]);
+  function lightCells(list, col) { list.forEach(function (c) { var p = px(c[0], c[1]); el('polygon', { points: hexPts(p[0], p[1], S - 2.2), fill: col, opacity: .10, stroke: col, 'stroke-opacity': .45, 'stroke-width': 1.2 }, tr); }); }
+  lightCells(fwd, '#2997ff'); lightCells(drp.slice(1, -1), '#ff453a');
+
+  function beads(d, col, n, w) {
+    el('path', { d: d, fill: 'none', stroke: col, 'stroke-width': w * 3, opacity: .25, filter: 'url(#soft)' }, tr);
+    var p = el('path', { d: d, fill: 'none', stroke: col, 'stroke-width': w, 'stroke-linecap': 'round', opacity: .9, filter: 'url(#glow)' }, tr);
+    var L = p.getTotalLength();
+    for (var i = 1; i < n; i++) { var t = i / n, pt = p.getPointAtLength(L * t); el('circle', { cx: pt.x, cy: pt.y, r: (1.6 + 2.6 * t).toFixed(2), fill: '#fff', opacity: (0.25 + 0.7 * t).toFixed(2), filter: 'url(#glow)' }, tr); }
+    return p;
+  }
+  beads(smooth(route([A, cellAt(250, 350), C])), '#64d2ff', 9, 2.4);
+  beads(smooth(route([C, cellAt(440, 200), B])), '#30d158', 9, 2.4);
+  var dp = beads(smooth(drp.slice(0, -1)), '#ff453a', 7, 2.2);
+
+  function node(c, col, big) { var p = px(c[0], c[1]);
+    el('polygon', { points: hexPts(p[0], p[1], S * (big ? 1.9 : 1.15)), fill: col, opacity: .18, filter: 'url(#soft)' }, tr);
+    el('polygon', { points: hexPts(p[0], p[1], S * (big ? 1.55 : 0.95)), fill: 'rgba(6,10,18,.92)', stroke: col, 'stroke-width': big ? 2.6 : 2, filter: 'url(#glow)' }, tr);
+    if (big) el('polygon', { points: hexPts(p[0], p[1], S * 1.95), fill: 'none', stroke: col, 'stroke-width': 1, 'stroke-dasharray': '3 5', opacity: .55 }, tr);
+    return p; }
+  var pa = node(A, '#64d2ff'), pc = node(C, '#2997ff', true), pb = node(B, '#30d158'), pd = node(D, '#ff453a');
+  var end = dp.getPointAtLength(dp.getTotalLength()), ang = Math.atan2(pd[1] - end.y, pd[0] - end.x), bx = pd[0] - Math.cos(ang) * S * 1.25, by = pd[1] - Math.sin(ang) * S * 1.25;
+  var nx = -Math.sin(ang) * 16, ny = Math.cos(ang) * 16;
+  el('line', { x1: bx - nx, y1: by - ny, x2: bx + nx, y2: by + ny, stroke: '#ff453a', 'stroke-width': 4, 'stroke-linecap': 'round', filter: 'url(#glow)' }, tr);
+
+  var L = document.getElementById('labels'), HX = 520;
+  function lbl(cls, x, y, b, s) { var d = document.createElement('div'); d.className = 'lbl ' + cls; d.style.left = (HX + x) + 'px'; d.style.top = y + 'px'; d.innerHTML = '<b>' + b + '</b>' + (s ? '<span>' + s + '</span>' : ''); L.appendChild(d); }
+  lbl('a', pa[0], pa[1] + 50, 'source', 'frontend');
+  lbl('c', pc[0], pc[1] - 6, 'Cilium', 'verdict');
+  lbl('ok', pb[0], pb[1] + 50, 'forwarded', 'backend');
+  lbl('no', pd[0], pd[1] + 50, 'dropped', 'db');
+  [pa, pb, pd].forEach(function (p, i) { var t = document.createElement('div'); t.className = 'lbl ' + ['a', 'ok', 'no'][i]; t.style.left = (HX + p[0]) + 'px'; t.style.top = p[1] + 'px'; t.innerHTML = '<b style="letter-spacing:0">' + ['A', 'B', '&times;'][i] + '</b>'; L.appendChild(t); });
+  var why = document.createElement('div'); why.className = 'why'; why.innerHTML = '<i>?</i> Why denied?'; why.style.left = (HX + pd[0] - 236) + 'px'; why.style.top = (pd[1] + 6) + 'px'; L.appendChild(why);
+})();
+</script>
 </body>
 </html>
