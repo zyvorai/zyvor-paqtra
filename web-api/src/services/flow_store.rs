@@ -16,6 +16,10 @@ use crate::models::flow::Flow;
 
 pub const DEFAULT_RETENTION_DAYS: i64 = 7;
 const MAX_MEMORY_FLOWS: usize = 50_000;
+/// Expired rows deleted per purge. Purge runs at open and after every ingest
+/// batch while holding the writer lock, so a large backlog drains a chunk at a
+/// time instead of blocking startup or ingest behind one huge DELETE.
+const PURGE_CHUNK: i64 = 20_000;
 /// A read that runs longer than this is cut off. The store is one SQLite file
 /// holding millions of rows; a filter with no usable index (a namespace on the
 /// destination side, a pod-name LIKE) is a full scan, and without a limit it
@@ -760,7 +764,11 @@ impl FlowStore {
             let conn = db
                 .lock()
                 .map_err(|_| anyhow::anyhow!("flow db lock poisoned"))?;
-            let n = conn.execute("DELETE FROM flows WHERE ts < ?1", params![cutoff])?;
+            let n = conn.execute(
+                "DELETE FROM flows WHERE rowid IN
+                    (SELECT rowid FROM flows INDEXED BY idx_flows_ts WHERE ts < ?1 LIMIT ?2)",
+                params![cutoff, PURGE_CHUNK],
+            )?;
             return Ok(n);
         }
         let mut mem = self
@@ -1088,6 +1096,41 @@ mod tests {
             .unwrap();
         assert_eq!(rows.len(), 1);
         assert_eq!(store.stats().total, 1);
+        drop(store);
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn purge_drains_expired_rows_a_chunk_at_a_time() {
+        let dir = std::env::temp_dir().join(format!("paqtra-purge-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let store = FlowStore::open(&dir, 7).unwrap();
+        let old = format_ts(Utc::now() - ChronoDuration::days(30));
+        {
+            let mut conn = store.db.as_ref().unwrap().lock().unwrap();
+            let tx = conn.transaction().unwrap();
+            for i in 0..PURGE_CHUNK + 5 {
+                tx.execute(
+                    "INSERT INTO flows (id, ts, verdict, protocol, port) VALUES (?1, ?2, 'FORWARDED', 'TCP', 80)",
+                    params![format!("old-{i}"), old],
+                )
+                .unwrap();
+            }
+            tx.commit().unwrap();
+        }
+        store.insert_batch(&[sample("fresh")]).unwrap();
+        // insert_batch already purged one chunk.
+        assert_eq!(store.purge_expired().unwrap(), 5);
+        assert_eq!(store.purge_expired().unwrap(), 0);
+        let rows = store
+            .query(&FlowQuery {
+                limit: 10,
+                ..Default::default()
+            })
+            .unwrap();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].id, "fresh");
         drop(store);
         let _ = std::fs::remove_dir_all(&dir);
     }

@@ -50,6 +50,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   7 broke `npm ci` (typescript-eslint peer range), ESLint and `tsconfig`
   `baseUrl`.
 
+### Fixed
+
+- **API no longer hangs at startup on a large flow backlog.** Flow-history
+  retention deleted every expired row in one statement before the server
+  bound its port, so a multi-GB `flows.db` kept the pod unready past its
+  probes. Purge now deletes at most 20,000 rows per pass through the time
+  index; the backlog drains across ingest batches.
+- **Agent pod list is bounded.** The metrics pod index listed every pod ever
+  scheduled on the node, including evicted ones (12k on one lab node, 150 MB
+  of JSON), and was OOM-killed. It now skips `Failed`/`Succeeded` pods
+  server-side and pages the list 250 pods at a time.
+
 ## [2.2.2] - 2026-09-27
 
 ### Fixed

@@ -77,6 +77,31 @@ pub(crate) fn pod_meta(pod: &Pod) -> Option<(String, PodMeta)> {
     ))
 }
 
+/// Pods per list page. Nodes can carry thousands of pods, so the list is paged
+/// to keep the agent's peak memory independent of the pod count.
+const POD_PAGE: u32 = 250;
+
+/// Live pods on `node`: finished pods have no cgroups or reachable endpoints,
+/// and evicted ones can outnumber running pods a hundred to one.
+fn pod_selector(node: &str) -> String {
+    format!("spec.nodeName={node},status.phase!=Failed,status.phase!=Succeeded")
+}
+
+async fn list_pods(pods: &Api<Pod>, node: &str) -> kube::Result<HashMap<String, PodMeta>> {
+    let mut lp = ListParams::default()
+        .fields(&pod_selector(node))
+        .limit(POD_PAGE);
+    let mut m = HashMap::new();
+    loop {
+        let page = pods.list(&lp).await?;
+        m.extend(page.items.iter().filter_map(pod_meta));
+        match page.metadata.continue_.filter(|c| !c.is_empty()) {
+            Some(c) => lp = lp.continue_token(&c),
+            None => return Ok(m),
+        }
+    }
+}
+
 /// Lists this node's pods every 30 s. Failures keep the previous index.
 pub fn spawn_pod_watch(node: String) -> PodIndex {
     let idx: PodIndex = Arc::new(RwLock::new(HashMap::new()));
@@ -92,14 +117,9 @@ pub fn spawn_pod_watch(node: String) -> PodIndex {
             }
         };
         let pods: Api<Pod> = Api::all(client);
-        let lp = ListParams::default().fields(&format!("spec.nodeName={node}"));
         loop {
-            match pods.list(&lp).await {
-                Ok(list) => {
-                    let m: HashMap<String, PodMeta> =
-                        list.items.iter().filter_map(pod_meta).collect();
-                    *idx.write().unwrap() = m;
-                }
+            match list_pods(&pods, &node).await {
+                Ok(m) => *idx.write().unwrap() = m,
                 Err(e) => tracing::debug!("metrics pod index: {e}"),
             }
             tokio::time::sleep(Duration::from_secs(30)).await;
@@ -256,6 +276,14 @@ mod tests {
             }),
             ..Default::default()
         }
+    }
+
+    #[test]
+    fn selector_skips_finished_pods() {
+        assert_eq!(
+            pod_selector("n1"),
+            "spec.nodeName=n1,status.phase!=Failed,status.phase!=Succeeded"
+        );
     }
 
     #[test]
