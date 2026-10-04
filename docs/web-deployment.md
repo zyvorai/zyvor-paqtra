@@ -359,6 +359,26 @@ resources:
     cpu: "2000m"
 ```
 
+### Node agent
+
+The agent DaemonSet collects per-second metrics (see
+[metrics.md](metrics.md#sizing)). Chart defaults, sized for ~20k series per
+node (100+ pods with per-container cgroups):
+
+```yaml
+agent:
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "1"
+```
+
+The chart also sets `MALLOC_ARENA_MAX=2` on the agent to keep glibc's
+per-thread arenas from doubling its memory.
+
 ### Redis
 ```yaml
 resources:
