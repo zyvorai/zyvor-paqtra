@@ -145,11 +145,29 @@ impl Hub {
                 gap: true,
             });
         }
-        let mut samples = b.samples();
-        if let Some(f) = &self.annotate {
-            f(&b.node, &mut samples);
-        }
-        let (n, err) = db.append_batch(&samples);
+        let (n, err, samples) = if self.annotate.is_none() && self.on_ingest.is_none() {
+            // Per series, not per point: a catch-up batch is ~150k points
+            // over ~20k series, and a Sample clones its series metadata.
+            let (mut n, mut first) = (0, None);
+            for ws in &b.series {
+                let (k, e) = db.append_points(
+                    &ws.series,
+                    ws.points.iter().map(|p| (p[0] as i64, p[1], p[2] != 0.0)),
+                );
+                n += k;
+                if first.is_none() {
+                    first = e;
+                }
+            }
+            (n, first, Vec::new())
+        } else {
+            let mut samples = b.samples();
+            if let Some(f) = &self.annotate {
+                f(&b.node, &mut samples);
+            }
+            let (n, err) = db.append_batch(&samples);
+            (n, err, samples)
+        };
         self.seen.lock().unwrap().insert(b.node.clone(), unix_now());
         if let Some(e) = err {
             if !matches!(
