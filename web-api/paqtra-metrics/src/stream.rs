@@ -10,6 +10,9 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex, RwLock};
 
+/// Points per POST when `Sender::new` gets 0.
+pub const DEFAULT_MAX_POINTS: usize = 500_000;
+
 /// `^[A-Za-z0-9][A-Za-z0-9._-]{0,252}$` and no `..`.
 pub fn valid_node(node: &str) -> bool {
     let b = node.as_bytes();
@@ -262,7 +265,10 @@ pub struct Sender {
     node: String,
     post: Box<dyn Post>,
     /// Bounds one POST. A batch spans at least one second; while catching up
-    /// it spans max_points/series seconds.
+    /// it spans max_points/series seconds. Every batch repeats each series'
+    /// metadata, so with ~20k series a small cap spends most of each POST on
+    /// metadata and catch-up never outpaces collection. 500k points stay well
+    /// under `MAX_DECODED`.
     max_points: usize,
     state: Mutex<(i64, bool, SenderStatus)>,
 }
@@ -273,7 +279,11 @@ impl Sender {
             db,
             node: node.into(),
             post,
-            max_points: if max_points == 0 { 150_000 } else { max_points },
+            max_points: if max_points == 0 {
+                DEFAULT_MAX_POINTS
+            } else {
+                max_points
+            },
             state: Mutex::new((0, false, SenderStatus::default())),
         }
     }
@@ -356,7 +366,47 @@ impl Sender {
 mod tests {
     use super::*;
     use crate::tsdb::Series;
-    use crate::wire::decode;
+    use crate::wire::{decode, WireSeries, MAX_DECODED};
+
+    #[test]
+    fn a_full_batch_fits_the_decode_limit() {
+        let labels: std::collections::BTreeMap<String, String> = [
+            ("namespace", "kube-system-long-namespace"),
+            ("pod", "cilium-operator-5f985f674d-nlpr8"),
+            ("container_id", "0123456789ab"),
+            ("workload_kind", "Deployment"),
+            ("workload", "cilium-operator"),
+        ]
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), v.to_string()))
+        .collect();
+        let per = 20;
+        let series = (0..DEFAULT_MAX_POINTS / per)
+            .map(|i| WireSeries {
+                series: Series {
+                    context: "cgroup.mem".into(),
+                    chart: format!("cgroup_kube-system_cilium-operator-{i}.mem"),
+                    dimension: "anon".into(),
+                    family: "mem".into(),
+                    units: "MiB".into(),
+                    title: "Workload memory breakdown".into(),
+                    chart_type: "stacked".into(),
+                    labels: labels.clone(),
+                },
+                points: (0..per)
+                    .map(|j| [1_791_134_041.0 + j as f64, 123.456_789_012 + i as f64, 0.0])
+                    .collect(),
+            })
+            .collect();
+        let b = Batch {
+            node: "nldw4-4-04-32".into(),
+            from: 1,
+            to: 2,
+            series,
+        };
+        let json = serde_json::to_vec(&b).unwrap().len() as u64;
+        assert!(json < MAX_DECODED / 2, "{json} bytes");
+    }
 
     struct Direct(Arc<Hub>);
 
