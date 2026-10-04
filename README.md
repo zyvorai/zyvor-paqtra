@@ -1,6 +1,6 @@
 # Paqtra
 
-[![CI](https://github.com/zyvorai/paqtra/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/paqtra/actions/workflows/ci.yml)
+[![CI](https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Cilium](https://img.shields.io/badge/cilium-1.14%2B-purple.svg)](https://cilium.io/)
 [![Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-informational.svg)](CHANGELOG.md)
@@ -8,7 +8,7 @@
 [![Book a demo](https://img.shields.io/badge/Book_a_demo-0071e3?style=for-the-badge)](https://zyvor.dev/schedule?utm_source=github&utm_medium=paqtra&utm_campaign=readme_hero)
 [![30-day PoC](https://img.shields.io/badge/30--day_PoC-1d1d1f?style=for-the-badge)](https://zyvor.dev/poc?utm_source=github&utm_medium=paqtra&utm_campaign=readme_hero)
 
-![Paqtra — Cilium-native network observability and operations for Kubernetes](docs/social/paqtra-share-card.png)
+![Paqtra — Cilium-native network observability and operations for Kubernetes](docs/social/paqtra-hero-dark.jpg)
 
 ### Why can't A reach B? Paqtra traces every flow and shows Cilium's verdict.
 
@@ -16,7 +16,7 @@
 
 **Web dashboard** · **REST API** · **Terminal TUI** · **Free, Apache 2.0** · **Read-only toward the datapath**
 
-📖 **[Read the full docs](https://zyvorai.github.io/paqtra/)** — quickstart, architecture, the Cilium boundary, and a product tour.
+📖 **[Read the full docs](https://zyvorai.github.io/zyvor-paqtra/)** — quickstart, architecture, the Cilium boundary, and a product tour.
 
 ![Paqtra dashboard — Overview](docs/ux/00-overview.png)
 
@@ -38,7 +38,7 @@ Paqtra is observe-first. Flows come from Hubble; node-local enrichment may read 
 
 ![Capabilities at a glance — Observe, Investigate, Secure, Operate](docs/ux/readme-capabilities.jpg)
 
-Captured against a live lab cluster with Cilium and Hubble. Full tour on the [docs site gallery](https://zyvorai.github.io/paqtra/gallery/).
+Captured against a live lab cluster with Cilium and Hubble. Full tour on the [docs site gallery](https://zyvorai.github.io/zyvor-paqtra/gallery/).
 
 ## Observe
 
