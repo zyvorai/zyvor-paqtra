@@ -32,6 +32,7 @@
 | | |
 |---|---|
 | **Per-second metrics platform** (Unreleased) | Every agent streams host, network, disk, pod, process-group and app metrics each second; the API keeps them in 1 s / 1 min / 1 h tiers, adds Hubble flow, verdict, drop, HTTP and DNS series, flags anomalies per dimension, runs 45 built-in metric alerts and exports to Prometheus remote write, OTLP or Graphite. [docs/metrics.md](docs/metrics.md) |
+| **MCP server** (2.2.3) | `paqtra-mcp`, a read-only stdio MCP server with 39 tools, lets an AI agent query a Paqtra deployment with the caller's own credentials. Published from the v2.2.3 release as `ghcr.io/zyvorai/paqtra-mcp:2.2.3` and to the MCP Registry as `io.github.zyvorai/paqtra`. [docs/mcp-integration.md](docs/mcp-integration.md) |
 | **Installs like `cilium-cli`** (2.2.0) | The Helm chart is compiled into the `paqtra` binary: `install`, `upgrade`, `status --wait`, `--with-cilium`, prerequisite checks, `doctor`. |
 | **Signed releases** (2.2.0) | Static musl Linux and macOS binaries with `sha256sums.txt`, a cosign keyless signature, an SBOM and a Homebrew formula. |
 | **Rule-level policy editing** (2.2.0) | Add, replace or delete one rule of a `CiliumNetworkPolicy`, with `?dry_run=true`, conflict detection and audit entries. |
@@ -121,6 +122,16 @@ A visual rule builder, a YAML editor, ML-powered **AutoPolicy** and an evidence-
 ![Policies](docs/ux/06-policies.png)
 
 Also included: compliance audits (CIS, NIST, SOC 2), anomaly detection, chaos engineering, canary deployments and multi-cluster views. [Everything Paqtra does →](docs/capabilities.md)
+
+### MCP
+
+`paqtra-mcp` is a stdio [Model Context Protocol](https://modelcontextprotocol.io) server that lets an AI agent (Claude Desktop, Hermes Agent, any MCP client) read a running Paqtra deployment. It exposes 39 tools, all read-only with respect to the cluster: no policy apply, edit or delete, no chaos, no healer fix, no cluster sync, no flow-store purge. The two investigate tools store an evidence bundle in the API and nothing else. Every call is made with your own API credentials, so RBAC and namespace scoping apply.
+
+- Registry name: `io.github.zyvorai/paqtra` (published from the v2.2.3 release)
+- Image: `ghcr.io/zyvorai/paqtra-mcp:2.2.3`
+- Configuration: `PAQTRA_URL`, plus `PAQTRA_TOKEN` or `PAQTRA_USERNAME` / `PAQTRA_PASSWORD`; use a viewer-role account.
+
+Setup, tool scope and the protocol: [docs/mcp-integration.md](docs/mcp-integration.md).
 
 ---
 
