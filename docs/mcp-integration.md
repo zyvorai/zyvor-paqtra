@@ -1,0 +1,71 @@
+# MCP integration
+
+`paqtra-mcp` is a Model Context Protocol server that lets an AI agent (Claude
+Desktop, Hermes Agent, any MCP client) read a running Paqtra deployment over
+stdio. It is a thin translation layer over the Paqtra REST API (`/api/v1/*`):
+every tool is one API call made with the caller's own credentials, so Paqtra's
+authentication, RBAC and namespace scoping apply unchanged.
+
+## What it can and cannot do
+
+- 39 tools, all read-only with respect to the cluster: flows, flow history,
+  policies, Hubble and Cilium state, anomalies, compliance, security posture,
+  root-cause drops, endpoints, nodes, dependencies and BPF attachment inventory.
+- `paqtra_investigate_path` and `paqtra_investigate_flow` POST an analysis
+  request. The API stores an evidence bundle; no policy or cluster object is
+  created, changed or deleted.
+- No tool applies, edits or deletes a policy, runs chaos, applies a healer fix,
+  syncs a cluster or purges the flow store. Enforcement stays with Cilium CRDs.
+- It never reads application payloads, argv or Secrets; it only relays what the
+  API returns.
+
+## Install
+
+From the MCP Registry as `io.github.zyvorai/paqtra`, or the image directly:
+
+```json
+{
+  "mcpServers": {
+    "paqtra": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm",
+               "-e", "PAQTRA_URL", "-e", "PAQTRA_USERNAME", "-e", "PAQTRA_PASSWORD",
+               "ghcr.io/zyvorai/paqtra-mcp:2.2.2"],
+      "env": {
+        "PAQTRA_URL": "https://paqtra.example:9191",
+        "PAQTRA_USERNAME": "viewer",
+        "PAQTRA_PASSWORD": "..."
+      }
+    }
+  }
+}
+```
+
+From source: `cargo build --release --manifest-path mcp/Cargo.toml`.
+
+## Environment
+
+| Variable | Meaning |
+|---|---|
+| `PAQTRA_URL` | API base URL (default `http://127.0.0.1:9191`) |
+| `PAQTRA_TOKEN` | JWT bearer token |
+| `PAQTRA_USERNAME`, `PAQTRA_PASSWORD` | Log in once and re-login on a 401, when no token is set |
+
+Use a viewer-role account. Passwords and tokens come only from the environment;
+they are never logged.
+
+## Protocol
+
+JSON-RPC 2.0, one message per line on stdin/stdout. Supported methods:
+`initialize`, `ping`, `tools/list`, `tools/call` (plus empty `prompts/list` and
+`resources/list`). Every tool carries `readOnlyHint: true`. Tool failures are
+returned as `isError` results with the HTTP status and a truncated body.
+
+## Releases
+
+`server.json` is published to the MCP Registry by the `publish-mcp` job in
+`.github/workflows/release.yml` on a version tag, after the multi-arch image
+`ghcr.io/zyvorai/paqtra-mcp` is pushed. The image carries the
+`io.modelcontextprotocol.server.name` label the registry uses to verify
+ownership, and the release version gate requires `mcp/Cargo.toml`,
+`server.json` and the image tag to match `Cargo.toml`.

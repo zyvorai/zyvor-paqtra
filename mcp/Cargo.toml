@@ -1,0 +1,20 @@
+[package]
+name = "paqtra-mcp"
+version = "2.2.2"
+edition = "2021"
+authors = ["Paqtra Contributors"]
+description = "Paqtra MCP server: read-only Cilium network observability tools over stdio"
+license = "Apache-2.0"
+repository = "https://github.com/zyvorai/paqtra"
+homepage = "https://github.com/zyvorai/paqtra"
+publish = false
+
+[dependencies]
+serde_json = "1.0"
+ureq = { version = "3.4.2", default-features = false, features = ["rustls", "gzip", "json"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true

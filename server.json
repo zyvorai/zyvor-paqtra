@@ -1,0 +1,40 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.zyvorai/paqtra",
+  "title": "Paqtra",
+  "description": "Read-only Cilium and Hubble network observability and flow investigation for Kubernetes.",
+  "version": "2.2.2",
+  "repository": {
+    "url": "https://github.com/zyvorai/paqtra",
+    "source": "github"
+  },
+  "websiteUrl": "https://github.com/zyvorai/paqtra",
+  "packages": [
+    {
+      "registryType": "oci",
+      "identifier": "ghcr.io/zyvorai/paqtra-mcp:2.2.2",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "PAQTRA_URL",
+          "description": "Base URL of the Paqtra API, for example https://paqtra.example:9191.",
+          "isRequired": true
+        },
+        {
+          "name": "PAQTRA_TOKEN",
+          "description": "JWT bearer token for the Paqtra API. Alternative to PAQTRA_USERNAME and PAQTRA_PASSWORD.",
+          "isSecret": true
+        },
+        {
+          "name": "PAQTRA_USERNAME",
+          "description": "Paqtra user to log in as when PAQTRA_TOKEN is not set. A read-only role is enough."
+        },
+        {
+          "name": "PAQTRA_PASSWORD",
+          "description": "Password for PAQTRA_USERNAME.",
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

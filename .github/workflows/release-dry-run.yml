@@ -9,6 +9,8 @@ on:
     paths:
       - '.github/workflows/release*.yml'
       - 'Dockerfile*'
+      - 'mcp/**'
+      - 'server.json'
       - 'install.sh'
       - 'scripts/render-homebrew-formula.sh'
       - 'chart/**'
