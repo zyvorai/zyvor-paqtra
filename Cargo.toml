@@ -1,6 +1,6 @@
 [package]
 name = "paqtra"
-version = "2.2.2"
+version = "2.2.3"
 edition = "2021"
 authors = ["Paqtra Contributors"]
 description = "Paqtra — trace every flow. Zero-touch Cilium observability TUI with automatic bootstrapping"

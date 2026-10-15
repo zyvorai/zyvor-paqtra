@@ -2,8 +2,8 @@ apiVersion: v2
 name: paqtra
 description: Paqtra — trace every flow. Network observability for Kubernetes
 type: application
-version: 2.2.2
-appVersion: "2.2.2"
+version: 2.2.3
+appVersion: "2.2.3"
 keywords:
   - cilium
   - network

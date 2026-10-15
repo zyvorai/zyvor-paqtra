@@ -3,7 +3,7 @@
 # Paqtra CLI installer (like cilium-cli's install snippet).
 #
 #   curl -fsSL https://raw.githubusercontent.com/zyvorai/paqtra/main/install.sh | sh
-#   curl -fsSL .../install.sh | sh -s -- --version 2.2.2
+#   curl -fsSL .../install.sh | sh -s -- --version 2.2.3
 #
 # Downloads the release tarball for this OS/arch, verifies it against the
 # release's sha256sums.txt (and its cosign bundle when `cosign` is installed),
@@ -47,7 +47,7 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-# 2.2.2 and v2.2.2 both work.
+# 2.2.3 and v2.2.3 both work.
 VERSION="${VERSION#v}"
 
 need() { command -v "$1" >/dev/null 2>&1 || die "$1 is required"; }

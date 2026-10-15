@@ -1649,7 +1649,7 @@ dependencies = [
 
 [[package]]
 name = "paqtra-api"
-version = "2.2.2"
+version = "2.2.3"
 dependencies = [
  "anyhow",
  "argon2",
@@ -1687,7 +1687,7 @@ dependencies = [
 
 [[package]]
 name = "paqtra-metrics"
-version = "2.2.2"
+version = "2.2.3"
 dependencies = [
  "flate2",
  "libc",

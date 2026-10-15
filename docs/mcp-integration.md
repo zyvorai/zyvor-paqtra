@@ -30,7 +30,7 @@ From the MCP Registry as `io.github.zyvorai/paqtra`, or the image directly:
       "command": "docker",
       "args": ["run", "-i", "--rm",
                "-e", "PAQTRA_URL", "-e", "PAQTRA_USERNAME", "-e", "PAQTRA_PASSWORD",
-               "ghcr.io/zyvorai/paqtra-mcp:2.2.2"],
+               "ghcr.io/zyvorai/paqtra-mcp:2.2.3"],
       "env": {
         "PAQTRA_URL": "https://paqtra.example:9191",
         "PAQTRA_USERNAME": "viewer",

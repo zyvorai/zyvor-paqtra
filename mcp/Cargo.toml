@@ -1,6 +1,6 @@
 [package]
 name = "paqtra-mcp"
-version = "2.2.2"
+version = "2.2.3"
 edition = "2021"
 authors = ["Paqtra Contributors"]
 description = "Paqtra MCP server: read-only Cilium network observability tools over stdio"

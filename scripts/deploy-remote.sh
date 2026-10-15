@@ -14,7 +14,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
-VERSION="2.2.2"
+VERSION="2.2.3"
 REMOTE_DIR=""  # Resolved after TARGET_USER is known
 
 # Parse args
