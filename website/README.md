@@ -26,7 +26,7 @@ this site reference the same files. Rebuild social cards with
 
 ## Docs content
 
-The pages under `docs/` are adapted copies of the repo's flat product docs: `QUICKSTART.md` and `../docs/{architecture,cilium-brotherhood,ebpf-integration,features}.md`. They have the leading H1 replaced by front matter, and relative links rewritten to GitHub URLs. When you change one, change the other.
+The pages under `docs/` are adapted copies of the repo's flat product docs: `QUICKSTART.md` and `../docs/{architecture,cilium-brotherhood,ebpf-integration,features,mcp-integration}.md`. They have the leading H1 replaced by front matter, and relative links rewritten to GitHub URLs. When you change one, change the other.
 
 ## Deployment
 
