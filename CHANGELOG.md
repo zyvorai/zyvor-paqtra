@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.3] - 2026-10-15
+
 ### Added
 
+- **MCP server and registry listing.** `paqtra-mcp` (`mcp/`) is a read-only stdio MCP server with 39 tools over the REST API, shipped as `ghcr.io/zyvorai/paqtra-mcp` and listed in the MCP Registry as `io.github.zyvorai/paqtra`; the release version gate ties `mcp/Cargo.toml`, `server.json` and the image tag to `Cargo.toml`. See `docs/mcp-integration.md`.
 - **Per-second metrics platform.** The agent collects host, CPU, memory, PSI,
   disk, filesystem, interface, IP/TCP/UDP, conntrack, pod cgroup and
   process-group metrics every second, keeps a local replay buffer and streams

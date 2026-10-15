@@ -1,6 +1,6 @@
 [package]
 name = "paqtra-metrics"
-version = "2.2.2"
+version = "2.2.3"
 edition = "2021"
 authors = ["Paqtra Contributors"]
 description = "Per-second metrics platform for Paqtra: collectors, tiered store, anomalies, metric alerts, exporters"

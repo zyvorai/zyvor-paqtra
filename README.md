@@ -235,7 +235,7 @@ Report vulnerabilities through [SECURITY.md](SECURITY.md). Deeper reading: [docs
 
 ## Maturity
 
-Paqtra is at **2.2.2** ([CHANGELOG.md](CHANGELOG.md)). Its boundary is fixed by design: it observes, investigates and authors `CiliumNetworkPolicy`; Cilium enforces. Kernel attribution, custom eBPF probes, threat detection and containment are not part of Paqtra; they are in PacketWolf (see above).
+Paqtra is at **2.2.3** ([CHANGELOG.md](CHANGELOG.md)). Its boundary is fixed by design: it observes, investigates and authors `CiliumNetworkPolicy`; Cilium enforces. Kernel attribution, custom eBPF probes, threat detection and containment are not part of Paqtra; they are in PacketWolf (see above).
 
 ---
 
