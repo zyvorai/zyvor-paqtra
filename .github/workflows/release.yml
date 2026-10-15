@@ -18,8 +18,21 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+
+# Releases never cancel each other; a duplicate run for the same ref queues.
+# (release-dry-run.yml declares no group, so this cannot collide with it.)
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
   REGISTRY: ghcr.io
 
+# Runner routing. Heavy, trusted jobs (push / tag / dispatch) run on the org
+# self-hosted pool (labels self-hosted, zyvor-build, docker; Linux x86_64 only);
+# pull_request events, and macOS/arm jobs, stay on GitHub-hosted runners.
+# fromJSON turns the string result into a runs-on label string or list.
+#
+# Called from release-dry-run.yml on pull_request, github.event_name is the
+# caller's event, so dry runs from PRs stay hosted. Tag push / dispatch use the pool.
 jobs:
   # ─── Version gate ────────────────────────────────────────────────────
   # The CLI, the chart and every image share one version. A tag that
@@ -96,7 +109,7 @@ jobs:
   build-cli:
     name: CLI (${{ matrix.name }})
     needs: meta
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ fromJSON(matrix.os == 'ubuntu-latest' && github.event_name != 'pull_request' && '["self-hosted","zyvor-build","docker"]' || format('"{0}"', matrix.os)) }}
     strategy:
       fail-fast: false
       matrix:
@@ -173,7 +186,7 @@ jobs:
   assets:
     name: Checksums, SBOM, chart
     needs: [meta, build-cli]
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     permissions:
       contents: write   # attach assets to the release
       packages: write   # push the chart to ghcr
@@ -216,10 +229,10 @@ jobs:
           set -euo pipefail
           # The real install.sh, the real tarball, a file:// "release": proves the
           # checksum file and asset naming match what install.sh expects.
-          mkdir -p /tmp/bin
+          bin="$RUNNER_TEMP/paqtra-bin"; rm -rf "$bin"; mkdir -p "$bin"
           PAQTRA_RELEASE_URL="file://$PWD/dist" \
-            sh install.sh --version "$VERSION" --install-dir /tmp/bin
-          /tmp/bin/paqtra --version | grep -F "$VERSION"
+            sh install.sh --version "$VERSION" --install-dir "$bin"
+          "$bin/paqtra" --version | grep -F "$VERSION"
 
       - name: Render Homebrew formula
         env:
@@ -404,7 +417,7 @@ jobs:
   binary-images:
     name: Agent + CLI images
     needs: [meta, build-cli]
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     permissions:
       contents: read
       packages: write
@@ -465,7 +478,7 @@ jobs:
   mcp-image:
     name: MCP server image
     needs: meta
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     permissions:
       contents: read
       packages: write
@@ -512,7 +525,7 @@ jobs:
     name: Publish to the MCP Registry
     needs: [meta, mcp-image]
     if: needs.meta.outputs.publish == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     permissions:
       contents: read
       id-token: write   # GitHub OIDC login to the MCP Registry, no long-lived token
