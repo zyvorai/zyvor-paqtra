@@ -40,7 +40,7 @@ jobs:
   # a different version than it claims to be.
   meta:
     name: Version check
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     outputs:
       version: ${{ steps.v.outputs.version }}
       publish: ${{ steps.v.outputs.publish }}
@@ -280,7 +280,7 @@ jobs:
     name: Homebrew tap
     needs: [meta, assets]
     if: needs.meta.outputs.publish == 'true' && needs.meta.outputs.latest == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     steps:
       - name: Token present?
         id: gate
@@ -325,7 +325,8 @@ jobs:
   build-image:
     name: ${{ matrix.image }} (${{ matrix.arch }})
     needs: meta
-    runs-on: ${{ matrix.runner }}
+    # amd64 leg uses the pool outside pull_request; arm64 stays on the hosted arm runner.
+    runs-on: ${{ fromJSON(matrix.arch == 'amd64' && github.event_name != 'pull_request' && '["self-hosted","zyvor-build","docker"]' || format('"{0}"', matrix.runner)) }}
     permissions:
       contents: read
       packages: write
@@ -369,7 +370,7 @@ jobs:
     name: Multi-arch ${{ matrix.image }}
     needs: [meta, build-image]
     if: needs.meta.outputs.publish == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     permissions:
       contents: read
       packages: write
