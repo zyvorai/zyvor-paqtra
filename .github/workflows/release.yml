@@ -44,10 +44,17 @@ jobs:
           CARGO=$(awk -F'"' '/^version *=/{print $2; exit}' Cargo.toml)
           CHART=$(awk '/^version:/{print $2; exit}' chart/Chart.yaml)
           APP=$(awk -F'"' '/^appVersion:/{print $2; exit}' chart/Chart.yaml)
+          MCP=$(awk -F'"' '/^version *=/{print $2; exit}' mcp/Cargo.toml)
+          SRV=$(sed -n 's/^  "version": "\([^"]*\)".*/\1/p' server.json)
+          SRVPKG=$(sed -n 's#.*"identifier": "ghcr.io/[^/]*/paqtra-mcp:\([^"]*\)".*#\1#p' server.json)
+          SRVNAME=$(sed -n 's/^  "name": "\([^"]*\)".*/\1/p' server.json)
+          LABEL=$(sed -n 's/^LABEL io.modelcontextprotocol.server.name="\([^"]*\)"$/\1/p' mcp/Dockerfile)
+          [ -n "$SRVNAME" ] && [ "$SRVNAME" = "$LABEL" ] \
+            || { echo "::error::mcp/Dockerfile label ($LABEL) must equal server.json name ($SRVNAME)"; exit 1; }
           if [ "$DRY_RUN" != "true" ] && [ "$GITHUB_REF_TYPE" = "tag" ]; then
             VERSION="${GITHUB_REF_NAME#v}"
             PUBLISH=true
-            for pair in "Cargo.toml:$CARGO" "chart version:$CHART" "chart appVersion:$APP"; do
+            for pair in "Cargo.toml:$CARGO" "chart version:$CHART" "chart appVersion:$APP" "mcp/Cargo.toml:$MCP" "server.json version:$SRV" "server.json image tag:$SRVPKG"; do
               if [ "${pair#*:}" != "$VERSION" ]; then
                 echo "::error::tag v$VERSION does not match ${pair%%:*} (${pair#*:})"
                 exit 1
@@ -58,6 +65,9 @@ jobs:
             PUBLISH=false
             [ "$CHART" = "$CARGO" ] && [ "$APP" = "$CARGO" ] \
               || { echo "::error::Cargo.toml ($CARGO), chart version ($CHART) and appVersion ($APP) must match"; exit 1; }
+            for v in "$MCP" "$SRV" "$SRVPKG"; do
+              [ "$v" = "$CARGO" ] || { echo "::error::mcp/Cargo.toml, server.json and its image tag must match Cargo.toml ($CARGO), got $v"; exit 1; }
+            done
           fi
           # `latest` only for final releases, never for 1.2.3-rc.1.
           case "$VERSION" in *-*) LATEST=false ;; *) LATEST=true ;; esac
@@ -450,3 +460,71 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: ${{ needs.meta.outputs.publish == 'true' }}
           tags: ${{ steps.tags.outputs.cli }}
+
+  # ─── MCP server image + MCP Registry entry ───────────────────────────
+  mcp-image:
+    name: MCP server image
+    needs: meta
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - name: Log in to the registry
+        if: needs.meta.outputs.publish == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tags
+        id: tags
+        env:
+          OWNER: ${{ needs.meta.outputs.owner }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          LATEST: ${{ needs.meta.outputs.latest }}
+        run: |
+          tags="${REGISTRY}/${OWNER}/paqtra-mcp:${VERSION}"
+          [ "$LATEST" = "true" ] && tags="${tags}"$'\n'"${REGISTRY}/${OWNER}/paqtra-mcp:latest"
+          { echo "tags<<EOF"; echo "$tags"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+      - name: MCP image (ghcr.io/<owner>/paqtra-mcp)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: mcp/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ needs.meta.outputs.publish == 'true' }}
+          tags: ${{ steps.tags.outputs.tags }}
+      - name: server.json validates against the registry schema
+        env:
+          MCP_PUBLISHER_VERSION: v1.8.1
+        run: |
+          curl -fsSL -o mcp-publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  mcp-publisher.tar.gz" | sha256sum -c -
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+          ./mcp-publisher validate server.json
+
+  publish-mcp:
+    name: Publish to the MCP Registry
+    needs: [meta, mcp-image]
+    if: needs.meta.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # GitHub OIDC login to the MCP Registry, no long-lived token
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install mcp-publisher (pinned, checksummed)
+        env:
+          MCP_PUBLISHER_VERSION: v1.8.1
+        run: |
+          curl -fsSL -o mcp-publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  mcp-publisher.tar.gz" | sha256sum -c -
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+      - run: ./mcp-publisher login github-oidc
+      - run: ./mcp-publisher publish server.json
