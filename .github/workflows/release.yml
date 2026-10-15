@@ -18,13 +18,13 @@ permissions:
 
 env:
   CARGO_TERM_COLOR: always
+  REGISTRY: ghcr.io
 
 # Releases never cancel each other; a duplicate run for the same ref queues.
 # (release-dry-run.yml declares no group, so this cannot collide with it.)
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
-  REGISTRY: ghcr.io
 
 # Runner routing. Heavy, trusted jobs (push / tag / dispatch) run on the org
 # self-hosted pool (labels self-hosted, zyvor-build, docker; Linux x86_64 only);
