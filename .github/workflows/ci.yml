@@ -9,17 +9,26 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+# One run per ref; a new push to a PR supersedes the old run, main/develop queue.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Runner routing. Heavy, trusted jobs (push / tag / dispatch) run on the org
+# self-hosted pool (labels self-hosted, zyvor-build, docker; Linux x86_64 only);
+# pull_request events, and macOS/arm jobs, stay on GitHub-hosted runners.
+# fromJSON turns the string result into a runs-on label string or list.
 jobs:
   # ─── Core TUI Crate ───────────────────────────────────────────────────
   check:
     name: Check (TUI)
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Install protobuf compiler
-        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+        run: command -v protoc >/dev/null || { sudo apt-get update && sudo apt-get install -y protobuf-compiler; }
       - run: cargo check --all-features
 
   fmt:
@@ -34,7 +43,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
@@ -42,23 +51,23 @@ jobs:
           components: clippy
       - uses: Swatinem/rust-cache@v2
       - name: Install protobuf compiler
-        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+        run: command -v protoc >/dev/null || { sudo apt-get update && sudo apt-get install -y protobuf-compiler; }
       - run: cargo clippy --all-features -- -D warnings
 
   test:
     name: Test (TUI)
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - name: Install protobuf compiler
-        run: sudo apt-get update && sudo apt-get install -y protobuf-compiler
+        run: command -v protoc >/dev/null || { sudo apt-get update && sudo apt-get install -y protobuf-compiler; }
       - run: cargo test --all-features
 
   build:
     name: Build (TUI)
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ fromJSON(matrix.os == 'ubuntu-latest' && github.event_name != 'pull_request' && '["self-hosted","zyvor-build","docker"]' || format('"{0}"', matrix.os)) }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -131,7 +140,7 @@ jobs:
 
   agent-image:
     name: Agent Dockerfile
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     steps:
       - uses: actions/checkout@v7
       - name: Build agent/CLI image
@@ -142,7 +151,7 @@ jobs:
   # ─── Web API ───────────────────────────────────────────────────────────
   web-api-check:
     name: Check (Web API)
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
     defaults:
       run:
         working-directory: web-api
