@@ -1,0 +1,48 @@
+# Envoy in front of Paqtra (Gateway API)
+
+Paqtra can sit behind Envoy through the Kubernetes Gateway API. This works with
+[Envoy Gateway](https://gateway.envoyproxy.io/) or any Gateway API
+implementation. It is off by default and does not change Paqtra's own
+authentication (JWT, API key). The gateway adds TLS termination, hostname
+routing and edge policy such as rate limits and IP allow lists.
+
+Node agents keep talking to the in-cluster Services directly.
+
+## Enable
+
+```bash
+helm upgrade --install paqtra ./chart -n paqtra \
+  --set gateway.enabled=true \
+  --set 'gateway.parentRefs[0].name=eg' \
+  --set 'gateway.parentRefs[0].namespace=envoy-gateway-system' \
+  --set 'gateway.hostnames[0]=paqtra.example.com' \
+  --set tls.enabled=false --set gateway.backendTLS.enabled=false
+```
+
+`gateway.parentRefs` is required when the gateway is enabled; the chart fails
+fast without it.
+
+Routes: `/api` and `/swagger-ui` go to the API Service, `/` goes to the UI
+Service (`gateway.apiPaths`, `gateway.uiPath`).
+
+## Backend TLS
+
+The UI serves HTTPS by default with a per-pod self-signed certificate. Envoy
+cannot verify that, so behind the gateway either:
+
+- set `tls.enabled=false` and `gateway.backendTLS.enabled=false` and let the
+  gateway terminate TLS (the pod hop is in-cluster HTTP), or
+- keep `tls.enabled=true` and supply the CA of a certificate you control in
+  `gateway.backendTLS.caCertificateRefs`; the chart then renders a
+  `BackendTLSPolicy` for the UI Service.
+
+The chart refuses to render the half-configured combinations.
+
+## Streams
+
+Flow and metric streams are long-lived. `gateway.requestTimeout` defaults to
+`"0s"` so Envoy does not cut them.
+
+## Not covered
+
+Envoy is a front door here, not a data-plane integration.
