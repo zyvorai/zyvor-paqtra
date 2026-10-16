@@ -97,7 +97,7 @@ spec:
   - group: gateway.networking.k8s.io
     kind: HTTPRoute
     name: {{ include "paqtra.fullname" $ }}
-  useClientProtocol: {{ .useClientProtocol }}
+  useClientProtocol: {{ if hasKey . "useClientProtocol" }}{{ .useClientProtocol }}{{ else }}true{{ end }}
 {{- end }}
 {{- end }}
 {{- end }}
