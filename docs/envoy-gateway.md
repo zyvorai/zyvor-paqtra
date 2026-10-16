@@ -38,6 +38,15 @@ cannot verify that, so behind the gateway either:
 
 The chart refuses to render the half-configured combinations.
 
+## WebSockets over backend TLS
+
+With `gateway.backendTLS` on, Envoy negotiates HTTP/2 to the UI pod and a
+WebSocket upgrade cannot ride that hop (the client sees `502`). On Envoy
+Gateway set `gateway.backendTrafficPolicy.enabled=true`; the chart renders a
+`BackendTrafficPolicy` with `useClientProtocol: true`. It is Envoy Gateway
+specific (needs its CRDs), so it is off by default. The same behaviour was
+verified on the Netra chart; it has not been exercised on Paqtra yet.
+
 ## Streams
 
 Flow and metric streams are long-lived. `gateway.requestTimeout` defaults to
