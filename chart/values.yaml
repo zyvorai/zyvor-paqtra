@@ -214,6 +214,29 @@ ingress:
   #   hosts:
   #     - paqtra.example.com
 
+# -- Envoy in front of the UI and API through Gateway API (Envoy Gateway or any
+# Gateway API implementation). Off by default; Paqtra auth is unchanged. See
+# docs/envoy-gateway.md.
+gateway:
+  enabled: false
+  # Gateway to attach to, e.g. [{name: eg, namespace: envoy-gateway-system}].
+  parentRefs: []
+  hostnames: []
+  apiPaths: ["/api", "/swagger-ui"]
+  uiPath: /
+  annotations: {}
+  # "0s" keeps long-lived streams from being cut by Envoy.
+  requestTimeout: "0s"
+  # The UI serves HTTPS by default, so Envoy must verify the pod cert. The
+  # per-pod self-signed cert cannot be verified; behind the gateway set
+  # tls.enabled=false and backendTLS.enabled=false, or supply a CA.
+  backendTLS:
+    enabled: true
+    apiVersion: gateway.networking.k8s.io/v1alpha3
+    hostname: ""
+    caCertificateRefs: []
+    wellKnownCACertificates: ""
+
 # -- Authentication (empty password/apiKey → auto-generated on install)
 auth:
   jwtSecret: ""  # If empty, auto-generated
