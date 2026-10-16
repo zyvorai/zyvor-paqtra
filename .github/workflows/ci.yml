@@ -202,7 +202,19 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: website/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: {workspaces: mcp}
       - run: npm --prefix website ci
+      # The MCP tool catalog, facts and synced docs are generated and committed;
+      # the site must not drift from the code or the repo docs. Regenerate and
+      # fail on any difference (fix with: python3 scripts/gen-site-facts.py &&
+      # npm --prefix website run sync-docs).
+      - name: Generated docs and facts are current
+        run: |
+          python3 scripts/gen-site-facts.py
+          npm --prefix website run sync-docs
+          git diff --exit-code -- website/docs website/src/data
       - run: npm --prefix website run build
 
   # ─── Security Scanning ──────────────────────────────────────────────────

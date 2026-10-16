@@ -1,0 +1,8 @@
+{
+  "label": "Investigate",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Why a flow was denied, what a policy change would do, and how to replay traffic."
+  }
+}

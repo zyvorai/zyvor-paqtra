@@ -844,19 +844,15 @@ All policy modifications logged:
 - **Clippy**: Linting
 - **rustfmt**: Code formatting
 
-## Future Architecture Enhancements
+## What shipped after this document was first written
 
-### v1.1 Planned
-1. **Prometheus Exporter**: Metrics scraping endpoint
-2. **REST API**: HTTP API for programmatic access
-3. **WebSocket Stream**: Real-time flow streaming
-4. **Plugin System**: Custom modules via WASM
-
-### v2.0 Vision
-1. **Web UI**: React-based dashboard
-2. **AI-powered Anomaly Detection**: Advanced ML models
-3. **Distributed Deployment**: Agent mode across nodes
-4. **Custom eBPF Programs**: Out of scope here (Paqtra never attaches programs; see `docs/cilium-brotherhood.md`)
+The REST API, the WebSocket flow stream, the web console, per-node agents, the
+per-second metrics platform and anomaly detection are all part of the product
+today; see [REST API](rest-api.md), [Metrics](metrics.md),
+[Anomaly detection](anomaly-detection.md) and the
+[changelog](https://github.com/zyvorai/zyvor-paqtra/blob/main/CHANGELOG.md).
+Custom eBPF programs stay out of scope: Paqtra never attaches programs (see
+[Cilium boundary](cilium-brotherhood.md)).
 
 ---
 
