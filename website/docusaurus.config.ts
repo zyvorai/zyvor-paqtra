@@ -113,6 +113,7 @@ const config: Config = {
           label: 'PacketWolf',
           position: 'left',
         },
+        {to: '/support', label: 'Support', position: 'right'},
         {
           href: 'https://github.com/zyvorai/zyvor-paqtra',
           label: 'GitHub',
@@ -138,6 +139,7 @@ const config: Config = {
         {
           title: 'Project',
           items: [
+            {label: 'Support', to: '/support'},
             {label: 'GitHub', href: 'https://github.com/zyvorai/zyvor-paqtra'},
             {label: 'Changelog', to: '/docs/reference/changelog'},
             {
