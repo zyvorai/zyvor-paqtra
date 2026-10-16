@@ -14,19 +14,19 @@ const FeatureList: FeatureItem[] = [
     title: 'Flows with verdicts',
     description:
       'Live Hubble flows colored by Cilium’s verdict, with per-packet explanations and WebSocket streaming.',
-    to: '/docs/features',
+    to: '/docs/getting-started/features',
   },
   {
     title: 'Why can’t A reach B?',
     description:
       'Evidence-backed path investigation. Every finding is labeled observed, inferred or unavailable.',
-    to: '/docs/features',
+    to: '/docs/getting-started/features',
   },
   {
     title: 'Drops explained',
     description:
       'Packet drop analytics by Cilium reason, correlated with policy, with root-cause suggestions.',
-    to: '/docs/features',
+    to: '/docs/getting-started/features',
   },
   {
     title: 'Policy, through Cilium',
@@ -50,13 +50,13 @@ const FeatureList: FeatureItem[] = [
     title: 'Operations',
     description:
       'Diagnostics, packet capture, SLOs, alerts, audit log, chaos experiments and canary rollouts.',
-    to: '/docs/features',
+    to: '/docs/getting-started/features',
   },
   {
     title: 'Multi-cluster',
     description:
       'Register clusters, check health, compare and sync policies, and view topology across the fleet.',
-    to: '/docs/features',
+    to: '/docs/getting-started/features',
   },
   {
     title: 'Netra alongside',

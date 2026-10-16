@@ -38,7 +38,38 @@ const config: Config = {
   // Serve the repo's UX screenshots and social cards in place instead of
   // duplicating them into website/static, so the README and this site
   // reference the same physical files.
+  headTags: [
+    {
+      tagName: 'script',
+      attributes: {type: 'application/ld+json'},
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        name: 'Paqtra',
+        applicationCategory: 'DeveloperApplication',
+        operatingSystem: 'Linux, Kubernetes',
+        description:
+          'Read-only Cilium and Hubble network observability and flow investigation for Kubernetes.',
+        url: 'https://zyvorai.github.io/zyvor-paqtra/',
+        codeRepository: 'https://github.com/zyvorai/zyvor-paqtra',
+      }),
+    },
+  ],
+
   staticDirectories: ['static', '../docs/ux', '../docs/social'],
+
+  themes: [
+    [
+      '@easyops-cn/docusaurus-search-local',
+      {
+        hashed: true,
+        indexDocs: true,
+        indexPages: false,
+        docsRouteBasePath: '/docs',
+        language: ['en'],
+      },
+    ],
+  ],
 
   presets: [
     [
@@ -75,11 +106,8 @@ const config: Config = {
           position: 'left',
           label: 'Docs',
         },
-        {
-          to: '/gallery',
-          label: 'Gallery',
-          position: 'left',
-        },
+        {to: '/docs/integrations/mcp-integration', label: 'MCP', position: 'left'},
+        {to: '/gallery', label: 'Gallery', position: 'left'},
         {
           to: '/docs/paqtra-vs-packetwolf',
           label: 'PacketWolf',
@@ -99,6 +127,7 @@ const config: Config = {
           title: 'Docs',
           items: [
             {label: 'Quickstart', to: '/docs/getting-started/quickstart'},
+            {label: 'MCP tool catalog', to: '/docs/reference/mcp-tools'},
             {label: 'Architecture', to: '/docs/core-concepts/architecture'},
             {label: 'Gallery', to: '/gallery'},
             {label: 'Cilium boundary', to: '/docs/core-concepts/cilium-brotherhood'},
@@ -110,10 +139,7 @@ const config: Config = {
           title: 'Project',
           items: [
             {label: 'GitHub', href: 'https://github.com/zyvorai/zyvor-paqtra'},
-            {
-              label: 'Changelog',
-              href: 'https://github.com/zyvorai/zyvor-paqtra/blob/main/CHANGELOG.md',
-            },
+            {label: 'Changelog', to: '/docs/reference/changelog'},
             {
               label: 'License (Apache 2.0)',
               href: 'https://github.com/zyvorai/zyvor-paqtra/blob/main/LICENSE',
@@ -124,7 +150,7 @@ const config: Config = {
           title: 'Suite',
           items: [
             {label: 'Cilium', href: 'https://cilium.io/'},
-            {label: 'Netra', href: 'https://zyvorai.github.io/netra/'},
+            {label: 'Netra', href: 'https://zyvorai.github.io/zyvor-netra/'},
             {label: 'Zyvor', href: 'https://zyvor.dev'},
           ],
         },

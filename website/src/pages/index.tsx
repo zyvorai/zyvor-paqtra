@@ -38,7 +38,7 @@ function HomepageHeader() {
               </Link>
               <Link
                 className="button button--outline button--lg button--secondary"
-                to="https://github.com/zyvorai/paqtra">
+                to="https://github.com/zyvorai/zyvor-paqtra">
                 View on GitHub
               </Link>
             </div>
@@ -108,7 +108,7 @@ function TrustBand() {
           </div>
           <div className={styles.trustBadges}>
             <img
-              src="https://github.com/zyvorai/paqtra/actions/workflows/ci.yml/badge.svg"
+              src="https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml/badge.svg"
               alt="CI status"
             />
             <img

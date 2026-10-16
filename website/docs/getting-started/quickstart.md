@@ -22,7 +22,7 @@ paqtra ui                 # open the console
 
 Something wrong? `paqtra doctor` diagnoses it, `paqtra connectivity test` proves
 policy enforcement end to end, and `paqtra sysdump` collects a redacted support
-bundle. See the [CLI reference](../cli.md).
+bundle. See the [CLI reference](cli.md).
 
 ## Build from source
 
@@ -36,7 +36,7 @@ bundle. See the [CLI reference](../cli.md).
 ## Quick Start (TUI)
 
 ```bash
-git clone https://github.com/zyvorai/paqtra.git
+git clone https://github.com/zyvorai/zyvor-paqtra.git
 cd paqtra
 
 cargo build --release
@@ -116,7 +116,7 @@ kubectl apply -f deployments/k8s/
 
 Review and update `deployments/k8s/secrets.yaml` with your own JWT secret before applying.
 
-The CLI has the chart built in: `paqtra install` (see the [CLI reference](../cli.md)). From a checkout, `helm install paqtra ./chart` works too.
+The CLI has the chart built in: `paqtra install` (see the [CLI reference](cli.md)). From a checkout, `helm install paqtra ./chart` works too.
 
 ## Web UI Keyboard Shortcuts
 
@@ -128,9 +128,9 @@ g h = Dashboard  g f = Flows  g t = Topology  g p = Policies
 
 ## Next Steps
 
-- [docs/features.md](https://github.com/zyvorai/paqtra/blob/main/docs/features.md) — feature guide
-- [docs/web-app.md](https://github.com/zyvorai/paqtra/blob/main/docs/web-app.md) — web UI
-- [docs/web-architecture.md](https://github.com/zyvorai/paqtra/blob/main/docs/web-architecture.md) — system architecture
-- [docs/web-deployment.md](https://github.com/zyvorai/paqtra/blob/main/docs/web-deployment.md) — deployment options
-- [docs/cilium-brotherhood.md](https://github.com/zyvorai/paqtra/blob/main/docs/cilium-brotherhood.md) — Cilium / Netra boundaries
-- [docs/overview.md](https://github.com/zyvorai/paqtra/blob/main/docs/overview.md) — product overview
+- [docs/features.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/features.md) — feature guide
+- [docs/web-app.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/web-app.md) — web UI
+- [docs/web-architecture.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/web-architecture.md) — system architecture
+- [docs/web-deployment.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/web-deployment.md) — deployment options
+- [docs/cilium-brotherhood.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/cilium-brotherhood.md) — Cilium / Netra boundaries
+- [docs/overview.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/overview.md) — product overview

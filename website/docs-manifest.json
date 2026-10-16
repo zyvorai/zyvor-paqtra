@@ -1,0 +1,187 @@
+{
+  "repo": "zyvorai/zyvor-paqtra",
+  "urlFixes": [
+    [
+      "zyvorai.github.io/netra/",
+      "zyvorai.github.io/zyvor-netra/"
+    ],
+    [
+      "zyvorai.github.io/paqtra/",
+      "zyvorai.github.io/zyvor-paqtra/"
+    ]
+  ],
+  "sections": {
+    "core-concepts": {
+      "label": "Core Concepts",
+      "position": 2,
+      "description": "How Paqtra fits around Cilium: the architecture, the eBPF integration and the boundaries Paqtra never crosses."
+    },
+    "investigate": {
+      "label": "Investigate",
+      "position": 3,
+      "description": "Why a flow was denied, what a policy change would do, and how to replay traffic."
+    },
+    "operate": {
+      "label": "Metrics and Operations",
+      "position": 4,
+      "description": "Per-second metrics, anomaly detection, alerts and running the web stack."
+    },
+    "integrations": {
+      "label": "Integrations",
+      "position": 5,
+      "description": "MCP for AI agents, the REST API and Envoy in front of Paqtra."
+    },
+    "reference": {
+      "label": "Reference",
+      "position": 6,
+      "description": "Generated references: the MCP tool catalog, release notes and repository layout."
+    }
+  },
+  "pages": [
+    {
+      "src": "install.md",
+      "dest": "getting-started/install",
+      "position": 2
+    },
+    {
+      "src": "features.md",
+      "dest": "getting-started/features",
+      "position": 3
+    },
+    {
+      "src": "cli.md",
+      "dest": "getting-started/cli",
+      "position": 4
+    },
+    {
+      "src": "capabilities.md",
+      "dest": "getting-started/capabilities",
+      "position": 5
+    },
+    {
+      "src": "auto-install.md",
+      "dest": "getting-started/auto-install",
+      "position": 6
+    },
+    {
+      "src": "architecture.md",
+      "dest": "core-concepts/architecture",
+      "position": 1
+    },
+    {
+      "src": "cilium-brotherhood.md",
+      "dest": "core-concepts/cilium-brotherhood",
+      "position": 2
+    },
+    {
+      "src": "ebpf-integration.md",
+      "dest": "core-concepts/ebpf-integration",
+      "position": 3
+    },
+    {
+      "src": "suite-placement.md",
+      "dest": "core-concepts/suite-placement",
+      "position": 4
+    },
+    {
+      "src": "investigate.md",
+      "dest": "investigate/investigate",
+      "position": 1
+    },
+    {
+      "src": "rootcause.md",
+      "dest": "investigate/rootcause",
+      "position": 2
+    },
+    {
+      "src": "simulator.md",
+      "dest": "investigate/simulator",
+      "position": 3
+    },
+    {
+      "src": "replay.md",
+      "dest": "investigate/replay",
+      "position": 4
+    },
+    {
+      "src": "autopolicy-quickstart.md",
+      "dest": "investigate/autopolicy-quickstart",
+      "position": 5
+    },
+    {
+      "src": "autopolicy.md",
+      "dest": "investigate/autopolicy",
+      "position": 6
+    },
+    {
+      "src": "tui.md",
+      "dest": "investigate/tui",
+      "position": 7
+    },
+    {
+      "src": "web-app.md",
+      "dest": "investigate/web-app",
+      "position": 8
+    },
+    {
+      "src": "metrics.md",
+      "dest": "operate/metrics",
+      "position": 1
+    },
+    {
+      "src": "metric-alerts.md",
+      "dest": "operate/metric-alerts",
+      "position": 2
+    },
+    {
+      "src": "anomaly-detection.md",
+      "dest": "operate/anomaly-detection",
+      "position": 3
+    },
+    {
+      "src": "app-collectors.md",
+      "dest": "operate/app-collectors",
+      "position": 4
+    },
+    {
+      "src": "web-deployment.md",
+      "dest": "operate/web-deployment",
+      "position": 5
+    },
+    {
+      "src": "web-architecture.md",
+      "dest": "operate/web-architecture",
+      "position": 6
+    },
+    {
+      "src": "mcp-integration.md",
+      "dest": "integrations/mcp-integration",
+      "position": 1
+    },
+    {
+      "src": "rest-api.md",
+      "dest": "integrations/rest-api",
+      "position": 2
+    },
+    {
+      "src": "envoy-gateway.md",
+      "dest": "integrations/envoy-gateway",
+      "position": 3
+    },
+    {
+      "src": "repository-layout.md",
+      "dest": "reference/repository-layout",
+      "position": 3
+    },
+    {
+      "src": "paqtra-vs-packetwolf.md",
+      "dest": "paqtra-vs-packetwolf",
+      "position": 5
+    }
+  ],
+  "changelog": {
+    "dest": "reference/changelog",
+    "position": 1,
+    "releases": 20
+  }
+}
