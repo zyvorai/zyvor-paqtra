@@ -71,7 +71,7 @@ include_dir = "0.7.4"
 clap_complete = "4.6.11"
 sha2 = "0.11.0"
 http = "1.5.0"
-zip = { version = "8.6.0", default-features = false, features = ["deflate"] }
+zip = { version = "9.0.2", default-features = false, features = ["deflate"] }
 paqtra-metrics = { path = "web-api/paqtra-metrics" }
 
 [build-dependencies]
