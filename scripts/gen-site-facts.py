@@ -97,12 +97,16 @@ def main():
     open(os.path.join(ref, "mcp-tools.md"), "w").write("\n".join(lines))
 
     docs_md = sum(1 for f in os.listdir(os.path.join(ROOT, "docs")) if f.endswith(".md"))
+    rules = open(os.path.join(ROOT, "web-api", "paqtra-metrics", "src", "metricalert", "defaults.yaml")).read()
+    openapi = open(os.path.join(ROOT, "docs", "openapi.yaml")).read()
     facts = {
         "version": server["version"],
         "mcpName": server["name"],
         "mcpImage": server["packages"][0]["identifier"],
         "mcpTools": len(tools),
         "docPages": docs_md,
+        "builtinAlerts": len(re.findall(r"^\s*-\s*alarm:", rules, re.M)),
+        "apiPaths": len(re.findall(r"^  /api", openapi, re.M)),
     }
     os.makedirs(os.path.join(ROOT, "website", "src", "data"), exist_ok=True)
     open(os.path.join(ROOT, "website", "src", "data", "facts.generated.json"), "w").write(

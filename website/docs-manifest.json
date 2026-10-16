@@ -85,7 +85,7 @@
     },
     {
       "src": "investigate.md",
-      "dest": "investigate/investigate",
+      "dest": "investigate/path-investigation",
       "position": 1
     },
     {
