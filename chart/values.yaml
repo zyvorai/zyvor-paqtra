@@ -236,6 +236,10 @@ gateway:
     hostname: ""
     caCertificateRefs: []
     wellKnownCACertificates: ""
+  # Envoy Gateway only. Needed for WebSocket streams when backendTLS is on.
+  backendTrafficPolicy:
+    enabled: false
+    useClientProtocol: true
 
 # -- Authentication (empty password/apiKey → auto-generated on install)
 auth:
