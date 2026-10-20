@@ -14,7 +14,8 @@ pub fn yaml_escape(s: &str) -> String {
 
 /// Sanitize a string for use as a Kubernetes resource name.
 /// Lowercases, replaces non-alphanumeric characters (except hyphens and dots)
-/// with hyphens, and trims leading/trailing hyphens.
+/// with hyphens, and trims leading/trailing hyphens and dots (so ".." cannot
+/// survive as a name).
 pub fn sanitize_k8s_name(s: &str) -> String {
     s.to_lowercase()
         .chars()
@@ -26,7 +27,7 @@ pub fn sanitize_k8s_name(s: &str) -> String {
             }
         })
         .collect::<String>()
-        .trim_matches('-')
+        .trim_matches(|c| c == '-' || c == '.')
         .to_string()
 }
 
@@ -59,3 +60,16 @@ pub mod simulator;
 pub mod anomaly_detection;
 pub mod dev_tools;
 pub mod security_compliance;
+
+#[cfg(test)]
+mod sanitize_tests {
+    use super::sanitize_k8s_name;
+
+    #[test]
+    fn strips_dot_only_and_edge_dots() {
+        assert_eq!(sanitize_k8s_name(".."), "");
+        assert_eq!(sanitize_k8s_name("."), "");
+        assert_eq!(sanitize_k8s_name(".Foo_Bar."), "foo-bar");
+        assert_eq!(sanitize_k8s_name("a.b-c"), "a.b-c");
+    }
+}
