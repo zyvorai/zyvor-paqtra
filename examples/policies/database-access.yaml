@@ -24,7 +24,6 @@ spec:
     - ports:
       - port: "5432"
         protocol: TCP
-  # Deny all other ingress by default
-  ingressDeny:
-  - fromEndpoints:
-    - {}
+  # No ingressDeny here: once an ingress rule selects this endpoint, Cilium
+  # already drops all other ingress, and deny rules take precedence over
+  # allow rules (a wildcard deny would block the API pods too).

@@ -6,7 +6,6 @@ metadata:
   labels:
     app: paqtra
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/websocket-services: "paqtra-api"
@@ -35,4 +34,4 @@ spec:
           service:
             name: paqtra-ui
             port:
-              number: 80
+              number: 8080
