@@ -2,18 +2,20 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: paqtra-api
-  namespace: paqtra
+  namespace: cilium-system
 spec:
   podSelector:
     matchLabels:
-      app: paqtra-api
+      app: paqtra
+      component: api
   policyTypes:
     - Ingress
   ingress:
     - from:
         - podSelector:
             matchLabels:
-              app: paqtra-ui
+              app: paqtra
+              component: ui
       ports:
         - port: 9191
     - from:

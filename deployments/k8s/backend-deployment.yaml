@@ -33,7 +33,11 @@ spec:
                     - key: app
                       operator: In
                       values:
-                        - paqtra-api
+                        - paqtra
+                    - key: component
+                      operator: In
+                      values:
+                        - api
                 topologyKey: kubernetes.io/hostname
       containers:
       - name: api

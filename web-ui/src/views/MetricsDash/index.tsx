@@ -3,7 +3,7 @@ import { fetchMetricsSummary, fetchCiliumStatus, fetchEbpfSummary } from '../../
 import { Board, Card, Eyebrow, Warning, Empty, Toolbar } from '../../components/Board';
 import PagePulse from '../../components/kit/PagePulse';
 import { useChanged } from '../../components/kit/useSeries';
-import { countTone } from '../../components/kit/tone';
+import { rateTone } from '../../components/kit/tone';
 
 export default function MetricsDash() {
   const [metrics, setMetrics] = useState<Record<string, unknown> | null>(null);
@@ -46,9 +46,7 @@ export default function MetricsDash() {
           { label: 'avg latency ms', value: tick ? typeof metrics?.avg_latency_ms === 'number' ? Number(metrics.avg_latency_ms).toFixed(1) : '—' : undefined },
           { label: 'error rate', value: tick ? typeof metrics?.error_rate === 'number'
                 ? `${(Number(metrics.error_rate) * 100).toFixed(2)}%`
-                : '—' : undefined, tone: tick ? countTone(Number(typeof metrics?.error_rate === 'number'
-                ? `${(Number(metrics.error_rate) * 100).toFixed(2)}%`
-                : '—')) : undefined },
+                : '—' : undefined, tone: tick ? rateTone(metrics?.error_rate) : undefined },
           { label: 'Cilium agents', value: tick ? agents : undefined },
           { label: 'BPF programs', value: tick ? Number(ebpf?.programs_total ?? ebpf?.programs ?? 0) || '—' : undefined },
           { label: 'BPF maps', value: tick ? Number(ebpf?.maps_total ?? ebpf?.maps ?? 0) || '—' : undefined },

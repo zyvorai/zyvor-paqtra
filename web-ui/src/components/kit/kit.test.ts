@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { bytes, compact, msFromUs, pct } from './format';
-import { countTone, scoreTone } from './tone';
+import { countTone, rateTone, scoreTone } from './tone';
 
 describe('tone', () => {
   it('treats any nonzero count as a deviation', () => {
@@ -30,5 +30,14 @@ describe('format', () => {
     expect(msFromUs(250_000)).toBe('250 ms');
     expect(pct(1, 4)).toBe('25.0%');
     expect(pct(1, 0)).toBe('0%');
+  });
+});
+
+describe('rateTone', () => {
+  it('maps a numeric rate to a tone and non-numbers to idle', () => {
+    expect(rateTone(undefined)).toBe('idle');
+    expect(rateTone('1.00%')).toBe('idle');
+    expect(rateTone(0)).toBe('ok');
+    expect(rateTone(0.05)).toBe('warn');
   });
 });
