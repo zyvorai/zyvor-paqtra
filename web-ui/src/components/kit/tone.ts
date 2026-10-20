@@ -9,6 +9,11 @@ export function countTone(n: number | undefined, bad = Infinity): Tone {
   return n > 0 ? 'warn' : 'ok';
 }
 
+/** Tone for a rate (e.g. an error fraction); idle when it is not a number. */
+export function rateTone(rate: unknown): Tone {
+  return typeof rate === 'number' ? countTone(rate) : 'idle';
+}
+
 /** Tone for a 0–100 score where higher is better. */
 export function scoreTone(score: number | undefined, warnBelow = 80, badBelow = 50): Tone {
   if (score === undefined || !Number.isFinite(score)) return 'idle';
