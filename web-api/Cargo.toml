@@ -48,7 +48,7 @@ chrono = { version = "0.4", features = ["serde"] }
 regex = "1.13"
 dashmap = "6"
 rand = "0.10"
-rusqlite = { version = "0.40.2", features = ["bundled", "hooks"] }
+rusqlite = { version = "0.41.0", features = ["bundled", "hooks"] }
 argon2 = "0.6.0"
 subtle = "2.6.1"
 tonic = "0.14"
