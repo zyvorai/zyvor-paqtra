@@ -40,8 +40,8 @@ terraform.tfvars
 *.tfstate.*
 crash.log
 
-# Local data
-data/
+# Local data (repo-root only; do not swallow website/src/data/)
+/data/
 *.sqlite
 *.db
 

@@ -2,8 +2,8 @@
 # ─────────────────────────────────────────────────────────────
 # Paqtra CLI installer (like cilium-cli's install snippet).
 #
-#   curl -fsSL https://raw.githubusercontent.com/zyvorai/paqtra/main/install.sh | sh
-#   curl -fsSL .../install.sh | sh -s -- --version 2.2.3
+#   curl -fsSL https://raw.githubusercontent.com/zyvorai/zyvor-paqtra/main/install.sh | sh
+#   curl -fsSL .../install.sh | sh -s -- --version 2.2.4
 #
 # Downloads the release tarball for this OS/arch, verifies it against the
 # release's sha256sums.txt (and its cosign bundle when `cosign` is installed),
@@ -18,7 +18,10 @@
 # ─────────────────────────────────────────────────────────────
 set -eu
 
-REPO="zyvorai/paqtra"
+# Canonical GitHub repo after the org rename (zyvorai/paqtra redirects here).
+REPO="zyvorai/zyvor-paqtra"
+# Cosign identities may use either name depending on when the tag was cut.
+COSIGN_IDENTITY_RE='^https://github.com/zyvorai/(zyvor-)?paqtra/\.github/workflows/release\.yml@refs/tags/v'
 VERSION="${PAQTRA_VERSION:-}"
 INSTALL_DIR="${PAQTRA_INSTALL_DIR:-}"
 ACTION="install"
@@ -155,7 +158,7 @@ do_install() {
             info "verifying cosign signature..."
             cosign verify-blob \
                 --bundle "$tmp/sha256sums.txt.sigstore.json" \
-                --certificate-identity-regexp "^https://github.com/${REPO}/\.github/workflows/release\.yml@refs/tags/v" \
+                --certificate-identity-regexp "$COSIGN_IDENTITY_RE" \
                 --certificate-oidc-issuer https://token.actions.githubusercontent.com \
                 "$tmp/sha256sums.txt" >/dev/null 2>&1 \
                 || die "cosign signature verification FAILED; nothing was installed"

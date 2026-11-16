@@ -7,7 +7,7 @@ set -euo pipefail
 
 VERSION="${1:?usage: $0 <version> <sha256sums.txt> [owner/repo]}"
 SUMS="${2:?usage: $0 <version> <sha256sums.txt> [owner/repo]}"
-REPO="${3:-zyvorai/paqtra}"
+REPO="${3:-zyvorai/zyvor-paqtra}"
 VERSION="${VERSION#v}"
 
 sum_for() {

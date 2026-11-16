@@ -20,6 +20,11 @@ jobs:
     - uses: actions/setup-node@v7
       with: {node-version: '22', cache: npm, cache-dependency-path: website/package-lock.json}
     - run: npm --prefix website ci
+    # facts.generated.json is imported by the home page; generate it (and the
+    # MCP catalog) the same way CI does, so a missing checked-in file cannot
+    # break Pages after a rename or clean checkout.
+    - uses: dtolnay/rust-toolchain@stable
+    - run: python3 scripts/gen-site-facts.py
     - run: npm --prefix website run build
     - uses: actions/upload-pages-artifact@v5
       with: {path: website/build}
