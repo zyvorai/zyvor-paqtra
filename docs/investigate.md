@@ -19,7 +19,8 @@ Every step and impact claim carries one of:
 - SQLite table under `PAQTRA_DATA_DIR/flows.db` (or in-memory if unset)
 - Background **follow** ingest from Hubble Observer gRPC (`hubble_grpc` source; CLI only if `HUBBLE_MODE=cli|auto` falls back). Chart default is `grpc`.
 - Follow buffers flush at **64 flows** or every **2 seconds** when the buffer is nonempty (quiet clusters still persist evidence promptly).
-- Default retention: 7 days
+- Default retention: 7 days (`PAQTRA_FLOW_RETENTION_DAYS`). Expired rows are deleted by a background thread, 500 rows at a time through the time index, pausing four times as long as each chunk took (at least 2 s) and checking every 10 minutes once nothing is left. Startup and ingest never wait on it, so a large backlog (multi-GB `flows.db` on a spinning disk) drains over hours instead of blocking the API; rows past retention can appear in queries until then.
+- Inserts run on the blocking thread pool, so a slow disk cannot stall HTTP handlers or health probes.
 - Health: `GET /health` → `subsystems.flow_ingest` (`source`, `connected`, `disconnects`, `gaps`, `events_per_sec`, `lag_secs`, `hubble_mode`)
 
 Enable persistence in Helm: `api.persistence.enabled=true` (sets `PAQTRA_DATA_DIR`). Chart defaults size the API at **512Mi request / 2Gi limit** so the durable flow index and bpftool inventory do not OOM under stacked Overview probes.

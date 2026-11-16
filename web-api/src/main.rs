@@ -90,7 +90,9 @@ async fn main() -> anyhow::Result<()> {
                 config.flow_retention_days,
             )?;
             tracing::info!("FlowStore initialized under {}", dir);
-            Arc::new(store)
+            let store = Arc::new(store);
+            store.spawn_purger();
+            store
         }
         None => {
             tracing::warn!(
