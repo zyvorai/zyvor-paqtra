@@ -10,6 +10,19 @@ The latest 20 entries. The full history is in [CHANGELOG.md](https://github.com/
 
 ## [Unreleased]
 
+## [2.2.5] - 2026-11-16
+
+### Fixed
+
+- **`install.sh` accepts the renamed GitHub repo's cosign identity.** After the
+  move to `zyvorai/zyvor-paqtra`, releases were signed under that path while
+  the installer still required `zyvorai/paqtra`, so any machine with `cosign`
+  installed rejected every download. The installer now uses the new repo and
+  accepts either identity.
+- **Docs site builds again.** `website/src/data/facts.generated.json` was
+  swallowed by a root `data/` gitignore, so Pages failed to import it; the
+  file is tracked and the Pages workflow regenerates facts before build.
+
 ## [2.2.4] - 2026-11-16
 
 ### Fixed
@@ -222,6 +235,7 @@ The latest 20 entries. The full history is in [CHANGELOG.md](https://github.com/
 - README and product docs updated for gRPC follow ingest, DNS evidence, and
   deny explanation.
 
+[2.2.5]: https://github.com/zyvorai/paqtra/releases/tag/v2.2.5
 [2.2.4]: https://github.com/zyvorai/paqtra/releases/tag/v2.2.4
 [2.2.3]: https://github.com/zyvorai/paqtra/releases/tag/v2.2.3
 [2.2.2]: https://github.com/zyvorai/paqtra/releases/tag/v2.2.2

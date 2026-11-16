@@ -1,6 +1,6 @@
 [package]
 name = "paqtra-api"
-version = "2.2.4"
+version = "2.2.5"
 edition = "2021"
 authors = ["Paqtra Contributors"]
 description = "REST API server for Paqtra — trace every flow"

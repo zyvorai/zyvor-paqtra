@@ -1,7 +1,7 @@
 {
-  "version": "2.2.4",
+  "version": "2.2.5",
   "mcpName": "io.github.zyvorai/paqtra",
-  "mcpImage": "ghcr.io/zyvorai/paqtra-mcp:2.2.4",
+  "mcpImage": "ghcr.io/zyvorai/paqtra-mcp:2.2.5",
   "mcpTools": 39,
   "docPages": 30,
   "builtinAlerts": 45,
