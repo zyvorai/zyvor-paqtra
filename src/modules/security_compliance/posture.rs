@@ -419,8 +419,14 @@ impl SecurityPosture {
     // -----------------------------------------------------------------------
 
     /// Return the path used for persisting the last score. Uses
+    /// `$PAQTRA_POSTURE_SCORE_FILE` when set, otherwise
     /// `$HOME/.paqtra-posture-score`, falling back to `/tmp`.
     fn score_history_path() -> PathBuf {
+        if let Ok(p) = std::env::var("PAQTRA_POSTURE_SCORE_FILE") {
+            if !p.is_empty() {
+                return PathBuf::from(p);
+            }
+        }
         std::env::var("HOME")
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from("/tmp"))
@@ -751,9 +757,21 @@ mod tests {
 
     #[test]
     fn test_save_and_load_score() {
-        // Save a known score
+        // Isolate from parallel calculate_score tests that write the shared HOME file.
+        static LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+        let _guard = LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let path = std::env::temp_dir().join(format!(
+            ".paqtra-posture-score-test-{}",
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        std::env::set_var("PAQTRA_POSTURE_SCORE_FILE", &path);
         SecurityPosture::save_current_score(72.5);
         let loaded = SecurityPosture::load_previous_score();
+        let _ = std::fs::remove_file(&path);
+        std::env::remove_var("PAQTRA_POSTURE_SCORE_FILE");
         assert!(loaded.is_some());
         let loaded = loaded.unwrap();
         assert!(
@@ -761,8 +779,6 @@ mod tests {
             "Loaded score should be ~72.5, got {}",
             loaded
         );
-        // Clean up
-        let _ = std::fs::remove_file(SecurityPosture::score_history_path());
     }
 
     #[test]
