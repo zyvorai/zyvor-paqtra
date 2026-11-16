@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.4] - 2026-11-16
+
+### Fixed
+
+- **API no longer hangs at startup on a large flow backlog.** Flow-history
+  retention deleted every expired row in one statement before the server
+  bound its port, and again after every ingest batch; on a spinning disk a
+  multi-GB `flows.db` kept the pod unready until the liveness probe killed it.
+  Retention now runs on a background thread, 500 rows per chunk through the
+  time index with a pause between chunks, never on the startup or ingest path.
+- **Flow ingest no longer freezes the API on a slow disk.** SQLite inserts
+  ran on the async workers; under a 1-CPU limit tokio has one, so a stalled
+  insert stopped every request and the liveness probe restarted the pod.
+  Inserts now run on the blocking pool.
+- **Metrics catch-up outpaces collection.** The API stores each series'
+  points under one lookup instead of cloning metadata per point, and agent
+  batches carry up to 500k points (metadata is repeated per batch); at ~20k
+  series the old path only kept pace and a backlog never cleared.
+- **Agent memory.** The agent sets `MALLOC_ARENA_MAX=2` (glibc per-thread
+  arenas doubled its RSS on a 12-core node) and its default limits are 512Mi
+  and 1 CPU: ~20k series with the hour-long buffer settle near 250Mi and
+  ~300m, and the old 200m limit throttled the sender until it fell behind.
+- **Agent pod list is bounded.** The metrics pod index listed every pod ever
+  scheduled on the node, including evicted ones (12k on one lab node, 150 MB
+  of JSON), and was OOM-killed. It now skips `Failed`/`Succeeded` pods
+  server-side and pages the list 250 pods at a time.
+
 ## [2.2.3] - 2026-10-15
 
 ### Added
@@ -52,31 +79,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **web-ui TypeScript pinned back to 5.9.** The Dependabot bump to TypeScript
   7 broke `npm ci` (typescript-eslint peer range), ESLint and `tsconfig`
   `baseUrl`.
-
-### Fixed
-
-- **API no longer hangs at startup on a large flow backlog.** Flow-history
-  retention deleted every expired row in one statement before the server
-  bound its port, and again after every ingest batch; on a spinning disk a
-  multi-GB `flows.db` kept the pod unready until the liveness probe killed it.
-  Retention now runs on a background thread, 500 rows per chunk through the
-  time index with a pause between chunks, never on the startup or ingest path.
-- **Flow ingest no longer freezes the API on a slow disk.** SQLite inserts
-  ran on the async workers; under a 1-CPU limit tokio has one, so a stalled
-  insert stopped every request and the liveness probe restarted the pod.
-  Inserts now run on the blocking pool.
-- **Metrics catch-up outpaces collection.** The API stores each series'
-  points under one lookup instead of cloning metadata per point, and agent
-  batches carry up to 500k points (metadata is repeated per batch); at ~20k
-  series the old path only kept pace and a backlog never cleared.
-- **Agent memory.** The agent sets `MALLOC_ARENA_MAX=2` (glibc per-thread
-  arenas doubled its RSS on a 12-core node) and its default limits are 512Mi
-  and 1 CPU: ~20k series with the hour-long buffer settle near 250Mi and
-  ~300m, and the old 200m limit throttled the sender until it fell behind.
-- **Agent pod list is bounded.** The metrics pod index listed every pod ever
-  scheduled on the node, including evicted ones (12k on one lab node, 150 MB
-  of JSON), and was OOM-killed. It now skips `Failed`/`Succeeded` pods
-  server-side and pages the list 250 pods at a time.
 
 ## [2.2.2] - 2026-09-27
 
@@ -217,6 +219,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - README and product docs updated for gRPC follow ingest, DNS evidence, and
   deny explanation.
 
+[2.2.4]: https://github.com/zyvorai/paqtra/releases/tag/v2.2.4
+[2.2.3]: https://github.com/zyvorai/paqtra/releases/tag/v2.2.3
+[2.2.2]: https://github.com/zyvorai/paqtra/releases/tag/v2.2.2
 [2.2.1]: https://github.com/zyvorai/paqtra/releases/tag/v2.2.1
 [2.2.0]: https://github.com/zyvorai/paqtra/releases/tag/v2.2.0
 [2.1.0]: https://github.com/zyvorai/paqtra/releases/tag/v2.1.0
