@@ -537,7 +537,7 @@ impl FlowStore {
         db: &Arc<Mutex<Connection>>,
         f: impl FnOnce(&Connection) -> rusqlite::Result<T>,
     ) -> Result<T> {
-        let conn = db
+        let mut conn = db
             .lock()
             .map_err(|_| anyhow::anyhow!("flow db lock poisoned"))?;
         let started = Instant::now();
