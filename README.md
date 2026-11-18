@@ -2,6 +2,8 @@
 
 # Paqtra
 
+[Client overview (PDF)](docs/Paqtra-Client-Overview.pdf)
+
 [![CI](https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-API%20%C2%B7%20agent%20%C2%B7%20CLI%20%C2%B7%20TUI-000000?logo=rust)](Cargo.toml)
