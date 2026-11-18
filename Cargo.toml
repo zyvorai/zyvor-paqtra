@@ -63,7 +63,7 @@ tempfile = "3.27"
 libc = "0.2"
 
 # BPF map access
-nix = { version = "0.31", features = ["fs"] }
+nix = { version = "0.32", features = ["fs"] }
 byteorder = "1.5"
 ureq = { version = "3.4.2", default-features = false, features = ["rustls", "gzip"] }
 tar = "0.4.46"
