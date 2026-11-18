@@ -17,7 +17,7 @@ grpc = ["tonic", "tonic-prost", "prost", "tonic-prost-build"]
 
 [dependencies]
 # Kubernetes client
-kube = { version = "4.2", features = ["client", "derive", "kube-runtime", "ws"] }
+kube = { version = "5.1", features = ["client", "derive", "kube-runtime", "ws"] }
 k8s-openapi = { version = "0.28", features = ["v1_32"] }
 
 # Async runtime
