@@ -12,7 +12,7 @@ readme = "../README.md"
 [dependencies]
 # Web framework
 axum = { version = "0.8.9", features = ["ws", "macros"] }
-axum-server = { version = "0.8", features = ["tls-rustls"] }
+axum-server = { version = "0.9", features = ["tls-rustls"] }
 rustls = { version = "0.23", features = ["ring"] }
 rustls-pemfile = "2"
 tower = "0.5"
