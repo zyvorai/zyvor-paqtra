@@ -241,7 +241,7 @@ Generated with **92.3% ML confidence** after 14 days of learning.
 
 ## Contributing Examples
 
-Have a useful configuration or scenario? Contributions welcome!
+Have a useful configuration or scenario? Contributions are by arrangement with Zyvor AI Labs (sales@zyvor.dev).
 
 1. Fork the repository
 2. Add your example to the appropriate directory
