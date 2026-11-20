@@ -19,7 +19,7 @@
 
 **Cilium-native network observability and operations for Kubernetes.** Every Hubble flow stored and searchable, drops explained by Cilium reason, `CiliumNetworkPolicy` changes simulated before you apply them, and enforcement left with Cilium.
 
-**Web dashboard** · **REST API** · **Terminal TUI** · **Why denied? on any flow** · **Read-only toward the datapath** · **Free for non-production use**
+**Web dashboard** · **REST API** · **Terminal TUI** · **Why denied? on any flow** · **Read-only toward the datapath**
 
 📖 **[Read the full docs](https://zyvorai.github.io/zyvor-paqtra/)**: quickstart, architecture, the Cilium boundary, and a product tour.
 
@@ -221,7 +221,7 @@ Paqtra is at **2.2.3** ([CHANGELOG.md](CHANGELOG.md)). Its boundary is fixed by 
 
 ## Support
 
-Non-production use is free under the Zyvor Production License v1.0; production use requires a commercial license (sales@zyvor.dev). If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: sales@zyvor.dev.
+A commercial license is required to run it (sales@zyvor.dev). If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: sales@zyvor.dev.
 
 ## License
 
