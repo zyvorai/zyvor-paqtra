@@ -138,6 +138,6 @@ PacketWolf is licensed by ZyvorAI Labs. For a demo, a trial or pricing, contact 
 
 Prices: INR incl. 18% GST in India; US dollars excl. tax elsewhere (VAT, GST or sales tax added where applicable). Pay online by UPI, card or netbanking where a buy page exists; international cards work (charged in rupees); or request a US-dollar invoice by bank transfer. Custom pricing: contact [sales@zyvor.dev](mailto:sales@zyvor.dev).
 
-Paqtra itself is free under Apache-2.0; its support is the Zyvor Support meter (see [SUBSCRIPTION-MODEL.md](SUBSCRIPTION-MODEL.md)).
+Paqtra itself is free under Apache-2.0; its support is the Zyvor Support meter (see [SUBSCRIPTION-MODEL.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/SUBSCRIPTION-MODEL.md)).
 
 See also: [features.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/features.md) for what Paqtra ships today, and [cilium-brotherhood.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/cilium-brotherhood.md) for the boundaries Paqtra keeps.
