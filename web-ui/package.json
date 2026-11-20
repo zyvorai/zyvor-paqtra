@@ -2,7 +2,7 @@
   "name": "paqtra-ui",
   "version": "2.2.3",
   "description": "Web UI for Paqtra — trace every flow",
-  "license": "Apache-2.0",
+  "license": "LicenseRef-Zyvor-Production-1.0",
   "author": "Paqtra Contributors",
   "repository": {
     "type": "git",

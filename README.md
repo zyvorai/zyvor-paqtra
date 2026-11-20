@@ -5,7 +5,7 @@
 [Client overview (PDF)](docs/Paqtra-Client-Overview.pdf)
 
 [![CI](https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
+[![License: Zyvor Production 1.0](https://img.shields.io/badge/License-Zyvor_Production_1.0-1d1d1f.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-API%20%C2%B7%20agent%20%C2%B7%20CLI%20%C2%B7%20TUI-000000?logo=rust)](Cargo.toml)
 [![Cilium](https://img.shields.io/badge/cilium-1.14%2B-purple.svg)](https://cilium.io/)
 [![Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-informational.svg)](CHANGELOG.md)
