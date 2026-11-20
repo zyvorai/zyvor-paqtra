@@ -299,7 +299,7 @@ export function Receipts(): ReactNode {
       </div>
       <div className={s.badges}>
         <img src="https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml/badge.svg" alt="CI status" />
-        <img src="https://img.shields.io/badge/license-Apache%202.0-blue.svg" alt="Apache 2.0 license" />
+        <img src="https://img.shields.io/badge/License-Zyvor_Production_1.0-1d1d1f.svg" alt="Zyvor Production License 1.0" />
         <Link to="/docs/security">Read the security notes →</Link>
       </div>
     </Section>

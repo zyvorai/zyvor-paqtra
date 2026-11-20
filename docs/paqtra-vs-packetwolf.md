@@ -2,7 +2,7 @@
 
 ![Paqtra vs PacketWolf](social/paqtra-vs-packetwolf-card.jpg)
 
-**Paqtra** is the free, Apache-2.0 community edition. **PacketWolf** is the commercial platform built on the same Cilium-native foundation. Paqtra shows you what your Cilium cluster is doing and why. PacketWolf goes further: it attributes traffic to processes, detects threats, contains them, and operates policy for you.
+**Paqtra** is the community edition, free for non-production use under the Zyvor Production License v1.0. **PacketWolf** is the commercial platform built on the same Cilium-native foundation. Paqtra shows you what your Cilium cluster is doing and why. PacketWolf goes further: it attributes traffic to processes, detects threats, contains them, and operates policy for you.
 
 Both target Kubernetes clusters running Cilium 1.14+ with Hubble enabled. Paqtra is read-only toward the datapath by design (see [cilium-brotherhood.md](cilium-brotherhood.md)). PacketWolf adds custom eBPF probes, an in-cluster operator and enforcement backends.
 
@@ -12,7 +12,7 @@ PacketWolf figures are its own published numbers (Feature Guide), with the capab
 
 | | **Paqtra** (community) | **PacketWolf** (commercial) |
 |---|---|---|
-| License | Apache 2.0 | Proprietary, commercial license from ZyvorAI Labs |
+| License | Zyvor Production 1.0 (free non-production) | Proprietary, commercial license from ZyvorAI Labs |
 | Web dashboard | 60+ pages | 72+ routes, desktop-style shell with global search |
 | REST API | OpenAPI-documented, 90+ paths | 130+ routes plus live WebSocket streams |
 | Terminal UI | 13 tabs | 18 tabs (adds Graph, Kernel, L7, ChaosBPF, Sandbox) |
@@ -115,7 +115,7 @@ Ask questions about cluster networking in plain English. In agent mode Zyra inve
 |---|---|
 | You run Cilium and want to see flows, drops and policy verdicts | You need to know *which process* opened a connection |
 | You are evaluating, learning or running a lab | You are running production workloads that need detection and containment |
-| Apache 2.0 and community support are enough | You need vendor support and a commercial license |
+| Free non-production use and community support are enough | You need vendor support and a commercial license |
 | You apply policy yourself, through Cilium | You want the platform to draft, simulate, enforce and roll back for you |
 | One team, one cluster, JWT sign-in | SSO, multiple tenants, audit and SIEM requirements |
 | Kubernetes pods only | VMs and standalone containers share the network |
@@ -132,6 +132,6 @@ PacketWolf is licensed by ZyvorAI Labs. For a demo, a trial or pricing, contact 
 
 Prices: INR incl. 18% GST in India; US dollars excl. tax elsewhere (VAT, GST or sales tax added where applicable). Pay online by UPI, card or netbanking where a buy page exists; international cards work (charged in rupees); or request a US-dollar invoice by bank transfer. Custom pricing: contact [sales@zyvor.dev](mailto:sales@zyvor.dev).
 
-Paqtra itself is free under Apache-2.0; its support is the Zyvor Support meter (see [SUBSCRIPTION-MODEL.md](SUBSCRIPTION-MODEL.md)).
+Paqtra itself is free for non-production use under the Zyvor Production License v1.0; its support is the Zyvor Support meter (see [SUBSCRIPTION-MODEL.md](SUBSCRIPTION-MODEL.md)).
 
 See also: [features.md](features.md) for what Paqtra ships today, and [cilium-brotherhood.md](cilium-brotherhood.md) for the boundaries Paqtra keeps.

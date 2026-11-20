@@ -21,7 +21,7 @@
 
 **Cilium-native network observability and operations for Kubernetes.** Every Hubble flow stored and searchable, drops explained by Cilium reason, `CiliumNetworkPolicy` changes simulated before you apply them, and enforcement left with Cilium.
 
-**Web dashboard** · **REST API** · **Terminal TUI** · **Why denied? on any flow** · **Read-only toward the datapath** · **Free, Apache 2.0**
+**Web dashboard** · **REST API** · **Terminal TUI** · **Why denied? on any flow** · **Read-only toward the datapath** · **Free for non-production use**
 
 📖 **[Read the full docs](https://zyvorai.github.io/zyvor-paqtra/)**: quickstart, architecture, the Cilium boundary, and a product tour.
 
@@ -192,9 +192,9 @@ Build from source, Docker, Helm, environment variables and testing: **[Install g
 
 ![Paqtra vs PacketWolf — what the commercial platform adds](docs/social/paqtra-vs-packetwolf-card.jpg)
 
-Paqtra is the free, Apache-2.0 community edition. **PacketWolf** is Zyvor's commercial platform on the same Cilium-native foundation, for teams that need to go from *seeing* the network to *securing and operating* it.
+Paqtra is the community edition, free for non-production use under the Zyvor Production License v1.0. **PacketWolf** is Zyvor's commercial platform on the same Cilium-native foundation, for teams that need to go from *seeing* the network to *securing and operating* it.
 
-| | **Paqtra** (Apache 2.0) | **PacketWolf** (commercial) |
+| | **Paqtra** (Zyvor Production 1.0, free non-production) | **PacketWolf** (commercial) |
 |---|---|---|
 | Flows, verdicts, service map, drops, root cause | ✅ | ✅ |
 | AutoPolicy, simulator, healer, chaos, canary, replay, multi-cluster | ✅ | ✅ |
@@ -267,11 +267,11 @@ Paqtra is at **2.2.3** ([CHANGELOG.md](CHANGELOG.md)). Its boundary is fixed by 
 
 ## Support
 
-Free under Apache-2.0. If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: sales@zyvor.dev.
+Non-production use is free under the Zyvor Production License v1.0; production use requires a commercial license (sales@zyvor.dev). If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: sales@zyvor.dev.
 
 ## License
 
-Paqtra is **free and open source** under the **[Apache License 2.0](LICENSE)** (see [NOTICE](NOTICE)). Contributions are accepted under the same license.
+Paqtra is source-available under the **[Zyvor Production License v1.0](LICENSE)** (SPDX `LicenseRef-Zyvor-Production-1.0`; see [NOTICE](NOTICE)). Non-production use is free; production use requires a commercial license from Zyvor AI Labs ([zyvor.dev/buy](https://zyvor.dev/buy), 30-day trial key available). Contributions are accepted under the same license.
 
 **Zyvor Enterprise** adds what production teams ask for: supported releases, deployment and upgrade guidance, priority incident triage, a named technical contact and 24x7 critical intake. Plans and terms: [docs/SUBSCRIPTION-MODEL.md](docs/SUBSCRIPTION-MODEL.md) · [Pricing](https://zyvor.dev/pricing?utm_source=github&utm_medium=paqtra&utm_campaign=readme_license) · [sales@zyvor.dev](mailto:sales@zyvor.dev).
 

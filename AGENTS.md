@@ -9,7 +9,7 @@ web dashboard, REST API, and terminal TUI. Flows prefer Hubble; node-local
 enrichment may read BPF map inventory. Enforcement stays with Cilium
 (`CiliumNetworkPolicy` / CNP).
 
-Free, Apache-2.0 community edition of **PacketWolf** (Zyvor's commercial Cilium
+Community edition (Zyvor Production License v1.0; free for non-production use) of **PacketWolf** (Zyvor's commercial Cilium
 platform; see `docs/paqtra-vs-packetwolf.md`). Suite sibling to **Netra**
 (independent eBPF observe + leased emergency control). Co-existence rules:
 `docs/cilium-brotherhood.md`.
@@ -52,4 +52,4 @@ Flat product topics live under `docs/*.md` (kebab-case). Client HTML under
 
 ## License
 
-Contributions are accepted under the Apache License 2.0. See `LICENSE`.
+Contributions are accepted under the Zyvor Production License v1.0. See `LICENSE`.

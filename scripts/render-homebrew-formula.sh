@@ -26,7 +26,7 @@ class Paqtra < Formula
   desc "Cilium-native network observability and operations for Kubernetes"
   homepage "https://github.com/${REPO}"
   version "${VERSION}"
-  license "Apache-2.0"
+  license :cannot_represent
 
   on_macos do
     if Hardware::CPU.arm?

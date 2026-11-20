@@ -43,7 +43,7 @@ export default function Home(): ReactNode {
             [String(F.mcpTools), 'MCP tools, all read-only'],
             [String(F.builtinAlerts), 'built-in metric alerts'],
             [String(F.apiPaths), 'documented REST API paths'],
-            ['Apache 2.0', 'free community edition'],
+            ['Zyvor Production 1.0', 'free non-production use'],
           ]}
           cueHref="#why"
           cueLabel="Scroll to the next section"

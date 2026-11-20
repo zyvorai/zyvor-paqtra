@@ -39,4 +39,4 @@ custom_edit_url: https://github.com/zyvorai/zyvor-paqtra/edit/main/docs/reposito
 | [CHANGELOG.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/CHANGELOG.md) | Release notes |
 | [CONTRIBUTING.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/CONTRIBUTING.md) | Contribution guide |
 | [AGENTS.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/AGENTS.md) | Coding-agent boundaries |
-| [NOTICE](https://github.com/zyvorai/zyvor-paqtra/blob/main/NOTICE) | Apache attribution |
+| [NOTICE](https://github.com/zyvorai/zyvor-paqtra/blob/main/NOTICE) | Attribution notices |

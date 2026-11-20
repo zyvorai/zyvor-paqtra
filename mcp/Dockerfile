@@ -12,6 +12,6 @@ FROM gcr.io/distroless/cc-debian12:nonroot
 # equal "name" in server.json (the release version gate checks that).
 LABEL io.modelcontextprotocol.server.name="io.github.zyvorai/paqtra"
 LABEL org.opencontainers.image.source="https://github.com/zyvorai/paqtra"
-LABEL org.opencontainers.image.licenses="Apache-2.0"
+LABEL org.opencontainers.image.licenses="LicenseRef-Zyvor-Production-1.0"
 COPY --from=builder /build/target/release/paqtra-mcp /paqtra-mcp
 ENTRYPOINT ["/paqtra-mcp"]

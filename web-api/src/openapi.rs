@@ -46,8 +46,8 @@ pub fn openapi_spec() -> serde_json::Value {
                 "name": "Paqtra Team"
             },
             "license": {
-                "name": "Apache 2.0",
-                "url": "https://www.apache.org/licenses/LICENSE-2.0"
+                "name": "Zyvor Production License v1.0",
+                "url": "https://github.com/zyvorai/zyvor-paqtra/blob/main/LICENSE"
             }
         },
         "servers": [

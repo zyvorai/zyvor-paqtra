@@ -143,7 +143,7 @@ const config: Config = {
             {label: 'GitHub', href: 'https://github.com/zyvorai/zyvor-paqtra'},
             {label: 'Changelog', to: '/docs/reference/changelog'},
             {
-              label: 'License (Apache 2.0)',
+              label: 'License (Zyvor Production 1.0)',
               href: 'https://github.com/zyvorai/zyvor-paqtra/blob/main/LICENSE',
             },
           ],
@@ -157,7 +157,7 @@ const config: Config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Zyvor. Licensed under the Apache License 2.0.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Zyvor. Licensed under the Zyvor Production License v1.0.`,
     },
     prism: {
       theme: prismThemes.github,

@@ -33,4 +33,4 @@
 | [CHANGELOG.md](../CHANGELOG.md) | Release notes |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Contribution guide |
 | [AGENTS.md](../AGENTS.md) | Coding-agent boundaries |
-| [NOTICE](../NOTICE) | Apache attribution |
+| [NOTICE](../NOTICE) | Attribution notices |
