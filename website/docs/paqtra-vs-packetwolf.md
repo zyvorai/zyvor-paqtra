@@ -134,4 +134,10 @@ Some PacketWolf features are opt-in, and they are documented that way: custom eB
 
 PacketWolf is licensed by ZyvorAI Labs. For a demo, a trial or pricing, contact **[sales@zyvor.dev](mailto:sales@zyvor.dev)** or visit **[zyvor.dev](https://zyvor.dev)**.
 
+**PacketWolf price (per managed core per year):** Professional USD 29 excluding tax (INR 2,874 including 18% GST in India); Enterprise USD 49 (INR 4,857); annual minimum USD 3,000 (INR 297,360). Minimums apply after discounts. Volume: 256-499 cores -10%, 500-999 -15%, 1,000+ -20%; multi-year: 2 years -5%, 3 years -10%; capped at 25% together. A 30-day trial key and 30-day proof of concept are available. Buy / get a quote: <https://zyvor.dev/buy>.
+
+Prices: INR incl. 18% GST in India; US dollars excl. tax elsewhere (VAT, GST or sales tax added where applicable). Pay online by UPI, card or netbanking where a buy page exists; international cards work (charged in rupees); or request a US-dollar invoice by bank transfer. Custom pricing: contact [sales@zyvor.dev](mailto:sales@zyvor.dev).
+
+Paqtra itself is free under Apache-2.0; its support is the Zyvor Support meter (see [SUBSCRIPTION-MODEL.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/SUBSCRIPTION-MODEL.md)).
+
 See also: [features.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/features.md) for what Paqtra ships today, and [cilium-brotherhood.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/cilium-brotherhood.md) for the boundaries Paqtra keeps.
