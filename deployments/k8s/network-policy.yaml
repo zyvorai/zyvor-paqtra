@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: paqtra-api
+  namespace: cilium-system
+spec:
+  podSelector:
+    matchLabels:
+      app: paqtra
+      component: api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: paqtra
+              component: ui
+      ports:
+        - port: 9191
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              app.kubernetes.io/name: ingress-nginx
+      ports:
+        - port: 9191

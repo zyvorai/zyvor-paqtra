@@ -1,0 +1,74 @@
+[package]
+name = "paqtra-api"
+version = "2.2.6"
+edition = "2021"
+authors = ["Paqtra Contributors"]
+description = "REST API server for Paqtra — trace every flow"
+license = "LicenseRef-Zyvor-Production-1.0"
+repository = "https://github.com/zyvorai/paqtra"
+homepage = "https://github.com/zyvorai/paqtra"
+readme = "../README.md"
+
+[dependencies]
+# Web framework
+axum = { version = "0.8.9", features = ["ws", "macros"] }
+axum-server = { version = "0.8", features = ["tls-rustls"] }
+rustls = { version = "0.23", features = ["ring"] }
+rustls-pemfile = "2"
+tower = "0.5"
+tower-http = { version = "0.7", features = ["cors", "trace", "compression-gzip", "fs"] }
+
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+# Authentication
+jsonwebtoken = { version = "11.1", features = ["rust_crypto"] }
+
+# Tracing & Metrics
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Error handling
+anyhow = "1.0"
+
+# Configuration
+dotenvy = "0.15"
+
+# HTTP client (for OTEL span export)
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+
+# Utilities
+uuid = { version = "1.26", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+regex = "1.13"
+dashmap = "6"
+rand = "0.10"
+rusqlite = { version = "0.41.1", features = ["bundled", "hooks"] }
+argon2 = "0.6.0"
+subtle = "2.6.1"
+tonic = "0.14"
+tonic-prost = "0.14"
+prost = "0.14"
+prost-types = "0.14"
+paqtra-metrics = { path = "paqtra-metrics" }
+tokio-stream = "0.1.19"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
+# Argon2 is memory-hard: unoptimized debug builds take seconds per hash.
+[profile.dev.package.argon2]
+opt-level = 3
+[profile.dev.package.blake2]
+opt-level = 3
+
+[build-dependencies]
+protox = "0.10.0"
+tonic-prost-build = "0.14"

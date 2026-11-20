@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Paqtra boundary</title>
+<!-- 1600x500. Rendered by ./build.sh to docs/ux/readme-boundary.jpg. The lists are the README's "What Paqtra never does". -->
+<link rel="stylesheet" href="card.css">
+<style>
+  body { height:500px; }
+  .cols { margin-top:24px; grid-template-columns:1fr 1fr 1fr; gap:28px; }
+  .cols .card { min-height:215px; }
+</style></head><body>
+<div class="glow"></div><div class="bar"></div>
+<div class="wrap">
+  <div class="top"><img src="../../../web-ui/public/zyvor-mark.svg" alt=""><b>Zyvor</b><span>&middot;</span><span>Paqtra</span><span class="r"> Read-only by design</span></div>
+  <h1>Paqtra observes. <em>Cilium decides.</em></h1>
+  <div class="row cols">
+    <div class="card g"><span class="lane">PAQTRA READS</span><ul>
+      <li>Hubble flows</li><li>BPF map inventory, read-only</li><li>Kernel views through bpftool, read-only</li><li>The Kubernetes API</li></ul></div>
+    <div class="card r"><span class="lane">PAQTRA NEVER</span><ul>
+      <li>Writes Cilium BPF maps</li><li>Attaches or replaces Cilium or Netra programs</li><li>Collects payloads, argv or Secrets</li><li>Adds a second CNI</li></ul></div>
+    <div class="card b"><span class="lane">POLICY PATH</span><h3>CiliumNetworkPolicy</h3><p>Preview against indexed flows, apply through the Kubernetes API, and Cilium enforces. Never Paqtra's own datapath.</p></div>
+  </div>
+  <div class="foot"><b>github.com/zyvorai/paqtra</b><span class="r">docs/cilium-brotherhood.md</span></div>
+</div>
+</body></html>

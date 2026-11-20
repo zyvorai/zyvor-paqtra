@@ -1,0 +1,20 @@
+{
+  "name": "Paqtra",
+  "short_name": "Paqtra",
+  "description": "Paqtra — trace every flow. Network observability for Kubernetes",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/zyvor-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "developer tools"],
+  "lang": "en"
+}

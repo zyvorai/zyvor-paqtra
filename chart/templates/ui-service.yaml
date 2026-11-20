@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "paqtra.fullname" . }}-ui
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "paqtra.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ui
+spec:
+  type: {{ .Values.ui.service.type }}
+  ports:
+    - port: {{ .Values.ui.service.port }}
+      targetPort: {{ if .Values.tls.enabled }}https{{ else }}http{{ end }}
+      protocol: TCP
+      name: {{ if .Values.tls.enabled }}https{{ else }}http{{ end }}
+  selector:
+    {{- include "paqtra.ui.selectorLabels" . | nindent 4 }}

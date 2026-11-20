@@ -1,0 +1,36 @@
+# Release images that wrap the prebuilt static (musl) `paqtra` binary produced by
+# .github/workflows/release.yml. The workflow stages the binaries in the build
+# context as release-bin/paqtra-linux-amd64 and release-bin/paqtra-linux-arm64,
+# so a multi-arch image needs no compilation (and no QEMU-emulated cargo build).
+#
+#   docker buildx build --target agent -f Dockerfile.release -t ghcr.io/zyvorai/paqtra .
+#   docker buildx build --target cli   -f Dockerfile.release -t ghcr.io/zyvorai/paqtra-cli .
+#
+# For local development from source use the plain `Dockerfile` instead.
+
+FROM docker.io/library/debian:bookworm-slim AS base
+ARG TARGETARCH
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates wget \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -m -u 1000 paqtra
+COPY release-bin/paqtra-linux-${TARGETARCH} /usr/local/bin/paqtra
+RUN chmod 755 /usr/local/bin/paqtra
+
+# ─── Node agent (DaemonSet entrypoint), ghcr.io/zyvorai/paqtra ───────────────
+FROM base AS agent
+USER paqtra
+EXPOSE 9192
+ENTRYPOINT ["paqtra"]
+CMD ["agent"]
+
+# ─── CLI for CI: `docker run ... paqtra install`, ghcr.io/zyvorai/paqtra-cli ─
+# Carries helm so `paqtra install` needs no download at run time. Mount a
+# kubeconfig (-v ~/.kube:/home/paqtra/.kube:ro) or run in-cluster.
+FROM docker.io/alpine/helm:3.16.4 AS helm
+FROM base AS cli
+COPY --from=helm /usr/bin/helm /usr/local/bin/helm
+USER paqtra
+WORKDIR /home/paqtra
+ENTRYPOINT ["paqtra"]
+CMD ["--help"]

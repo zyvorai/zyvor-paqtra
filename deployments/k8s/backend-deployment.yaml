@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paqtra-api
+  namespace: cilium-system
+  labels:
+    app: paqtra
+    component: api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: paqtra
+      component: api
+  template:
+    metadata:
+      labels:
+        app: paqtra
+        component: api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9191"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: paqtra-api
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - paqtra
+                    - key: component
+                      operator: In
+                      values:
+                        - api
+                topologyKey: kubernetes.io/hostname
+      containers:
+      - name: api
+        image: ghcr.io/zyvorai/paqtra-api:latest  # TODO: Use versioned tags in production
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 9191
+          protocol: TCP
+        env:
+        - name: PAQTRA_HOST
+          value: "0.0.0.0"
+        - name: PAQTRA_PORT
+          value: "9191"
+        - name: HUBBLE_ADDRESS
+          value: "hubble-relay.kube-system.svc.cluster.local:80"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: paqtra-secrets
+              key: jwt-secret
+        - name: ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: paqtra-secrets
+              key: admin-username
+        - name: ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: paqtra-secrets
+              key: admin-password
+        - name: API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: paqtra-secrets
+              key: api-key
+              optional: true
+        - name: RUST_LOG
+          value: "info,paqtra_api=debug"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "100m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 15
+          timeoutSeconds: 15
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paqtra-api
+  namespace: cilium-system
+  labels:
+    app: paqtra
+    component: api
+spec:
+  type: ClusterIP
+  ports:
+  - name: http
+    port: 9191
+    targetPort: http
+    protocol: TCP
+  selector:
+    app: paqtra
+    component: api

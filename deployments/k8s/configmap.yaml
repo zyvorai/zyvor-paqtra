@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: paqtra-config
+  namespace: cilium-system
+  labels:
+    app: paqtra
+data:
+  config.yaml: |
+    api:
+      host: "0.0.0.0"
+      port: 9191
+      cors_allowed_origins:
+        - "https://paqtra.example.com"
+
+    hubble:
+      address: "hubble-relay.kube-system.svc.cluster.local:80"
+
+    features:
+      anomaly_detection: true
+      compliance: true
+      autopolicy: true
+      chaos: true
+      canary: true
+
+    logging:
+      level: "info"
+      format: "json"

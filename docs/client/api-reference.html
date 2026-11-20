@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paqtra API Reference v1.0</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--surface:#161b22;--surface2:#1c2129;--border:#30363d;--text:#e6edf3;--text2:#8b949e;--accent:#58a6ff;--green:#3fb950;--blue:#58a6ff;--yellow:#d29922;--red:#f85149;--purple:#bc8cff;--code-bg:#0d1117;--sidebar-w:280px}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;display:flex;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* Sidebar */
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:20px 0;z-index:100}
+.sidebar h2{padding:0 20px 16px;font-size:14px;color:var(--accent);letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid var(--border);margin-bottom:8px}
+.sidebar .logo{padding:16px 20px 20px;font-size:15px;font-weight:700;color:var(--text);border-bottom:1px solid var(--border);margin-bottom:12px}
+.sidebar .logo span{color:var(--accent)}
+.sidebar ul{list-style:none}
+.sidebar li a{display:block;padding:6px 20px;font-size:13px;color:var(--text2);transition:all .15s}
+.sidebar li a:hover{color:var(--text);background:var(--surface2);text-decoration:none}
+.sidebar li.cat{padding:12px 20px 4px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Main */
+.main{margin-left:var(--sidebar-w);flex:1;padding:40px 48px 80px;max-width:960px}
+h1{font-size:28px;margin-bottom:4px}
+.subtitle{color:var(--text2);font-size:14px;margin-bottom:32px}
+h2{font-size:22px;margin:48px 0 16px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+h3{font-size:16px;margin:32px 0 8px;color:var(--text2)}
+p{margin-bottom:12px;color:var(--text2);font-size:14px}
+
+/* Info boxes */
+.info-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:24px;font-size:14px}
+.info-box h4{margin-bottom:8px;font-size:14px;color:var(--text)}
+.info-box code{background:var(--code-bg);padding:2px 6px;border-radius:4px;font-size:13px;color:var(--accent)}
+
+/* Endpoint card */
+.endpoint{background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:16px;overflow:hidden}
+.endpoint-header{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:default}
+.method{display:inline-block;padding:3px 10px;border-radius:4px;font-size:11px;font-weight:700;text-transform:uppercase;min-width:56px;text-align:center;color:#fff}
+.method.get{background:var(--green)}
+.method.post{background:var(--blue)}
+.method.put{background:var(--yellow);color:#1c2129}
+.method.delete{background:var(--red)}
+.path{font-family:'SFMono-Regular',Consolas,monospace;font-size:14px;color:var(--text)}
+.desc{color:var(--text2);font-size:13px;margin-left:auto;text-align:right;max-width:340px}
+.endpoint-body{padding:0 18px 16px;border-top:1px solid var(--border)}
+.endpoint-body h5{font-size:12px;color:var(--text2);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.5px}
+pre{background:var(--code-bg);border:1px solid var(--border);border-radius:6px;padding:12px 16px;font-size:13px;font-family:'SFMono-Regular',Consolas,monospace;overflow-x:auto;color:var(--text2);line-height:1.5}
+.param-table{width:100%;font-size:13px;border-collapse:collapse;margin:8px 0}
+.param-table th{text-align:left;color:var(--text2);font-weight:600;padding:4px 8px;border-bottom:1px solid var(--border)}
+.param-table td{padding:4px 8px;border-bottom:1px solid var(--border);color:var(--text2)}
+.param-table td:first-child{color:var(--accent);font-family:monospace}
+.badge-admin{background:var(--red);color:#fff;font-size:10px;padding:2px 6px;border-radius:3px;font-weight:700;margin-left:8px;vertical-align:middle}
+.base-url{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 16px;font-family:monospace;font-size:14px;color:var(--accent);margin:8px 0 24px}
+ul.bullets{margin:8px 0 12px 20px;font-size:14px;color:var(--text2)}
+ul.bullets li{margin-bottom:4px}
+</style>
+</head>
+<body>
+
+<nav class="sidebar">
+  <div class="logo">Paqtra</div>
+  <h2>API Reference</h2>
+  <ul>
+    <li class="cat">Getting Started</li>
+    <li><a href="#auth">Authentication</a></li>
+    <li class="cat">Health &amp; Metrics</li>
+    <li><a href="#health">Health &amp; Readiness</a></li>
+    <li class="cat">Core</li>
+    <li><a href="#flows">Flows</a></li>
+    <li><a href="#policies">Policies</a></li>
+    <li><a href="#security">Security</a></li>
+    <li><a href="#core-data">Core Data</a></li>
+    <li class="cat">Intelligence</li>
+    <li><a href="#intelligence">Intelligence Modules</a></li>
+    <li class="cat">Observability</li>
+    <li><a href="#observability">Observability</a></li>
+    <li class="cat">Networking</li>
+    <li><a href="#networking">Networking</a></li>
+    <li class="cat">Operations</li>
+    <li><a href="#operations">Operations</a></li>
+    <li class="cat">eBPF Data</li>
+    <li><a href="#ebpf-data">eBPF Data</a></li>
+    <li class="cat">Real-time</li>
+    <li><a href="#websocket">WebSocket</a></li>
+  </ul>
+</nav>
+
+<main class="main">
+
+<h1>Paqtra API Reference v1.0</h1>
+<p class="subtitle">Complete REST API for Cilium network visibility, policy management, and intelligent diagnostics.</p>
+
+<div class="base-url">Base URL: http://&lt;host&gt;:9191</div>
+
+<!-- ====== AUTHENTICATION ====== -->
+<h2 id="auth">Authentication</h2>
+
+<div class="info-box">
+  <h4>Bearer Token</h4>
+  <p>All requests require a JWT Bearer token in the <code>Authorization</code> header:</p>
+  <pre>Authorization: Bearer &lt;token&gt;</pre>
+  <p style="margin-top:12px">For local development, disable authentication:</p>
+  <pre>AUTH_DISABLED=true</pre>
+  <p style="margin-top:12px"><strong>Admin role</strong> is required for destructive operations:</p>
+  <ul class="bullets">
+    <li>Create / update / delete policies</li>
+    <li>Drain node</li>
+    <li>Chaos experiments</li>
+    <li>Healer fix actions</li>
+  </ul>
+</div>
+
+<!-- ====== HEALTH & METRICS ====== -->
+<h2 id="health">Health &amp; Metrics <span style="font-size:13px;color:var(--text2);font-weight:400">(3 endpoints)</span></h2>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/health</span><span class="desc">Health check with subsystem status</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "status": "healthy",
+  "subsystems": { "ebpf": "ok", "k8s": "ok", "hubble": "ok" },
+  "uptime_seconds": 84230
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/ready</span><span class="desc">Readiness probe</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "ready": true,
+  "checks": { "datastore": "pass", "ebpf_loader": "pass" }
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/metrics</span><span class="desc">Prometheus metrics (text/plain)</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre># HELP paqtra_flows_total Total observed flows
+# TYPE paqtra_flows_total counter
+paqtra_flows_total{verdict="FORWARDED"} 1489203</pre></div>
+</div>
+
+<!-- ====== FLOWS ====== -->
+<h2 id="flows">Flows <span style="font-size:13px;color:var(--text2);font-weight:400">(3 endpoints)</span></h2>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/flows</span><span class="desc">List flows with filtering</span></div>
+  <div class="endpoint-body">
+    <h5>Query Parameters</h5>
+    <table class="param-table"><tr><th>Param</th><th>Type</th><th>Description</th></tr>
+      <tr><td>limit</td><td>integer</td><td>Max results (default 100)</td></tr>
+      <tr><td>offset</td><td>integer</td><td>Pagination offset</td></tr>
+      <tr><td>verdict</td><td>string</td><td>FORWARDED, DROPPED, ERROR</td></tr>
+      <tr><td>namespace</td><td>string</td><td>Filter by Kubernetes namespace</td></tr>
+    </table>
+    <h5>Example Response</h5><pre>{
+  "flows": [
+    { "id": "f-29a1c", "src": "default/frontend", "dst": "default/api", "verdict": "FORWARDED", "protocol": "TCP" }
+  ],
+  "total": 14829, "limit": 100, "offset": 0
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/flows/{id}</span><span class="desc">Get a single flow by ID</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "id": "f-29a1c", "src": "default/frontend", "dst": "default/api",
+  "verdict": "FORWARDED", "protocol": "TCP", "port": 8080, "timestamp": "2026-04-05T10:23:01Z"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/flows/stats</span><span class="desc">Aggregated flow statistics</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "total": 148290, "forwarded": 145102, "dropped": 3120, "error": 68,
+  "flows_per_second": 482.3
+}</pre></div>
+</div>
+
+<!-- ====== POLICIES ====== -->
+<h2 id="policies">Policies <span style="font-size:13px;color:var(--text2);font-weight:400">(7 endpoints)</span></h2>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/policies</span><span class="desc">List all network policies</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "policies": [
+    { "id": "pol-8fa2", "name": "allow-dns", "namespace": "kube-system", "enforcement": "enabled" }
+  ],
+  "total": 23
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/policies</span><span class="desc">Create a new policy</span><span class="badge-admin">ADMIN</span></div>
+  <div class="endpoint-body">
+    <h5>Request Body</h5><pre>{
+  "name": "block-external",
+  "namespace": "production",
+  "spec": { "endpointSelector": {}, "egressDeny": [{ "toCIDR": ["0.0.0.0/0"] }] }
+}</pre>
+    <h5>Example Response</h5><pre>{
+  "id": "pol-c9d1", "name": "block-external", "namespace": "production",
+  "status": "created", "enforcement": "pending"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method put">PUT</span><span class="path">/api/v1/policies/{id}</span><span class="desc">Update an existing policy</span><span class="badge-admin">ADMIN</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "id": "pol-8fa2", "name": "allow-dns", "status": "updated", "revision": 3
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method delete">DELETE</span><span class="path">/api/v1/policies/{id}</span><span class="desc">Delete a policy</span><span class="badge-admin">ADMIN</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "id": "pol-8fa2", "status": "deleted"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/policies/{id}/rules</span><span class="desc">Add one rule to a CiliumNetworkPolicy</span><span class="badge-admin">EDITOR</span></div>
+  <div class="endpoint-body"><h5>Example Request</h5><pre>{
+  "direction": "egress",
+  "rule": { "toFQDNs": [{ "matchName": "api.example.com" }], "toPorts": [{ "ports": [{ "port": "443", "protocol": "TCP" }] }] },
+  "resource_version": "3728000"
+}</pre><h5>Example Response</h5><pre>{
+  "policy": "default/allow-dns", "action": "add", "direction": "egress", "dry_run": false,
+  "rule_counts": { "ingress": 1, "egress": 1, "ingressDeny": 0, "egressDeny": 0 },
+  "result": { "index": 0 }
+}</pre><p>Add <code>?dry_run=true</code> to validate against the cluster without persisting. A stale <code>resource_version</code> returns 409; a rule the cluster rejects returns 400 with its reason. <code>{id}</code> is the policy UID, or <code>namespace%2Fname</code>.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method put">PUT</span><span class="path">/api/v1/policies/{id}/rules</span><span class="desc">Replace one rule</span><span class="badge-admin">EDITOR</span></div>
+  <div class="endpoint-body"><h5>Example Request</h5><pre>{ "direction": "egress", "index": 0, "rule": { "toEntities": ["kube-apiserver"] } }</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method delete">DELETE</span><span class="path">/api/v1/policies/{id}/rules</span><span class="desc">Delete one rule (<code>?direction=egress&amp;index=0</code>)</span><span class="badge-admin">EDITOR</span></div>
+  <div class="endpoint-body"><p>A policy's last rule cannot be deleted (400): Cilium rejects a policy with no rules, so delete the policy instead. The response's <code>result.removed</code> holds the deleted rule.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/policies/simulate</span><span class="desc">Simulate policy impact before apply</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "affected_endpoints": 12, "flows_blocked": 340, "flows_allowed": 9812,
+  "risk_score": 0.15
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/policies/validate</span><span class="desc">Validate policy YAML syntax</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "valid": true, "warnings": [], "normalized_yaml": "apiVersion: cilium.io/v2..."
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/policies/templates</span><span class="desc">List available policy templates</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "templates": [
+    { "name": "deny-all-egress", "category": "security", "description": "Block all outbound traffic" },
+    { "name": "allow-dns", "category": "connectivity", "description": "Permit DNS resolution" }
+  ]
+}</pre></div>
+</div>
+
+<!-- ====== SECURITY ====== -->
+<h2 id="security">Security <span style="font-size:13px;color:var(--text2);font-weight:400">(6 endpoints)</span></h2>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/anomalies</span><span class="desc">List detected anomalies</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "anomalies": [
+    { "id": "anom-44b1", "type": "unexpected_egress", "severity": "high", "namespace": "production" }
+  ],
+  "total": 3
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/anomalies/{id}</span><span class="desc">Get anomaly details</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "id": "anom-44b1", "type": "unexpected_egress", "severity": "high",
+  "source": "production/checkout", "destination": "185.12.44.0/24",
+  "first_seen": "2026-04-05T08:12:00Z", "flow_count": 482
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/anomalies/{id}/remediate</span><span class="desc">Auto-remediate an anomaly</span><span class="badge-admin">ADMIN</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "id": "anom-44b1", "action": "policy_applied", "policy_id": "pol-auto-9c3f",
+  "status": "remediated"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/compliance/frameworks</span><span class="desc">List compliance frameworks</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "frameworks": [
+    { "name": "CIS Kubernetes", "version": "1.7", "controls_total": 124, "controls_passing": 118 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/compliance/audit</span><span class="desc">Run a compliance audit</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "audit_id": "aud-7712", "framework": "CIS Kubernetes", "status": "running",
+  "started_at": "2026-04-05T12:00:00Z"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/security/posture</span><span class="desc">Overall security posture score</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "score": 87, "grade": "B+",
+  "categories": { "encryption": 95, "policy_coverage": 82, "anomaly_response": 84 }
+}</pre></div>
+</div>
+
+<!-- ====== CORE DATA ====== -->
+<h2 id="core-data">Core Data <span style="font-size:13px;color:var(--text2);font-weight:400">(4 endpoints)</span></h2>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/endpoints</span><span class="desc">List all Cilium-managed endpoints</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "endpoints": [
+    { "id": 2841, "pod": "frontend-7d4b9f", "namespace": "default", "identity": 48291, "state": "ready" }
+  ],
+  "total": 156
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/nodes</span><span class="desc">List cluster nodes</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "nodes": [
+    { "name": "worker-01", "ip": "10.0.1.12", "cilium_version": "1.16.1", "status": "ready" }
+  ],
+  "total": 5
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/events</span><span class="desc">List Cilium agent events</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "events": [
+    { "type": "policy_update", "message": "Policy allow-dns revision 3 applied", "timestamp": "2026-04-05T10:01:00Z" }
+  ],
+  "total": 892
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/identities</span><span class="desc">List Cilium security identities</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "identities": [
+    { "id": 48291, "labels": ["k8s:app=frontend", "k8s:io.kubernetes.pod.namespace=default"] }
+  ],
+  "total": 84
+}</pre></div>
+</div>
+
+<!-- ====== INTELLIGENCE MODULES ====== -->
+<h2 id="intelligence">Intelligence Modules <span style="font-size:13px;color:var(--text2);font-weight:400">(14 endpoints)</span></h2>
+
+<h3>Auto-Policy</h3>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/autopolicy/generate</span><span class="desc">Generate policies from observed flows</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "policies_generated": 4, "confidence": 0.91,
+  "preview": [{ "name": "auto-frontend-to-api", "action": "allow", "protocol": "TCP", "port": 8080 }]
+}</pre></div>
+</div>
+
+<h3>Chaos Engineering</h3>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/chaos/experiments</span><span class="desc">List chaos experiments</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "experiments": [
+    { "id": "chx-19a2", "type": "packet_loss", "target": "default/api", "status": "completed" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/chaos/run</span><span class="desc">Run a chaos experiment</span><span class="badge-admin">ADMIN</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "id": "chx-31bf", "type": "latency_injection", "target": "production/payments",
+  "duration_seconds": 300, "status": "running"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/canary/{id}</span><span class="desc">Get canary deployment status</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "id": "can-82ae", "service": "api-v2", "weight": 15,
+  "success_rate": 99.4, "p99_latency_ms": 42, "status": "progressing"
+}</pre></div>
+</div>
+
+<h3>Traffic Replay</h3>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/replay/recordings</span><span class="desc">List traffic recordings</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "recordings": [
+    { "id": "rec-a1f0", "namespace": "production", "duration_sec": 600, "flow_count": 24801 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/replay/start</span><span class="desc">Start a traffic replay session</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "session_id": "rpl-c221", "recording_id": "rec-a1f0",
+  "speed": 1.0, "status": "replaying"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/replay/{id}/stop</span><span class="desc">Stop a running replay session</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "session_id": "rpl-c221", "status": "stopped", "flows_replayed": 18420
+}</pre></div>
+</div>
+
+<h3>Network Healer</h3>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/healer/problems</span><span class="desc">List detected network problems</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "problems": [
+    { "id": "prb-66d4", "type": "mtu_mismatch", "node": "worker-03", "severity": "warning" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/healer/{id}/fix</span><span class="desc">Apply auto-fix for a problem</span><span class="badge-admin">ADMIN</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "id": "prb-66d4", "action": "mtu_corrected", "old_value": 1500, "new_value": 1450,
+  "status": "fixed"
+}</pre></div>
+</div>
+
+<h3>Root Cause Analysis</h3>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/rootcause/drops</span><span class="desc">List packet drop events with context</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "drops": [
+    { "id": "drp-a8f1", "reason": "POLICY_DENIED", "src": "default/frontend", "dst": "default/db", "count": 412 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/rootcause/analyze</span><span class="desc">Run root cause analysis on drops</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "analysis_id": "rca-b201", "root_cause": "Missing egress policy for identity 48291",
+  "confidence": 0.94, "suggested_fix": "Add egress rule for label app=frontend to port 5432"
+}</pre></div>
+</div>
+
+<h3>Multi-Cluster</h3>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/multicluster/clusters</span><span class="desc">List connected clusters</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "clusters": [
+    { "name": "us-east-1", "status": "connected", "nodes": 12, "endpoints": 480 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/multicluster/{name}/sync</span><span class="desc">Trigger cluster state sync</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "cluster": "us-east-1", "status": "syncing",
+  "identities_synced": 84, "services_synced": 32
+}</pre></div>
+</div>
+
+<h3>eBPF Programs (Legacy)</h3>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/programs</span><span class="desc">List loaded eBPF programs</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "programs": [
+    { "id": 142, "name": "cilium_from_container", "type": "sched_cls", "attach": "eth0", "loaded_at": "2026-04-04T06:00:00Z" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/maps</span><span class="desc">List eBPF maps and stats</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "maps": [
+    { "id": 88, "name": "cilium_ct4_global", "type": "hash", "max_entries": 524288, "entries_used": 31042 }
+  ]
+}</pre></div>
+</div>
+
+<!-- ====== OBSERVABILITY ====== -->
+<h2 id="observability">Observability <span style="font-size:13px;color:var(--text2);font-weight:400">(8 endpoints)</span></h2>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/heatmap</span><span class="desc">Traffic heatmap data</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "cells": [
+    { "src": "frontend", "dst": "api", "value": 4821, "unit": "req/s" }
+  ],
+  "generated_at": "2026-04-05T12:00:00Z"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/dependencies</span><span class="desc">Service dependency graph</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "nodes": ["frontend", "api", "db", "cache"],
+  "edges": [{ "from": "frontend", "to": "api", "protocol": "HTTP", "rps": 320 }]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/servicemap</span><span class="desc">Full service map topology</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "services": [
+    { "name": "api", "namespace": "default", "endpoints": 4, "inbound_rps": 820, "outbound_rps": 410 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/dns/queries</span><span class="desc">Recent DNS query log</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "queries": [
+    { "name": "api.default.svc.cluster.local", "type": "A", "source": "frontend-7d4b9f", "rcode": "NOERROR", "latency_ms": 1.2 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/dns/stats</span><span class="desc">DNS query statistics</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "total_queries": 284012, "cache_hit_rate": 0.87,
+  "avg_latency_ms": 1.4, "nxdomain_count": 312
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/latency/analysis</span><span class="desc">Latency analysis by service</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "services": [
+    { "name": "api", "p50_ms": 12, "p95_ms": 38, "p99_ms": 142, "outliers": 4 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/bandwidth</span><span class="desc">Bandwidth usage per namespace</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "namespaces": [
+    { "name": "production", "ingress_mbps": 240.5, "egress_mbps": 182.3 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/metrics/summary</span><span class="desc">Aggregated metrics summary</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "total_flows": 1482903, "active_endpoints": 156, "active_policies": 23,
+  "drop_rate_percent": 2.1, "avg_latency_ms": 14.2
+}</pre></div>
+</div>
+
+<!-- ====== NETWORKING ====== -->
+<h2 id="networking">Networking <span style="font-size:13px;color:var(--text2);font-weight:400">(12 endpoints)</span></h2>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/network/interfaces</span><span class="desc">List network interfaces per node</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "interfaces": [
+    { "node": "worker-01", "name": "cilium_vxlan", "type": "vxlan", "mtu": 1450, "state": "UP" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/loadbalancer/services</span><span class="desc">List load-balanced services</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "services": [
+    { "name": "api", "vip": "10.96.0.14", "port": 80, "backends": 4, "algorithm": "maglev" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ingress/routes</span><span class="desc">List Ingress routes</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "routes": [
+    { "host": "app.example.com", "path": "/api/*", "backend": "default/api:8080", "tls": true }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ipam/pools</span><span class="desc">List IPAM pools</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "pools": [
+    { "name": "default-pool", "cidr": "10.244.0.0/16", "allocated": 312, "available": 65224 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ipam/allocations</span><span class="desc">List IP allocations</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "allocations": [
+    { "ip": "10.244.1.42", "pod": "frontend-7d4b9f", "namespace": "default", "node": "worker-01" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/encryption/status</span><span class="desc">Encryption status (IPsec/WireGuard)</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "mode": "wireguard", "enabled": true,
+  "nodes_encrypted": 5, "nodes_total": 5, "key_rotation_at": "2026-04-06T00:00:00Z"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/wireguard/peers</span><span class="desc">List WireGuard peers</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "peers": [
+    { "node": "worker-02", "endpoint": "10.0.1.13:51871", "last_handshake": "2026-04-05T11:59:40Z", "rx_bytes": 482910234 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/bgp/peers</span><span class="desc">List BGP peering sessions</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "peers": [
+    { "neighbor": "10.0.0.1", "asn": 65001, "state": "Established", "prefixes_received": 12 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/clustermesh/peers</span><span class="desc">List ClusterMesh peers</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "peers": [
+    { "cluster": "us-west-2", "status": "connected", "synced_services": 48, "latency_ms": 32 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/kpr/status</span><span class="desc">Kube-proxy replacement status</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "enabled": true, "mode": "strict",
+  "features": { "nodeport": true, "externalIPs": true, "sessionAffinity": true }
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/egress/policies</span><span class="desc">List egress gateway policies</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "policies": [
+    { "name": "egress-nat", "gateway_node": "gateway-01", "destination_cidr": "0.0.0.0/0", "snat_ip": "203.0.113.10" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/servicemesh/services</span><span class="desc">List service mesh services</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "services": [
+    { "name": "api", "protocol": "HTTP", "mtls": true, "retries": 3, "timeout_ms": 5000 }
+  ]
+}</pre></div>
+</div>
+
+<!-- ====== OPERATIONS ====== -->
+<h2 id="operations">Operations <span style="font-size:13px;color:var(--text2);font-weight:400">(16 endpoints)</span></h2>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/host/info</span><span class="desc">Host system information</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "hostname": "worker-01", "kernel": "6.1.0", "os": "Ubuntu 22.04",
+  "cpu_cores": 8, "memory_gb": 32
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/cilium/features</span><span class="desc">Which Cilium features are enabled</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "available": true,
+  "features": [
+    { "key": "hubble", "title": "Hubble observability", "category": "Observability", "state": "enabled", "view": "/flows" },
+    { "key": "bgp", "title": "BGP control plane", "category": "Networking", "state": "unknown", "view": "/bgp" }
+  ]
+}</pre><p><code>unknown</code> means the <code>cilium-config</code> key is absent, not that the feature is off.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/cilium/resources/{kind}</span><span class="desc">List a Cilium CRD (read-only)</span></div>
+  <div class="endpoint-body"><p><code>kind</code>: nodes, egress-gateway-policies, bgp-peering-policies, bgp-cluster-configs, bgp-peer-configs, bgp-advertisements, bgp-node-configs, lb-ip-pools, l2-announcement-policies, pod-ip-pools, cidr-groups, gateway-classes, gateways, http-routes. <code>installed: false</code> when the CRD is absent.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/cilium/metrics</span><span class="desc">Cilium agent metrics from Prometheus</span></div>
+  <div class="endpoint-body"><p>Needs <code>PROMETHEUS_URL</code> (chart value <code>api.env.prometheusUrl</code>); otherwise <code>available: false</code>.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/hubble/metrics</span><span class="desc">Hubble flow metrics from Prometheus</span></div>
+  <div class="endpoint-body"><p>Each group without data names the <code>hubble.metrics.enabled</code> entry that exports it.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/hubble/nodes</span><span class="desc">Hubble nodes with flow-buffer fill</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "available": true, "total": 1,
+  "nodes": [{ "name": "node-1", "state": "NODE_CONNECTED", "num_flows": 4095, "max_flows": 4095, "seen_flows": 14846705 }]
+}</pre><p>Takes 2&ndash;8 s through Hubble Relay.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/cilium/agent/{what}</span><span class="desc">Read-only agent query</span><span class="badge-admin">EDITOR</span></div>
+  <div class="endpoint-body"><p><code>what</code>: endpoints, identities, services, fqdn-cache, status, policy-selectors. Samples one agent pod. A failing agent returns 502 with the reason.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/cilium/status</span><span class="desc">Cilium agent status</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "version": "1.16.1", "state": "Ok", "controllers_failing": 0,
+  "ipam_available": 65224, "proxy_redirects": 12
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/cluster/health</span><span class="desc">Cluster-wide health summary</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "nodes_healthy": 5, "nodes_total": 5, "endpoints_ready": 156,
+  "connectivity_test": "pass"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/rbac/bindings</span><span class="desc">List RBAC role bindings</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "bindings": [
+    { "role": "admin", "subject": "user:ops@company.com", "namespace": "*" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/alerts/rules</span><span class="desc">List alerting rules</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "rules": [
+    { "id": "alr-01", "name": "high-drop-rate", "condition": "drop_rate > 5%", "severity": "critical", "enabled": true }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/alerts/rules</span><span class="desc">Create an alert rule</span><span class="badge-admin">EDITOR</span></div>
+  <div class="endpoint-body"><h5>Example Request</h5><pre>{ "name": "dns failures", "condition": "dns_servfail > 25/min", "severity": "high" }</pre><p>Conditions the engine can evaluate: <code>drop_rate &gt; N%</code>, <code>dns_servfail &gt; N/min</code>, <code>policy_denied &gt; N/min</code>, <code>endpoint_status != ready</code>. Anything else is a 400.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method put">PUT</span><span class="path">/api/v1/alerts/rules/{id}/definition</span><span class="desc">Edit a rule's name, condition and severity</span><span class="badge-admin">EDITOR</span></div>
+  <div class="endpoint-body"><p>Keeps the id and trigger history. <code>PUT /api/v1/alerts/rules/{id}</code> without a body still toggles enabled.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method delete">DELETE</span><span class="path">/api/v1/alerts/rules/{id}</span><span class="desc">Delete an alert rule</span><span class="badge-admin">EDITOR</span></div>
+  <div class="endpoint-body"><p>The five built-in rules (<code>rule-001</code>..<code>rule-005</code>) need <code>?force=true</code>.</p></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/alerts/history</span><span class="desc">Alert firing history</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "alerts": [
+    { "rule": "high-drop-rate", "fired_at": "2026-04-05T08:30:00Z", "resolved_at": "2026-04-05T08:45:00Z" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/audit/log</span><span class="desc">API audit log</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "entries": [
+    { "user": "ops@company.com", "action": "DELETE policy pol-8fa2", "timestamp": "2026-04-05T09:12:00Z", "status": 200 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/slo/targets</span><span class="desc">SLO target definitions and status</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "slos": [
+    { "name": "api-availability", "target": 99.95, "current": 99.98, "budget_remaining_pct": 62.5 }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/incidents</span><span class="desc">List active and recent incidents</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "incidents": [
+    { "id": "inc-402", "title": "Elevated drop rate in production", "severity": "P2", "status": "resolved" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/changes</span><span class="desc">Recent infrastructure changes</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "changes": [
+    { "type": "policy_update", "resource": "allow-dns", "user": "ops@company.com", "at": "2026-04-05T10:01:00Z" }
+  ]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/nodes/drain/status</span><span class="desc">Get or initiate node drain status</span><span class="badge-admin">ADMIN</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "node": "worker-03", "status": "draining",
+  "endpoints_remaining": 12, "estimated_seconds": 45
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/flows/exports</span><span class="desc">Export flows to file or S3</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "export_id": "exp-a210", "format": "json", "destination": "s3://bucket/flows/",
+  "status": "exporting", "flow_count": 50000
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/costs/breakdown</span><span class="desc">Network cost breakdown by namespace</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "total_monthly_usd": 1240.50,
+  "by_namespace": [{ "namespace": "production", "egress_gb": 820, "cost_usd": 890.00 }]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/forecast/metrics</span><span class="desc">Traffic and resource forecasting</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "metric": "flows_per_second", "current": 482,
+  "forecast_7d": 530, "forecast_30d": 610, "trend": "increasing"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/diagnostics/run</span><span class="desc">Run diagnostic checks</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "diagnostic_id": "diag-b901", "checks_passed": 18, "checks_failed": 1,
+  "failures": [{ "check": "bpf_prog_load", "message": "Program cilium_xdp failed verification" }]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method post">POST</span><span class="path">/api/v1/troubleshoot/run</span><span class="desc">Run automated troubleshooting</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "session_id": "tsh-e412", "issue": "connectivity between frontend and db",
+  "steps_completed": 8, "root_cause": "Missing L4 policy", "suggested_action": "Apply allow-db-tcp-5432 policy"
+}</pre></div>
+</div>
+
+<!-- ====== eBPF DATA ====== -->
+<h2 id="ebpf-data">eBPF Data <span style="font-size:13px;color:var(--text2);font-weight:400">(11 endpoints)</span></h2>
+
+<p>Real kernel eBPF data queried via <code>bpftool</code> subprocess with 5-second timeout. Returns live state from the running kernel.</p>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/programs</span><span class="desc">List real kernel eBPF programs</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "programs": [
+    { "id": 142, "name": "cilium_from_container", "type": "sched_cls", "attach": "eth0", "loaded_at": "2026-04-04T06:00:00Z" }
+  ],
+  "total": 117
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/programs/{id}</span><span class="desc">Program details</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "id": 142, "name": "cilium_from_container", "type": "sched_cls",
+  "tag": "a1b2c3d4e5f6", "jited": true, "bytes_xlated": 4096, "bytes_jited": 3200,
+  "loaded_at": "2026-04-04T06:00:00Z", "map_ids": [88, 91, 102]
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/maps</span><span class="desc">List real kernel eBPF maps</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "maps": [
+    { "id": 88, "name": "cilium_ct4_global", "type": "hash", "max_entries": 524288, "entries_used": 31042 }
+  ],
+  "total": 132
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/maps/{id}/entries</span><span class="desc">Browse map entries</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "map_id": 88, "map_name": "cilium_ct4_global",
+  "entries": [
+    { "key": "0a000142:1f90->0a000201:a3c4", "value": "lifetime=300 rx_packets=42 tx_packets=38 flags=0x0012" }
+  ],
+  "total_entries": 31042, "limit": 100, "offset": 0
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/conntrack</span><span class="desc">Live conntrack table</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "entries": [
+    { "src": "10.0.1.66:8080", "dst": "10.0.2.1:41924", "protocol": "TCP", "flags": "SYN,ACK", "lifetime": 300, "rx_packets": 42 }
+  ],
+  "total": 12066
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/ipcache</span><span class="desc">IP-to-identity cache</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "entries": [
+    { "cidr": "10.244.1.42/32", "identity": 48291, "tunnel_endpoint": "10.0.1.12", "encrypt_key": 3 }
+  ],
+  "total": 284
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/lb</span><span class="desc">Load balancer backends</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "services": [
+    { "frontend": "10.96.0.14:80", "backends": ["10.244.1.10:8080", "10.244.2.20:8080"], "type": "ClusterIP", "algorithm": "maglev" }
+  ],
+  "total_services": 48, "total_backends": 142
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/drops</span><span class="desc">Drop reason statistics</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "reasons": [
+    { "reason": "POLICY_DENIED", "count": 3120, "percentage": 78.2 },
+    { "reason": "CT_MAP_INSERTION_FAILED", "count": 412, "percentage": 10.3 }
+  ],
+  "total_drops": 3991
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ebpf/summary</span><span class="desc">Aggregated eBPF summary</span></div>
+  <div class="endpoint-body"><h5>Example Response</h5><pre>{
+  "programs": 117, "maps": 132, "conntrack_entries": 12066,
+  "ipcache_entries": 284, "lb_services": 48, "total_drops": 3991
+}</pre></div>
+</div>
+
+<!-- Note: /api/v1/ebpf/programs and /api/v1/ebpf/maps in the Intelligence section above are the same endpoints listed here for completeness. Total unique eBPF data endpoints: 11 (including programs/{id}, maps/{id}/entries, conntrack, ipcache, lb, drops, summary). -->
+
+<!-- ====== WEBSOCKET ====== -->
+<h2 id="websocket">WebSocket <span style="font-size:13px;color:var(--text2);font-weight:400">(2 endpoints)</span></h2>
+
+<div class="info-box">
+  <h4>WebSocket Connections</h4>
+  <p>Connect using standard WebSocket clients. Pass the JWT token as a query parameter: <code>?token=&lt;jwt&gt;</code></p>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ws/flows</span><span class="desc">Real-time flow stream</span></div>
+  <div class="endpoint-body"><h5>Example Message</h5><pre>{
+  "type": "flow", "id": "f-83ca1",
+  "src": "default/frontend", "dst": "default/api", "verdict": "FORWARDED", "timestamp": "2026-04-05T12:01:42.391Z"
+}</pre></div>
+</div>
+
+<div class="endpoint">
+  <div class="endpoint-header"><span class="method get">GET</span><span class="path">/api/v1/ws/metrics</span><span class="desc">Real-time metrics stream</span></div>
+  <div class="endpoint-body"><h5>Example Message</h5><pre>{
+  "type": "metrics", "flows_per_second": 491.2,
+  "drop_rate": 0.021, "active_endpoints": 156, "timestamp": "2026-04-05T12:01:43.000Z"
+}</pre></div>
+</div>
+
+<div style="margin-top:64px;padding-top:24px;border-top:1px solid var(--border);color:var(--text2);font-size:13px">
+  Paqtra API Reference v1.0 &mdash; 75+ endpoints across 11 categories.<br>
+  Generated for integration developers. Base URL: <code>http://&lt;host&gt;:9191</code>
+</div>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "paqtra-capture-ux",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Captures the dashboard screenshots in docs/ux from a running Paqtra",
+  "type": "module",
+  "scripts": {
+    "capture": "node capture.mjs"
+  },
+  "dependencies": {
+    "puppeteer-core": "^25.17.0"
+  }
+}

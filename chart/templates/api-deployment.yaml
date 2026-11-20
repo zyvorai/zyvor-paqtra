@@ -1,0 +1,188 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "paqtra.fullname" . }}-api
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "paqtra.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  {{- if .Values.api.persistence.enabled }}
+  replicas: 1
+  strategy:
+    type: Recreate
+  {{- else if not .Values.api.hpa.enabled }}
+  replicas: {{ .Values.api.replicas }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "paqtra.api.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      labels:
+        {{- include "paqtra.api.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "paqtra.serviceAccountName" . }}
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.api.podSecurityContext | nindent 8 }}
+      containers:
+        - name: api
+          image: {{ include "paqtra.api.image" . }}
+          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.api.port }}
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ include "paqtra.fullname" . }}-config
+          env:
+            {{- if .Values.api.persistence.enabled }}
+            - name: PAQTRA_DATA_DIR
+              value: {{ .Values.api.persistence.mountPath | quote }}
+            {{- end }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paqtra.fullname" . }}-secret
+                  key: JWT_SECRET
+            - name: ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paqtra.fullname" . }}-secret
+                  key: ADMIN_USERNAME
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paqtra.fullname" . }}-secret
+                  key: ADMIN_PASSWORD
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paqtra.fullname" . }}-secret
+                  key: API_KEY
+            # Agents authenticate metric batches with this shared key.
+            - name: PAQTRA_AGENT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "paqtra.fullname" . }}-secret
+                  key: PAQTRA_AGENT_KEY
+            {{- with .Values.api.metrics }}
+            - name: PAQTRA_METRICS_TIER0_SECONDS
+              value: {{ .tier0Seconds | quote }}
+            - name: PAQTRA_METRICS_TIER1_SECONDS
+              value: {{ .tier1Seconds | quote }}
+            - name: PAQTRA_METRICS_TIER2_SECONDS
+              value: {{ .tier2Seconds | quote }}
+            - name: PAQTRA_METRICS_DISK_QUOTA_MB
+              value: {{ .diskQuotaMB | quote }}
+            - name: PAQTRA_METRICALERT
+              value: {{ .alerts.enabled | quote }}
+            - name: PAQTRA_METRICALERT_DEFAULTS
+              value: {{ .alerts.defaults | quote }}
+            {{- if .alerts.rulesDir }}
+            - name: PAQTRA_METRICALERT_DIR
+              value: {{ .alerts.rulesDir | quote }}
+            {{- end }}
+            {{- with .export }}
+            {{- if .remoteWriteURL }}
+            - name: PAQTRA_METRICS_REMOTE_WRITE_URL
+              value: {{ .remoteWriteURL | quote }}
+            {{- end }}
+            {{- if .otlpEndpoint }}
+            - name: PAQTRA_METRICS_OTLP_ENDPOINT
+              value: {{ .otlpEndpoint | quote }}
+            {{- end }}
+            {{- if .graphiteAddr }}
+            - name: PAQTRA_METRICS_GRAPHITE_ADDR
+              value: {{ .graphiteAddr | quote }}
+            {{- end }}
+            {{- if .resolution }}
+            - name: PAQTRA_METRICS_EXPORT_RESOLUTION
+              value: {{ .resolution | quote }}
+            {{- end }}
+            {{- if .contexts }}
+            - name: PAQTRA_METRICS_EXPORT_CONTEXTS
+              value: {{ .contexts | quote }}
+            {{- end }}
+            {{- if .exclude }}
+            - name: PAQTRA_METRICS_EXPORT_EXCLUDE
+              value: {{ .exclude | quote }}
+            {{- end }}
+            {{- if .prefix }}
+            - name: PAQTRA_METRICS_EXPORT_PREFIX
+              value: {{ .prefix | quote }}
+            {{- end }}
+            {{- if .headersSecret }}
+            - name: PAQTRA_METRICS_REMOTE_WRITE_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .headersSecret }}
+                  key: remote-write-headers
+                  optional: true
+            - name: PAQTRA_METRICS_OTLP_HEADERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .headersSecret }}
+                  key: otlp-headers
+                  optional: true
+            {{- end }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.global.clusterName }}
+            - name: PAQTRA_CLUSTER_NAME
+              value: {{ .Values.global.clusterName | quote }}
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.api.probes.liveness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.api.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.api.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.api.probes.liveness.timeoutSeconds | default 15 }}
+            failureThreshold: {{ .Values.api.probes.liveness.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.api.probes.readiness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.api.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.api.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.api.probes.readiness.timeoutSeconds | default 15 }}
+            failureThreshold: {{ .Values.api.probes.readiness.failureThreshold }}
+          resources:
+            {{- toYaml .Values.api.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.api.containerSecurityContext | nindent 12 }}
+          volumeMounts:
+            # Writable /tmp for kubectl discovery cache (readOnlyRootFilesystem)
+            - name: tmp
+              mountPath: /tmp
+            {{- if .Values.api.kubeconfig.enabled }}
+            - name: kubeconfig
+              mountPath: {{ .Values.api.kubeconfig.mountPath }}
+              readOnly: true
+            {{- end }}
+            {{- if .Values.api.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.api.persistence.mountPath }}
+            {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if .Values.api.kubeconfig.enabled }}
+        - name: kubeconfig
+          secret:
+            secretName: {{ .Values.api.kubeconfig.secretName }}
+        {{- end }}
+        {{- if .Values.api.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ .Values.api.persistence.existingClaim | default (printf "%s-api-data" (include "paqtra.fullname" .)) }}
+        {{- end }}

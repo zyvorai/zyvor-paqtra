@@ -1,0 +1,38 @@
+# Requires GitHub Pages enabled with Source = "GitHub Actions" (repo Settings
+# > Pages), done once via `gh api repos/<org>/<repo>/pages -X POST -f
+# build_type=workflow` for this repo.
+name: Deploy Docs Site
+on:
+  push:
+    branches: [main]
+    paths: ['website/**', 'docs/**', 'CHANGELOG.md', 'server.json', 'scripts/gen-site-facts.py', '.github/workflows/pages.yml']
+  workflow_dispatch: {}
+concurrency:
+  group: pages
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-node@v7
+      with: {node-version: '22', cache: npm, cache-dependency-path: website/package-lock.json}
+    - run: npm --prefix website ci
+    # facts.generated.json is imported by the home page; generate it (and the
+    # MCP catalog) the same way CI does, so a missing checked-in file cannot
+    # break Pages after a rename or clean checkout.
+    - uses: dtolnay/rust-toolchain@stable
+    - run: python3 scripts/gen-site-facts.py
+    - run: npm --prefix website run build
+    - uses: actions/upload-pages-artifact@v5
+      with: {path: website/build}
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: {name: github-pages, url: "${{ steps.deployment.outputs.page_url }}"}
+    permissions: {pages: write, id-token: write}
+    steps:
+    - id: deployment
+      uses: actions/deploy-pages@v5

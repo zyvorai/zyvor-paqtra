@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paqtra — Release Notes</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #161a23;
+    --surface2: #1c2130;
+    --border: #2a2f3e;
+    --text: #e0e4ec;
+    --text-muted: #8a90a0;
+    --accent: #3b82f6;
+    --accent2: #22d3ee;
+    --green: #34d399;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --purple: #a78bfa;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  .header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .header .subtitle { color: var(--text-muted); font-size: 1.1rem; }
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+
+  .version-block { margin-bottom: 3rem; }
+  .version-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .version-tag {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .version-date {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    padding: 0.2rem 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+  }
+  .version-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.25rem 0.8rem;
+    border-radius: 9999px;
+  }
+  .badge-current { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+  .badge-security { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
+  .category { margin-bottom: 1.5rem; }
+  .category-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .cat-icon {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .cat-feature { background: var(--green); }
+  .cat-security { background: var(--red); }
+  .cat-fix { background: var(--accent); }
+  .cat-known { background: var(--orange); }
+  .cat-roadmap { background: var(--purple); }
+
+  ul { margin: 0 0 0.5rem 1.5rem; }
+  li { margin-bottom: 0.3rem; }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    background: var(--surface2);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.88em;
+    color: var(--accent2);
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 2rem 0;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+
+  @media print {
+    body { background: #fff; color: #111; }
+    .header { background: none; border-bottom: 2px solid #111; }
+    .header h1 { color: #111; }
+    .stat-card { background: #f8f8f8; border-color: #ccc; }
+    .stat-value { color: #1a56db; }
+    code { background: #eee; color: #333; }
+    a { color: #1a56db; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Paqtra &mdash; Release Notes</h1>
+  <p class="subtitle">Changelog and version history</p>
+</div>
+
+<div class="container">
+
+<!-- v2.2.2 -->
+<div class="version-block">
+  <div class="version-header">
+    <span class="version-tag">v2.2.2</span>
+    <span class="version-date">September 2026</span>
+    <span class="version-badge badge-current">Current Release</span>
+  </div>
+
+  <div class="category">
+    <div class="category-title"><span class="cat-icon cat-fix"></span> Fixes</div>
+    <ul>
+      <li><strong>Recent-window flow queries read the time index</strong> &mdash; a query naming a source and destination namespace ignored the time bound and scanned the namespace index instead, so the connectivity monitor's two-minute lookups hit the 5&nbsp;s read deadline every cycle on a 12M-flow store; queries whose window is at most a day now read through the time index</li>
+      <li><strong>Overview's large flow counts no longer wrap mid-number</strong> &mdash; an 8-digit flow count wrapped across two lines inside its tile; it now renders compacted (<code>20.6M</code>), matching every other large figure on the page</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- v2.2.1 -->
+<div class="version-block">
+  <div class="version-header">
+    <span class="version-tag">v2.2.1</span>
+    <span class="version-date">September 2026</span>
+  </div>
+
+  <div class="category">
+    <div class="category-title"><span class="cat-icon cat-fix"></span> Fixes</div>
+    <ul>
+      <li><strong>Large flow stores no longer stall the API</strong> &mdash; on a store with millions of flows, a namespace-filtered flows query could make the API unresponsive for minutes. Store statistics no longer scan the table, reads use their own connection and a 5&nbsp;s deadline (<code>PAQTRA_FLOW_QUERY_TIMEOUT_SECS</code>), and ingest is never blocked by a slow read</li>
+      <li><strong><code>connectivity test</code></strong> &mdash; checks flows through the time-bounded history endpoint</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- v2.2.0 -->
+<div class="version-block">
+  <div class="version-header">
+    <span class="version-tag">v2.2.0</span>
+    <span class="version-date">September 2026</span>
+  </div>
+
+  <div class="category">
+    <div class="category-title"><span class="cat-icon cat-feature"></span> Features</div>
+    <ul>
+      <li><strong>Installer CLI</strong> &mdash; <code>curl | sh</code> or <code>brew install</code>, then <code>paqtra install</code>. The Helm chart is built in (CLI vX installs chart vX); <code>--with-cilium</code> sets up Cilium, Hubble and Relay first</li>
+      <li><strong>Operate from one binary</strong> &mdash; <code>status --wait</code> (exit 1 when unhealthy), <code>doctor</code>, <code>connectivity test</code>, <code>sysdump</code> (redacted; never reads Secrets), <code>upgrade</code>, <code>config</code>, <code>hubble</code>, <code>ui</code>, <code>uninstall --purge</code></li>
+      <li><strong>Verified releases</strong> &mdash; static Linux and macOS binaries, <code>sha256sums.txt</code>, cosign signature, SBOM, chart on OCI, multi-arch images including the agent image</li>
+      <li><strong>Rule-level policy editing</strong> &mdash; add, edit and delete single CiliumNetworkPolicy rules with dry run and concurrency checks; alert rule CRUD</li>
+      <li><strong>Cilium Insights</strong> &mdash; enabled features, Hubble node health, Hubble and Cilium metrics, BGP v2 / LB-IPAM / Gateway API views, read-only agent queries</li>
+    </ul>
+  </div>
+
+  <div class="category">
+    <div class="category-title"><span class="cat-icon cat-fix"></span> Fixes</div>
+    <ul>
+      <li><strong>Drop statistics</strong> &mdash; forwarded traffic was reported as tens of millions of drops; only reasons &ge; 130 are drops now, named from Hubble&rsquo;s enum</li>
+      <li><strong><code>kubectl exec -l</code></strong> &mdash; five invalid calls (ClusterMesh, WireGuard, NAT/CT counts) now resolve an agent pod</li>
+      <li><strong>Agent image</strong> &mdash; the chart&rsquo;s default agent image is now actually published</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- v2.1.0 -->
+<div class="version-block">
+  <div class="version-header">
+    <span class="version-tag">v2.1.0</span>
+    <span class="version-date">September 2026</span>
+  </div>
+
+  <div class="category">
+    <div class="category-title"><span class="cat-icon cat-feature"></span> Features</div>
+    <ul>
+      <li><strong>Follow-stream ingest</strong> &mdash; continuous Hubble Observer gRPC with gap/disconnect visibility on <code>/health</code></li>
+      <li><strong>Real DNS L7</strong> &mdash; query, rcode, answers, latency; never invents SERVFAIL from a policy drop</li>
+      <li><strong>Why denied?</strong> &mdash; <code>POST /investigate/flow</code> from a DROPPED flow (identities, CNP/CCNP, drop reason, draft allow)</li>
+      <li><strong>Chart default <code>HUBBLE_MODE=grpc</code></strong> &mdash; CLI only as an explicit escape hatch</li>
+    </ul>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- v2.0.0 -->
+<div class="version-block">
+  <div class="version-header">
+    <span class="version-tag">v2.0.0</span>
+    <span class="version-date">September 2026</span>
+  </div>
+
+  <div class="category">
+    <div class="category-title"><span class="cat-icon cat-feature"></span> Features</div>
+    <ul>
+      <li><strong>Investigate Path</strong> &mdash; confidence-tagged path reports (<code>observed</code> | <code>inferred</code> | <code>unavailable</code>) from Hubble flows, EndpointSlices, and Cilium policies</li>
+      <li><strong>SQLite flow store</strong> &mdash; continuous Hubble ingest with query APIs and offline golden CI</li>
+      <li><strong>Hubble Observer gRPC</strong> &mdash; native gRPC flow collection with CLI fallback (<code>HUBBLE_MODE=grpc|cli|auto</code>)</li>
+      <li><strong>Evidence-backed simulate</strong> &mdash; policy simulation without speculative allow</li>
+      <li><strong>Read-only boundary</strong> &mdash; removed map-writing / program-attach eBPF code; map reads via <code>bpftool</code></li>
+    </ul>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- v1.0.0 -->
+<div class="version-block">
+  <div class="version-header">
+    <span class="version-tag">v1.0.0</span>
+    <span class="version-date">April 2026</span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value">64</div>
+      <div class="stat-label">Dashboard Pages</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">75+</div>
+      <div class="stat-label">REST API Endpoints</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">13</div>
+      <div class="stat-label">TUI Tabs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">961</div>
+      <div class="stat-label">Tests Passing</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">32K</div>
+      <div class="stat-label">Lines of Rust</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">0</div>
+      <div class="stat-label">Test Failures</div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <div class="category">
+    <div class="category-title"><span class="cat-icon cat-feature"></span> Features</div>
+    <ul>
+      <li><strong>Web Dashboard</strong> &mdash; 64 pages built with React 19 + TypeScript, styled with Tailwind CSS dark theme</li>
+      <li><strong>REST API</strong> &mdash; 75+ endpoints powered by Rust/Axum with full JWT authentication and RBAC</li>
+      <li><strong>Real Kernel eBPF Data</strong> &mdash; live views of kernel eBPF state via bpftool: Conntrack Table, Policy Map, IP Cache, LB Map, and Drop Analytics (117 programs, 132 maps, 12K+ conntrack entries from real kernel)</li>
+      <li><strong>eBPF Profiler with Map Explorer</strong> &mdash; upgraded profiler tab with Map Explorer for browsing raw eBPF map entries directly from the kernel</li>
+      <li><strong>Terminal TUI</strong> &mdash; 13-tab interactive terminal interface with 32K lines of Rust</li>
+      <li><strong>Visual Rule Builder</strong> &mdash; form-based policy creation with drag-and-drop rule composition, eliminating the need to write YAML manually</li>
+      <li><strong>Full Policy CRUD</strong> &mdash; create, edit, update, delete, and bulk operations on Cilium network policies</li>
+      <li><strong>Auto-refresh</strong> &mdash; all views refresh every 30 seconds with <code>DataFreshness</code> indicators showing data age</li>
+      <li><strong>Data Export</strong> &mdash; CSV and JSON export available on all tabular data views</li>
+      <li><strong>Concurrent Health Checks</strong> &mdash; parallel health probes with 3-second timeout per target</li>
+      <li><strong>CT Entry Parsing</strong> &mdash; conntrack entries parsed with real TCP flags and lifetime fields</li>
+      <li><strong>SPA Fallback</strong> &mdash; the API server serves the React SPA with proper client-side routing fallback</li>
+      <li><strong>K3s Deployment</strong> &mdash; automated deployment script with built-in smoke tests</li>
+      <li><strong>Client Presentation</strong> &mdash; 13-slide HTML presentation for stakeholder demos</li>
+    </ul>
+  </div>
+
+  <!-- Security -->
+  <div class="category">
+    <div class="category-title"><span class="cat-icon cat-security"></span> Security Hardening</div>
+    <ul>
+      <li><strong>RBAC enforcement</strong> on all destructive operations (policy CRUD, node drain, chaos, healer, rollback)</li>
+      <li><strong>WebSocket connection limiting</strong> &mdash; maximum 100 concurrent connections to prevent resource exhaustion</li>
+      <li><strong>Rate limiter hardening</strong> &mdash; periodic bucket cleanup every 60s, mutex poisoning recovery</li>
+      <li><strong>YAML injection prevention</strong> &mdash; <code>yaml_escape()</code> applied across all policy generation paths</li>
+      <li><strong>JWT secret enforcement</strong> &mdash; minimum 32-character secret required at startup</li>
+      <li><strong>Input validation</strong> &mdash; RFC 1123 DNS name validation on all Kubernetes resource names</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Security Fixes -->
+  <div class="category">
+    <div class="version-header" style="margin-bottom:0.8rem;">
+      <span class="version-badge badge-security">55 Security Fixes</span>
+    </div>
+    <ul>
+      <li><strong>ConfigMap overwrite</strong> &mdash; fixed destructive overwrite that could destroy Cilium agent configuration</li>
+      <li><strong>CIDR matching false positives</strong> &mdash; corrected identity resolution logic for overlapping CIDR ranges</li>
+      <li><strong>Path traversal in replay storage</strong> &mdash; sanitized file paths to prevent directory escape</li>
+      <li><strong>Division-by-zero</strong> &mdash; fixed 5 locations in anomaly detection scoring where zero denominators caused panics</li>
+      <li><strong>Terminal not restored on panic</strong> &mdash; added panic hook to restore terminal state before unwinding</li>
+      <li><strong>Unsafe <code>close(0)</code></strong> &mdash; prevented closing stdin by adding fd validity guard (fd &gt; 2)</li>
+      <li><strong>API route mismatches</strong> &mdash; fixed 25+ endpoints where frontend paths did not match backend routes</li>
+      <li><strong>Policy verdict logic</strong> &mdash; corrected allow/deny determination that was inverted for certain policy types</li>
+      <li><strong>Chaos confirmation bypass</strong> &mdash; enforced confirmation step that could previously be skipped via direct API call</li>
+      <li><strong>Index-out-of-bounds</strong> &mdash; fixed array access panics in multiple TUI views when data was empty</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Known Limitations -->
+  <div class="category">
+    <div class="category-title"><span class="cat-icon cat-known"></span> Known Limitations</div>
+    <ul>
+      <li>WebSocket <code>/ws/flows</code> and <code>/ws/metrics</code> streams require a running Hubble relay instance; without it, streams return no data</li>
+      <li>Server-side pagination is not yet implemented for large datasets; all results are returned in a single response</li>
+      <li>JWT tokens are validated at WebSocket upgrade time but are not re-validated during the lifetime of an open connection; token expiry during a session does not terminate the stream</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- Roadmap -->
+  <div class="category">
+    <div class="category-title"><span class="cat-icon cat-roadmap"></span> Roadmap</div>
+    <p>For the full development roadmap, planned features, and contribution guidelines, see the <a href="../../README.md">project README</a>.</p>
+    <ul>
+      <li>Server-side pagination and filtering</li>
+      <li>Token refresh and re-validation for long-lived WebSocket sessions</li>
+      <li>Multi-cluster federation support</li>
+      <li>OpenTelemetry tracing integration</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<div class="footer">
+  Paqtra Release Notes &mdash; v2.2.2 &mdash; September 2026
+</div>
+
+</body>
+</html>

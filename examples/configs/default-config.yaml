@@ -1,0 +1,179 @@
+# Paqtra - Default Configuration
+# Copy to ~/.config/paqtra/config.yaml
+
+# Kubernetes settings
+kubernetes:
+  # Kubernetes context to use (leave empty for current context)
+  context: ""
+
+  # Namespace to watch (empty = all namespaces)
+  namespace: ""
+
+# Hubble settings
+hubble:
+  # Hubble Relay port (default: 4245)
+  port: 4245
+
+  # Enable auto port-forward if Hubble is not accessible
+  auto_port_forward: true
+
+  # Hubble flow filters
+  filters:
+    # Include only specific namespaces (empty = all)
+    namespaces: []
+
+    # Include only specific verdicts (FORWARDED, DROPPED, ERROR, AUDIT)
+    verdicts: []
+
+# AutoPolicy settings (ML-enhanced policy generation)
+autopolicy:
+  enabled: true
+
+  # Learning duration in seconds (default: 7 days)
+  learning_duration_secs: 604800
+
+  # Minimum observations before generating policy
+  min_observations: 10
+
+  # Auto-generate policies (false = manual only)
+  auto_generate: false
+
+  # ML confidence threshold (0.0-1.0)
+  # 0.90-1.00: Very High - Safe for production
+  # 0.75-0.89: High - Test in staging first
+  # 0.60-0.74: Medium - Use audit mode
+  # Below 0.60: Manual review required
+  ml_confidence_threshold: 0.75
+
+  # Feature weights for ML scoring
+  ml_weights:
+    temporal_stability: 0.20    # Pattern consistency over time
+    traffic_volume: 0.20         # Observation count
+    port_trust: 0.15             # Well-known ports
+    protocol_score: 0.10         # TCP > UDP > ICMP
+    namespace_trust: 0.15        # Production namespaces
+    label_specificity: 0.10      # Number of labels
+    traffic_regularity: 0.10     # Stable patterns
+
+# Chaos Engineering settings
+chaos:
+  enabled: true
+
+  # Safety limits
+  max_drop_rate: 0.5              # Max 50% packet drop
+  max_latency_ms: 5000            # Max 5 second delay
+  max_duration_secs: 300          # Max 5 minute experiments
+
+  # Auto-cleanup after experiment ends
+  auto_cleanup: true
+  auto_cleanup_duration: 300      # 5 minutes
+
+  # Require confirmation for dangerous experiments
+  require_confirmation: true
+
+  # Circuit breaker - emergency stop all chaos
+  circuit_breaker_enabled: true
+
+# Canary Deployment settings
+canary:
+  enabled: true
+
+  # Initial canary traffic percentage
+  initial_traffic_pct: 10
+
+  # Traffic progression step size
+  traffic_step_pct: 10
+
+  # Auto-promote threshold (success rate)
+  auto_promote_threshold: 0.99    # 99% success rate
+
+  # Auto-rollback threshold (error rate)
+  auto_rollback_threshold: 0.90   # 90% success rate
+
+  # Health check settings
+  health_check_interval_secs: 30
+
+  # Metrics collection interval
+  metrics_interval_secs: 10
+
+# Multi-cluster settings
+multicluster:
+  enabled: true
+
+  # Auto-sync policies across clusters
+  auto_sync_policies: true
+
+  # Health check interval
+  health_check_interval_secs: 30
+
+  # Policy sync interval
+  sync_interval_secs: 300         # 5 minutes
+
+  # Placement decision factors (weights 0.0-1.0)
+  placement_weights:
+    resource_availability: 0.25   # CPU, memory, pods
+    network_latency: 0.20          # Inter-cluster latency
+    cost_optimization: 0.15        # Region pricing
+    region_affinity: 0.15          # Data locality
+    load_balancing: 0.15           # Even distribution
+    compliance: 0.10               # Data sovereignty
+
+# Simulator settings
+simulator:
+  enabled: true
+
+  # Risk thresholds for impact assessment
+  risk_thresholds:
+    low: 0.05       # < 5% flows affected
+    medium: 0.15    # 5-15% flows affected
+    high: 0.30      # 15-30% flows affected
+    critical: 0.30  # > 30% flows affected
+
+# Time-travel Replay settings
+replay:
+  enabled: true
+
+  # Maximum flows to record
+  max_recorded_flows: 10000
+
+  # Auto-save recordings
+  auto_save: true
+  auto_save_interval_secs: 300
+
+  # Recording directory
+  recordings_dir: "~/.config/paqtra/recordings"
+
+# UI settings
+ui:
+  # Update rate in milliseconds (60 FPS = 16ms)
+  refresh_rate_ms: 16
+
+  # Color scheme (default, dark, light)
+  theme: "default"
+
+  # Show help overlay on startup
+  show_help_on_startup: false
+
+# Logging settings
+logging:
+  # Log level (trace, debug, info, warn, error)
+  level: "info"
+
+  # Log to file
+  log_to_file: false
+  log_file_path: "~/.config/paqtra/paqtra.log"
+
+  # Audit logging for policy changes
+  audit_log: true
+  audit_log_path: "~/.config/paqtra/audit.log"
+
+# Security settings
+security:
+  # Require confirmation for policy apply
+  require_policy_confirmation: true
+
+  # Require confirmation for policy rollback
+  require_rollback_confirmation: true
+
+  # Dry-run mode (no actual changes)
+  dry_run: false

@@ -1,0 +1,544 @@
+name: Release
+
+# Tag `vX.Y.Z` to publish. The same jobs run as a dry run (nothing pushed,
+# signed or uploaded) from release-dry-run.yml on pull requests, so the
+# pipeline is exercised before a tag is cut.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_call:
+    inputs:
+      dry_run:
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  REGISTRY: ghcr.io
+
+# Releases never cancel each other; a duplicate run for the same ref queues.
+# (release-dry-run.yml declares no group, so this cannot collide with it.)
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+# Runner routing. Heavy, trusted jobs (push / tag / dispatch) run on the org
+# self-hosted pool (labels self-hosted, zyvor-build, docker; Linux x86_64 only);
+# pull_request events, and macOS/arm jobs, stay on GitHub-hosted runners.
+# fromJSON turns the string result into a runs-on label string or list.
+#
+# Called from release-dry-run.yml on pull_request, github.event_name is the
+# caller's event, so dry runs from PRs stay hosted. Tag push / dispatch use the pool.
+jobs:
+  # ─── Version gate ────────────────────────────────────────────────────
+  # The CLI, the chart and every image share one version. A tag that
+  # disagrees with Cargo.toml or Chart.yaml would publish a CLI that installs
+  # a different version than it claims to be.
+  meta:
+    name: Version check
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      publish: ${{ steps.v.outputs.publish }}
+      latest: ${{ steps.v.outputs.latest }}
+      owner: ${{ steps.v.outputs.owner }}
+      image_matrix: ${{ steps.v.outputs.image_matrix }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: v
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          CARGO=$(awk -F'"' '/^version *=/{print $2; exit}' Cargo.toml)
+          CHART=$(awk '/^version:/{print $2; exit}' chart/Chart.yaml)
+          APP=$(awk -F'"' '/^appVersion:/{print $2; exit}' chart/Chart.yaml)
+          MCP=$(awk -F'"' '/^version *=/{print $2; exit}' mcp/Cargo.toml)
+          SRV=$(sed -n 's/^  "version": "\([^"]*\)".*/\1/p' server.json)
+          SRVPKG=$(sed -n 's#.*"identifier": "ghcr.io/[^/]*/paqtra-mcp:\([^"]*\)".*#\1#p' server.json)
+          SRVNAME=$(sed -n 's/^  "name": "\([^"]*\)".*/\1/p' server.json)
+          LABEL=$(sed -n 's/^LABEL io.modelcontextprotocol.server.name="\([^"]*\)"$/\1/p' mcp/Dockerfile)
+          [ -n "$SRVNAME" ] && [ "$SRVNAME" = "$LABEL" ] \
+            || { echo "::error::mcp/Dockerfile label ($LABEL) must equal server.json name ($SRVNAME)"; exit 1; }
+          if [ "$DRY_RUN" != "true" ] && [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+            PUBLISH=true
+            for pair in "Cargo.toml:$CARGO" "chart version:$CHART" "chart appVersion:$APP" "mcp/Cargo.toml:$MCP" "server.json version:$SRV" "server.json image tag:$SRVPKG"; do
+              if [ "${pair#*:}" != "$VERSION" ]; then
+                echo "::error::tag v$VERSION does not match ${pair%%:*} (${pair#*:})"
+                exit 1
+              fi
+            done
+          else
+            VERSION="$CARGO"
+            PUBLISH=false
+            [ "$CHART" = "$CARGO" ] && [ "$APP" = "$CARGO" ] \
+              || { echo "::error::Cargo.toml ($CARGO), chart version ($CHART) and appVersion ($APP) must match"; exit 1; }
+            for v in "$MCP" "$SRV" "$SRVPKG"; do
+              [ "$v" = "$CARGO" ] || { echo "::error::mcp/Cargo.toml, server.json and its image tag must match Cargo.toml ($CARGO), got $v"; exit 1; }
+            done
+          fi
+          # `latest` only for final releases, never for 1.2.3-rc.1.
+          case "$VERSION" in *-*) LATEST=false ;; *) LATEST=true ;; esac
+          # API/UI images: both architectures when publishing, amd64 only for a
+          # dry run (the arm64 build needs the native arm runner and adds time,
+          # not information).
+          AMD='{"arch":"amd64","runner":"ubuntu-latest"}'
+          ARM='{"arch":"arm64","runner":"ubuntu-24.04-arm"}'
+          ARCHES="$AMD"; [ "$PUBLISH" = true ] && ARCHES="$AMD,$ARM"
+          MATRIX=$(python3 - "$ARCHES" <<'PY'
+          import json, sys
+          arches = json.loads("[" + sys.argv[1] + "]")
+          print(json.dumps({"include": [dict(a, image=i) for i in ("api", "ui") for a in arches]}))
+          PY
+          )
+          {
+            echo "version=$VERSION"
+            echo "publish=$PUBLISH"
+            echo "latest=$LATEST"
+            echo "owner=${GITHUB_REPOSITORY_OWNER,,}"
+            echo "image_matrix=$MATRIX"
+          } >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION publish=$PUBLISH latest=$LATEST"
+
+  # ─── CLI binaries ────────────────────────────────────────────────────
+  build-cli:
+    name: CLI (${{ matrix.name }})
+    needs: meta
+    runs-on: ${{ fromJSON(matrix.os == 'ubuntu-latest' && github.event_name != 'pull_request' && '["self-hosted","zyvor-build","docker"]' || format('"{0}"', matrix.os)) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux is musl + static so one binary runs on any distro (and in the
+          # agent/CLI images); zig is the cross linker for both architectures.
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-musl,  name: linux-x86_64,  docker: amd64, zig: true }
+          - { os: ubuntu-latest, target: aarch64-unknown-linux-musl, name: linux-aarch64, docker: arm64, zig: true }
+          - { os: macos-latest,  target: x86_64-apple-darwin,        name: macos-x86_64 }
+          - { os: macos-latest,  target: aarch64-apple-darwin,       name: macos-aarch64 }
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Install zig + cargo-zigbuild
+        if: matrix.zig
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-zigbuild
+      - uses: mlugg/setup-zig@v2
+        if: matrix.zig
+
+      - name: Build (zig, static)
+        if: matrix.zig
+        run: cargo zigbuild --release --locked --target ${{ matrix.target }}
+
+      - name: Build
+        if: ${{ !matrix.zig }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Check the Linux binary is static
+        if: matrix.zig
+        run: |
+          BIN=target/${{ matrix.target }}/release/paqtra
+          file "$BIN"
+          file "$BIN" | grep -Eq 'statically linked|static-pie linked' \
+            || { echo "::error::$BIN is dynamically linked"; exit 1; }
+
+      - name: Package
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          BIN=target/${{ matrix.target }}/release/paqtra
+          strip "$BIN" 2>/dev/null || true
+          mkdir -p stage out release-bin
+          cp "$BIN" LICENSE NOTICE stage/
+          tar -czf "out/paqtra-${VERSION}-${{ matrix.name }}.tar.gz" -C stage paqtra LICENSE NOTICE
+          if [ -n "${{ matrix.docker }}" ]; then
+            cp "$BIN" "release-bin/paqtra-linux-${{ matrix.docker }}"
+          fi
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cli-${{ matrix.name }}
+          path: out/*.tar.gz
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v7
+        if: matrix.docker
+        with:
+          name: bin-${{ matrix.name }}
+          path: release-bin/*
+          if-no-files-found: error
+
+  # ─── Checksums, SBOM, signature, chart ───────────────────────────────
+  assets:
+    name: Checksums, SBOM, chart
+    needs: [meta, build-cli]
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    permissions:
+      contents: write   # attach assets to the release
+      packages: write   # push the chart to ghcr
+      id-token: write   # keyless cosign
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: cli-*
+          merge-multiple: true
+          path: dist
+
+      - uses: azure/setup-helm@v5
+
+      - name: Package chart
+        run: helm package chart -d dist
+
+      - name: Checksums
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          # Only what a user downloads: the tarballs and the chart.
+          sha256sum ./*.tar.gz ./*.tgz | sed 's# \./# #' > sha256sums.txt
+          cat sha256sums.txt
+
+      - name: SBOM (CycloneDX)
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: dist/paqtra-${{ needs.meta.outputs.version }}.sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Installer test against these artifacts
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          # The real install.sh, the real tarball, a file:// "release": proves the
+          # checksum file and asset naming match what install.sh expects.
+          bin="$RUNNER_TEMP/paqtra-bin"; rm -rf "$bin"; mkdir -p "$bin"
+          PAQTRA_RELEASE_URL="file://$PWD/dist" \
+            sh install.sh --version "$VERSION" --install-dir "$bin"
+          "$bin/paqtra" --version | grep -F "$VERSION"
+
+      - name: Render Homebrew formula
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: scripts/render-homebrew-formula.sh "$VERSION" dist/sha256sums.txt "$GITHUB_REPOSITORY" > dist/paqtra.rb
+
+      - name: Install cosign
+        if: needs.meta.outputs.publish == 'true'
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign checksums (keyless)
+        if: needs.meta.outputs.publish == 'true'
+        run: cosign sign-blob --yes --bundle dist/sha256sums.txt.sigstore.json dist/sha256sums.txt
+
+      - name: Push chart to OCI
+        if: needs.meta.outputs.publish == 'true'
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+          OWNER: ${{ needs.meta.outputs.owner }}
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+          helm push "dist/paqtra-${VERSION}.tgz" "oci://ghcr.io/${OWNER}/charts"
+
+      - name: Publish GitHub release
+        if: needs.meta.outputs.publish == 'true'
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/*.tgz
+            dist/sha256sums.txt
+            dist/sha256sums.txt.sigstore.json
+            dist/*.sbom.cdx.json
+          generate_release_notes: true
+          prerelease: ${{ needs.meta.outputs.latest != 'true' }}
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-dist
+          path: dist/
+          retention-days: 7
+
+  # ─── Homebrew tap ────────────────────────────────────────────────────
+  homebrew:
+    name: Homebrew tap
+    needs: [meta, assets]
+    if: needs.meta.outputs.publish == 'true' && needs.meta.outputs.latest == 'true'
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    steps:
+      - name: Token present?
+        id: gate
+        env:
+          TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+        run: |
+          if [ -n "$TOKEN" ]; then echo "present=true" >> "$GITHUB_OUTPUT"
+          else echo "::notice::HOMEBREW_TAP_TOKEN is not set; skipping the tap update"; fi
+
+      - uses: actions/download-artifact@v8
+        if: steps.gate.outputs.present == 'true'
+        with:
+          name: release-dist
+          path: dist
+
+      - uses: actions/checkout@v7
+        if: steps.gate.outputs.present == 'true'
+        with:
+          repository: ${{ github.repository_owner }}/homebrew-tap
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: tap
+
+      - name: Update formula
+        if: steps.gate.outputs.present == 'true'
+        env:
+          VERSION: ${{ needs.meta.outputs.version }}
+        run: |
+          set -euo pipefail
+          mkdir -p tap/Formula
+          cp dist/paqtra.rb tap/Formula/paqtra.rb
+          cd tap
+          git config user.name "paqtra-release[bot]"
+          git config user.email "paqtra-release@users.noreply.github.com"
+          git add Formula/paqtra.rb
+          git diff --cached --quiet && { echo "formula unchanged"; exit 0; }
+          git commit -m "paqtra ${VERSION}"
+          git push
+
+  # ─── Images that compile Rust: API. Built natively per architecture ──
+  # (an emulated arm64 cargo build would take hours). Each arch pushes by
+  # digest; `merge-images` stitches them into one multi-arch tag.
+  build-image:
+    name: ${{ matrix.image }} (${{ matrix.arch }})
+    needs: meta
+    # amd64 leg uses the pool outside pull_request; arm64 stays on the hosted arm runner.
+    runs-on: ${{ fromJSON(matrix.arch == 'amd64' && github.event_name != 'pull_request' && '["self-hosted","zyvor-build","docker"]' || format('"{0}"', matrix.runner)) }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.meta.outputs.image_matrix) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-buildx-action@v4
+      - name: Log in to the registry
+        if: needs.meta.outputs.publish == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: web-${{ matrix.image }}
+          platforms: linux/${{ matrix.arch }}
+          build-args: TARGETARCH=${{ matrix.arch }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ needs.meta.outputs.owner }}/paqtra-${{ matrix.image }},push-by-digest=true,name-canonical=true,push=${{ needs.meta.outputs.publish == 'true' }}
+          cache-from: type=gha,scope=${{ matrix.image }}-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image }}-${{ matrix.arch }}
+      - name: Record digest
+        if: needs.meta.outputs.publish == 'true'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          mkdir -p /tmp/digests
+          touch "/tmp/digests/${DIGEST#sha256:}"
+      - uses: actions/upload-artifact@v7
+        if: needs.meta.outputs.publish == 'true'
+        with:
+          name: digest-${{ matrix.image }}-${{ matrix.arch }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+
+  merge-images:
+    name: Multi-arch ${{ matrix.image }}
+    needs: [meta, build-image]
+    if: needs.meta.outputs.publish == 'true'
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        image: [api, ui]
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: digest-${{ matrix.image }}-*
+          merge-multiple: true
+          path: /tmp/digests
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create manifest list
+        env:
+          IMAGE: ${{ env.REGISTRY }}/${{ needs.meta.outputs.owner }}/paqtra-${{ matrix.image }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          LATEST: ${{ needs.meta.outputs.latest }}
+        working-directory: /tmp/digests
+        run: |
+          set -euo pipefail
+          TAGS="-t ${IMAGE}:${VERSION}"
+          [ "$LATEST" = "true" ] && TAGS="$TAGS -t ${IMAGE}:latest"
+          # shellcheck disable=SC2046,SC2086
+          docker buildx imagetools create $TAGS $(printf "${IMAGE}@sha256:%s " *)
+          docker buildx imagetools inspect "${IMAGE}:${VERSION}"
+      - name: Scan with Trivy
+        if: matrix.image == 'api'
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ needs.meta.outputs.owner }}/paqtra-api:${{ needs.meta.outputs.version }}
+          format: table
+          exit-code: '0'
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
+  # ─── Images that wrap the static binary: agent + CLI ─────────────────
+  # No compilation: Dockerfile.release copies the musl binaries built above,
+  # so multi-arch needs only QEMU for a couple of apt-get lines.
+  binary-images:
+    name: Agent + CLI images
+    needs: [meta, build-cli]
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: bin-linux-*
+          merge-multiple: true
+          path: release-bin
+      - run: ls -l release-bin
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - name: Log in to the registry
+        if: needs.meta.outputs.publish == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tags
+        id: tags
+        env:
+          OWNER: ${{ needs.meta.outputs.owner }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          LATEST: ${{ needs.meta.outputs.latest }}
+        run: |
+          for pair in agent:paqtra cli:paqtra-cli; do
+            t=${pair%%:*}; n=${pair#*:}
+            tags="${REGISTRY}/${OWNER}/${n}:${VERSION}"
+            [ "$LATEST" = "true" ] && tags="${tags}"$'\n'"${REGISTRY}/${OWNER}/${n}:latest"
+            {
+              echo "${t}<<EOF"
+              echo "$tags"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
+          done
+      - name: Agent image (ghcr.io/<owner>/paqtra)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile.release
+          target: agent
+          platforms: linux/amd64,linux/arm64
+          push: ${{ needs.meta.outputs.publish == 'true' }}
+          tags: ${{ steps.tags.outputs.agent }}
+      - name: CLI image (ghcr.io/<owner>/paqtra-cli)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile.release
+          target: cli
+          platforms: linux/amd64,linux/arm64
+          push: ${{ needs.meta.outputs.publish == 'true' }}
+          tags: ${{ steps.tags.outputs.cli }}
+
+  # ─── MCP server image + MCP Registry entry ───────────────────────────
+  mcp-image:
+    name: MCP server image
+    needs: meta
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - name: Log in to the registry
+        if: needs.meta.outputs.publish == 'true'
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Tags
+        id: tags
+        env:
+          OWNER: ${{ needs.meta.outputs.owner }}
+          VERSION: ${{ needs.meta.outputs.version }}
+          LATEST: ${{ needs.meta.outputs.latest }}
+        run: |
+          tags="${REGISTRY}/${OWNER}/paqtra-mcp:${VERSION}"
+          [ "$LATEST" = "true" ] && tags="${tags}"$'\n'"${REGISTRY}/${OWNER}/paqtra-mcp:latest"
+          { echo "tags<<EOF"; echo "$tags"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+      - name: MCP image (ghcr.io/<owner>/paqtra-mcp)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: mcp/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: ${{ needs.meta.outputs.publish == 'true' }}
+          tags: ${{ steps.tags.outputs.tags }}
+      - name: server.json validates against the registry schema
+        env:
+          MCP_PUBLISHER_VERSION: v1.8.1
+        run: |
+          curl -fsSL -o mcp-publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  mcp-publisher.tar.gz" | sha256sum -c -
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+          ./mcp-publisher validate server.json
+
+  publish-mcp:
+    name: Publish to the MCP Registry
+    needs: [meta, mcp-image]
+    if: needs.meta.outputs.publish == 'true'
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    permissions:
+      contents: read
+      id-token: write   # GitHub OIDC login to the MCP Registry, no long-lived token
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install mcp-publisher (pinned, checksummed)
+        env:
+          MCP_PUBLISHER_VERSION: v1.8.1
+        run: |
+          curl -fsSL -o mcp-publisher.tar.gz \
+            "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc  mcp-publisher.tar.gz" | sha256sum -c -
+          tar xzf mcp-publisher.tar.gz mcp-publisher
+      - run: ./mcp-publisher login github-oidc
+      - run: ./mcp-publisher publish server.json

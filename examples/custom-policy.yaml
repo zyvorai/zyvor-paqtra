@@ -1,0 +1,20 @@
+# Example: Custom Cilium Network Policy
+# This allows only web pods to talk to database pods on port 5432
+
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-web-to-db
+  namespace: production
+spec:
+  endpointSelector:
+    matchLabels:
+      app: database
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app: web
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP

@@ -1,0 +1,25 @@
+/* Shared look for the README cards, matching the existing Paqtra social cards. */
+:root { --bg:#050709; --panel:#0d1117; --ink:#f5f5f7; --soft:#a1a1aa; --line:#1c2129; --blue:#0a84ff; --green:#30d158; --red:#ff453a; --amber:#ffd60a;
+  --sans:-apple-system,BlinkMacSystemFont,'SF Pro Display','Helvetica Neue',Helvetica,Arial,sans-serif; --mono:'SF Mono',Menlo,Consolas,monospace; }
+* { box-sizing:border-box; }
+html,body { margin:0; padding:0; }
+body { width:1600px; overflow:hidden; position:relative; background:var(--bg); color:var(--ink); font-family:var(--sans); }
+.glow { position:absolute; inset:0; background:radial-gradient(ellipse 800px 520px at 1230px 380px, rgba(10,132,255,.14), transparent 70%); }
+.bar { position:absolute; left:0; top:0; bottom:0; width:14px; background:var(--blue); }
+.wrap { position:absolute; left:64px; right:56px; top:40px; bottom:34px; display:flex; flex-direction:column; }
+.top { display:flex; align-items:center; gap:14px; font-family:var(--mono); font-size:18px; letter-spacing:.14em; text-transform:uppercase; color:var(--soft); }
+.top img { height:34px; } .top b { color:var(--blue); } .top .r { margin-left:auto; }
+h1 { margin:18px 0 0; font-size:56px; line-height:1.06; letter-spacing:-.03em; font-weight:700; }
+h1 em { font-style:normal; color:var(--blue); }
+.lane { display:inline-block; font-family:var(--mono); font-size:14px; font-weight:700; letter-spacing:.12em; color:#04070a; background:var(--c); padding:3px 10px; border-radius:11px; }
+.card { position:relative; background:var(--panel); border:2px solid var(--c); border-radius:16px; padding:16px 18px 16px 26px; }
+.card::before { content:""; position:absolute; left:0; top:0; bottom:0; width:9px; background:var(--c); border-radius:13px 0 0 13px; }
+.card h3 { margin:12px 0 6px; font-size:25px; line-height:1.14; letter-spacing:-.01em; }
+.card p { margin:0; font-size:19px; line-height:1.34; color:var(--soft); }
+.card ul { margin:10px 0 0; padding:0; list-style:none; }
+.card li { font-size:20px; line-height:1.32; padding:4px 0; border-top:1px solid var(--line); color:#e4e4e7; }
+.card li:first-child { border-top:0; }
+.b { --c:var(--blue); } .g { --c:var(--green); } .r { --c:var(--red); } .a { --c:var(--amber); } .w { --c:#c9c9d1; }
+.row { display:grid; gap:34px; }
+.foot { margin-top:auto; padding-top:12px; border-top:2px solid #27272a; display:flex; font-family:var(--mono); font-size:20px; color:var(--soft); }
+.foot b { color:var(--ink); } .foot .r { margin-left:auto; }

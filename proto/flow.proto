@@ -1,0 +1,108 @@
+// Simplified Hubble flow proto
+// Based on: https://github.com/cilium/cilium/blob/master/api/v1/flow/flow.proto
+
+syntax = "proto3";
+
+package flow;
+
+service Observer {
+  rpc GetFlows(GetFlowsRequest) returns (stream GetFlowsResponse) {}
+  rpc ServerStatus(ServerStatusRequest) returns (ServerStatusResponse) {}
+}
+
+message GetFlowsRequest {
+  uint64 number = 1;
+  bool follow = 2;
+  repeated string blacklist = 3;
+  repeated string whitelist = 4;
+}
+
+message GetFlowsResponse {
+  Flow flow = 1;
+  uint64 node_status_event = 2;
+  int64 lost_events = 3;
+}
+
+message Flow {
+  TimeStamp time = 1;
+  Verdict verdict = 2;
+  Endpoint source = 3;
+  Endpoint destination = 4;
+  L4 l4 = 5;
+  L7 l7 = 6;
+  string node_name = 7;
+  bool is_reply = 8;
+  string summary = 9;
+}
+
+message TimeStamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+enum Verdict {
+  VERDICT_UNKNOWN = 0;
+  FORWARDED = 1;
+  DROPPED = 2;
+  ERROR = 3;
+  AUDIT = 4;
+  REDIRECTED = 5;
+  TRACED = 6;
+}
+
+message Endpoint {
+  uint32 id = 1;
+  string namespace = 2;
+  repeated string labels = 3;
+  repeated string pod_name = 4;
+  repeated string identity = 5;
+}
+
+message L4 {
+  oneof protocol {
+    TCP tcp = 1;
+    UDP udp = 2;
+  }
+}
+
+message TCP {
+  uint32 source_port = 1;
+  uint32 destination_port = 2;
+  uint32 flags = 3;
+}
+
+message UDP {
+  uint32 source_port = 1;
+  uint32 destination_port = 2;
+}
+
+message L7 {
+  string type = 1;
+  int32 latency_ns = 2;
+  oneof record {
+    DNS dns = 3;
+    HTTP http = 4;
+  }
+}
+
+message DNS {
+  string query = 1;
+  repeated string ips = 2;
+  uint32 ttl = 3;
+}
+
+message HTTP {
+  uint32 code = 1;
+  string method = 2;
+  string url = 3;
+  string protocol = 4;
+}
+
+message ServerStatusRequest {}
+
+message ServerStatusResponse {
+  uint64 num_flows = 1;
+  uint64 max_flows = 2;
+  uint64 seen_flows = 3;
+  uint64 uptime_ns = 4;
+}

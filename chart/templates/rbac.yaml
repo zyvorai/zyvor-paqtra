@@ -1,0 +1,109 @@
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "paqtra.fullname" . }}
+  labels:
+    {{- include "paqtra.labels" . | nindent 4 }}
+rules:
+  # Core inventory for investigate / change tracker / health
+  - apiGroups: [""]
+    resources:
+      - pods
+      - services
+      - namespaces
+      - endpoints
+      - events
+      - configmaps
+      - nodes
+    verbs:
+      - get
+      - list
+      - watch
+  # Read-only bpftool inventory via kubectl exec into cilium-agent
+  - apiGroups: [""]
+    resources:
+      - pods/exec
+    verbs:
+      - create
+  - apiGroups: ["discovery.k8s.io"]
+    resources:
+      - endpointslices
+    verbs:
+      - get
+      - list
+      - watch
+  # Rollbacks via kubectl rollout undo
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - deployments/scale
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - update
+  # Cilium CRDs — enforcement stays here (brotherhood: no BPF map writes)
+  - apiGroups: ["cilium.io"]
+    resources:
+      - ciliumnetworkpolicies
+      - ciliumclusterwidenetworkpolicies
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - update
+      - patch
+      - delete
+  - apiGroups: ["cilium.io"]
+    resources:
+      - ciliumendpoints
+      - ciliumidentities
+      # IPAM, egress gateway, BGP (v1 peering policy + v2 config CRDs), LB-IPAM,
+      # L2 announcements and pod IP pools: read-only views.
+      - ciliumnodes
+      - ciliumegressgatewaypolicies
+      - ciliumbgppeeringpolicies
+      - ciliumbgpclusterconfigs
+      - ciliumbgppeerconfigs
+      - ciliumbgpadvertisements
+      - ciliumbgpnodeconfigs
+      - ciliumloadbalancerippools
+      - ciliuml2announcementpolicies
+      - ciliumpodippools
+      - ciliumcidrgroups
+    verbs:
+      - get
+      - list
+      - watch
+  # Gateway API objects served by Cilium's Gateway controller (read-only)
+  - apiGroups: ["gateway.networking.k8s.io"]
+    resources:
+      - gatewayclasses
+      - gateways
+      - httproutes
+    verbs:
+      - get
+      - list
+      - watch
+  {{- with .Values.rbac.additionalRules }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "paqtra.fullname" . }}
+  labels:
+    {{- include "paqtra.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "paqtra.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "paqtra.serviceAccountName" . }}
+    namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+{{- end }}

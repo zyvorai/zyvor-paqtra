@@ -1,0 +1,38 @@
+# ─── Paqtra — Terraform Configuration Example ─────────
+# Copy to terraform.tfvars and customize
+
+aws_region         = "us-west-2"
+cluster_name       = "paqtra-cluster"
+kubernetes_version = "1.29"
+environment        = "dev"
+
+# Node configuration
+node_instance_type = "t3.medium"
+node_min_count     = 2
+node_max_count     = 6
+node_desired_count = 3
+
+# Cilium
+install_cilium    = true
+cilium_version    = "1.15.3"
+enable_encryption = false
+
+# Paqtra
+namespace            = "cilium-system"
+api_image_repository = "ghcr.io/zyvorai/paqtra-api"
+api_image_tag        = "latest"
+api_replicas         = 2
+ui_replicas          = 2
+
+# Ingress (optional)
+enable_ingress = false
+ingress_hosts  = ["paqtra.example.com"]
+
+# Monitoring (optional)
+enable_monitoring = false
+
+tags = {
+  Project     = "paqtra"
+  Environment = "dev"
+  ManagedBy   = "terraform"
+}

@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paqtra - Executive Summary</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+  :root {
+    --bg: #0a0b0f;
+    --bg-card: #12131a;
+    --bg-card-hover: #1a1b26;
+    --border: #1e2030;
+    --text: #e2e8f0;
+    --text-muted: #8892b0;
+    --primary: #3b82f6;
+    --primary-light: #60a5fa;
+    --accent: #8b5cf6;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --cyan: #06b6d4;
+    --orange: #f97316;
+    --pink: #ec4899;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 48px 56px;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .logo {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+  }
+
+  .header-title h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    background: linear-gradient(135deg, var(--primary-light), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .header-title .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-top: 1px;
+  }
+
+  .header-date {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: right;
+    line-height: 1.6;
+  }
+
+  .header-date .label {
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 1px;
+    font-size: 9px;
+    color: var(--primary);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  /* Sections */
+  .section {
+    margin-bottom: 28px;
+  }
+
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--primary-light);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  /* What It Is */
+  .what-it-is {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+    padding: 16px 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    border-left: 3px solid var(--primary);
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 12px;
+    text-align: center;
+    transition: border-color 0.2s;
+  }
+
+  .stat-card:hover {
+    border-color: var(--primary);
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin-bottom: 3px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+
+  .stat-card:nth-child(1) .stat-value { color: var(--primary-light); }
+  .stat-card:nth-child(2) .stat-value { color: var(--accent); }
+  .stat-card:nth-child(3) .stat-value { color: var(--green); }
+  .stat-card:nth-child(4) .stat-value { color: var(--cyan); }
+  .stat-card:nth-child(5) .stat-value { color: var(--yellow); }
+  .stat-card:nth-child(6) .stat-value { color: var(--orange); }
+
+  /* Capabilities grid */
+  .capabilities-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .capability-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 16px;
+    transition: border-color 0.2s;
+  }
+
+  .capability-card:hover {
+    border-color: var(--primary);
+  }
+
+  .capability-card h3 {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .capability-card p {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  .cap-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .cap-dot.blue { background: var(--primary); }
+  .cap-dot.purple { background: var(--accent); }
+  .cap-dot.green { background: var(--green); }
+  .cap-dot.cyan { background: var(--cyan); }
+  .cap-dot.orange { background: var(--orange); }
+  .cap-dot.pink { background: var(--pink); }
+
+  /* Architecture */
+  .arch-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+
+  .arch-tier {
+    flex: 1;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    text-align: center;
+    position: relative;
+  }
+
+  .arch-tier:first-child {
+    border-radius: 10px 0 0 10px;
+  }
+
+  .arch-tier:last-child {
+    border-radius: 0 10px 10px 0;
+  }
+
+  .arch-tier + .arch-tier {
+    border-left: none;
+  }
+
+  .arch-tier h4 {
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+
+  .arch-tier p {
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1.4;
+  }
+
+  .arch-arrow {
+    color: var(--primary);
+    font-size: 16px;
+    margin: 0 -6px;
+    z-index: 1;
+    font-weight: 700;
+  }
+
+  /* Two-column bottom */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .bottom-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+  }
+
+  .bottom-card h3 {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--primary-light);
+    margin-bottom: 10px;
+  }
+
+  .bottom-card ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  .bottom-card ul li {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    padding: 3px 0;
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .bottom-card ul li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+
+  /* Deployment */
+  .deploy-text {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .deploy-text strong {
+    color: var(--text);
+  }
+
+  .deploy-badges {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    color: var(--primary-light);
+  }
+
+  /* Footer */
+  .footer {
+    margin-top: 28px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .footer a {
+    color: var(--primary-light);
+    text-decoration: none;
+  }
+
+  .footer a:hover {
+    text-decoration: underline;
+  }
+
+  /* Print styles */
+  @media print {
+    :root {
+      --bg: #ffffff;
+      --bg-card: #f8f9fa;
+      --bg-card-hover: #f0f1f3;
+      --border: #dee2e6;
+      --text: #1a1a2e;
+      --text-muted: #495057;
+      --primary: #2563eb;
+      --primary-light: #1d4ed8;
+      --accent: #7c3aed;
+      --green: #059669;
+      --cyan: #0891b2;
+      --yellow: #d97706;
+      --orange: #ea580c;
+      --pink: #db2777;
+    }
+
+    body {
+      background: #fff;
+      color: #1a1a2e;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .page {
+      padding: 24px 32px;
+      max-width: none;
+    }
+
+    .header-title h1 {
+      background: none;
+      -webkit-text-fill-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .logo {
+      background: var(--primary) !important;
+    }
+
+    .stat-card .stat-value,
+    .stat-card:nth-child(1) .stat-value,
+    .stat-card:nth-child(2) .stat-value,
+    .stat-card:nth-child(3) .stat-value,
+    .stat-card:nth-child(4) .stat-value,
+    .stat-card:nth-child(5) .stat-value,
+    .stat-card:nth-child(6) .stat-value {
+      color: var(--text) !important;
+    }
+
+    .section { margin-bottom: 18px; }
+    .footer { margin-top: 18px; }
+
+    @page {
+      size: A4;
+      margin: 12mm;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">P</div>
+      <div class="header-title">
+        <h1>Paqtra</h1>
+        <div class="subtitle">Executive Summary</div>
+      </div>
+    </div>
+    <div class="header-date">
+      <span class="label">Source-available</span>
+      April 2026
+    </div>
+  </div>
+
+  <!-- What It Is -->
+  <div class="section">
+    <div class="section-title">What It Is</div>
+    <div class="what-it-is">
+      Paqtra is a full-stack network intelligence platform for Kubernetes that provides real-time observability, automated security policy management, and self-healing network operations &mdash; all powered by Cilium eBPF. It delivers a unified control plane spanning a web dashboard, REST API, and terminal TUI, giving platform teams complete visibility and control over cluster networking from day one.
+    </div>
+  </div>
+
+  <!-- Key Numbers -->
+  <div class="section">
+    <div class="section-title">Key Numbers</div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value">64</div>
+        <div class="stat-label">Dashboard Pages</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">75+</div>
+        <div class="stat-label">API Endpoints</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">961</div>
+        <div class="stat-label">Tests Passing</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">&lt;3s</div>
+        <div class="stat-label">Data Latency</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">5.6MB</div>
+        <div class="stat-label">API Memory</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">13MB</div>
+        <div class="stat-label">TUI Binary</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Core Capabilities -->
+  <div class="section">
+    <div class="section-title">Core Capabilities</div>
+    <div class="capabilities-grid">
+      <div class="capability-card">
+        <h3><span class="cap-dot blue"></span>Real-Time Flow Monitoring</h3>
+        <p>Stream every packet with Hubble integration, per-packet explanations, and verdict coloring for instant traffic comprehension.</p>
+      </div>
+      <div class="capability-card">
+        <h3><span class="cap-dot purple"></span>Zero-Trust Policy Management</h3>
+        <p>Visual rule builder, ML-powered AutoPolicy generation, simulate-before-apply workflow, and full CRUD lifecycle.</p>
+      </div>
+      <div class="capability-card">
+        <h3><span class="cap-dot green"></span>Self-Healing Network</h3>
+        <p>Automatic problem detection with root cause analysis, anomaly scoring, and one-click remediation actions.</p>
+      </div>
+      <div class="capability-card">
+        <h3><span class="cap-dot cyan"></span>Deep Observability</h3>
+        <p>Service dependency map, DNS monitor, latency analysis, traffic heatmap, and cost analytics dashboards.</p>
+      </div>
+      <div class="capability-card">
+        <h3><span class="cap-dot orange"></span>Chaos &amp; Canary</h3>
+        <p>Fault injection with circuit breaker safeguards, progressive traffic shifting with automated health gates.</p>
+      </div>
+      <div class="capability-card">
+        <h3><span class="cap-dot pink"></span>Multi-Cluster Operations</h3>
+        <p>Cluster registration, cross-cluster health checks, policy synchronization, and unified topology view.</p>
+      </div>
+      <div class="capability-card">
+        <h3><span class="cap-dot green"></span>Kernel eBPF Data</h3>
+        <p>Live views of kernel eBPF programs, maps, conntrack entries, IP cache, and load balancer state via bpftool.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Architecture -->
+  <div class="section">
+    <div class="section-title">Architecture</div>
+    <div class="arch-row">
+      <div class="arch-tier">
+        <h4>Web Dashboard</h4>
+        <p>React 19, 64 pages</p>
+      </div>
+      <div class="arch-tier">
+        <h4>REST API</h4>
+        <p>Rust/Axum, 75+ endpoints, JWT auth</p>
+      </div>
+      <div class="arch-tier">
+        <h4>Terminal TUI</h4>
+        <p>Rust, 13 tabs, 32K LoC</p>
+      </div>
+      <div class="arch-tier">
+        <h4>Data Plane</h4>
+        <p>Cilium eBPF, Hubble, Kubernetes</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security + Deployment -->
+  <div class="bottom-row">
+    <div class="bottom-card">
+      <h3>Security Highlights</h3>
+      <ul>
+        <li>JWT authentication with RBAC enforcement</li>
+        <li>Rate limiting with periodic cleanup</li>
+        <li>WebSocket connection limiting (100 max)</li>
+        <li>YAML injection prevention</li>
+        <li>Input validation on all kubectl operations</li>
+        <li>Concurrent health checks with timeout</li>
+      </ul>
+    </div>
+    <div class="bottom-card">
+      <h3>Deployment</h3>
+      <p class="deploy-text">
+        Ships as a <strong>single binary</strong> with zero external dependencies. Deploy via Docker, Helm chart, or systemd unit. Production-ready for any conformant Kubernetes distribution.
+      </p>
+      <div class="deploy-badges">
+        <span class="badge">K3s</span>
+        <span class="badge">EKS</span>
+        <span class="badge">GKE</span>
+        <span class="badge">AKS</span>
+        <span class="badge">Docker</span>
+        <span class="badge">Helm</span>
+        <span class="badge">systemd</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div>Zyvor Production License v1.0 &middot; <a href="https://github.com/zyvorai/paqtra" target="_blank">github.com/zyvorai/paqtra</a></div>
+    <div>Paqtra &copy; 2026</div>
+  </div>
+
+</div>
+
+</body>
+</html>

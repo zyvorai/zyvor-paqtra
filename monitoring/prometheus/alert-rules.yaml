@@ -1,0 +1,115 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: paqtra-alerts
+  namespace: cilium-system
+  labels:
+    app: paqtra
+    prometheus: kube-prometheus
+spec:
+  groups:
+    - name: paqtra.api
+      rules:
+        - alert: PaqtraAPIDown
+          expr: up{job="paqtra-api"} == 0
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Paqtra API is down"
+            description: "Paqtra API has been unreachable for more than 2 minutes."
+            runbook_url: "https://github.com/your-org/paqtra/wiki/runbooks#ciliumvisionapidown"
+
+        - alert: PaqtraHighErrorRate
+          expr: rate(paqtra_total_errors[5m]) / rate(paqtra_total_requests[5m]) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High error rate on Paqtra API"
+            description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes."
+            runbook_url: "https://github.com/your-org/paqtra/wiki/runbooks#ciliumvisionhigherrorrate"
+
+        - alert: PaqtraHighLatency
+          expr: histogram_quantile(0.99, rate(paqtra_request_duration_seconds_bucket[5m])) > 2
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High P99 latency on Paqtra API"
+            description: "P99 latency is {{ $value }}s over the last 5 minutes."
+            runbook_url: "https://github.com/your-org/paqtra/wiki/runbooks#ciliumvisionhighlatency"
+
+        - alert: PaqtraCacheHitRateLow
+          expr: paqtra_cache_hits / (paqtra_cache_hits + paqtra_cache_misses) < 0.5
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Low cache hit rate"
+            description: "Cache hit rate is {{ $value | humanizePercentage }}."
+            runbook_url: "https://github.com/your-org/paqtra/wiki/runbooks#paqtracachehitratelow"
+
+    - name: paqtra.network
+      rules:
+        - alert: PaqtraHighDropRate
+          expr: rate(paqtra_flows_dropped[5m]) / rate(paqtra_flows_total[5m]) > 0.05
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High network drop rate detected"
+            description: "Flow drop rate is {{ $value | humanizePercentage }} over the last 5 minutes."
+            runbook_url: "https://github.com/your-org/paqtra/wiki/runbooks#ciliumvisionhighdroprate"
+
+        - alert: PaqtraPolicyDenialSpike
+          expr: rate(paqtra_policy_denials[1m]) > 100
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Policy denial spike"
+            description: "{{ $value }} policy denials per minute detected."
+            runbook_url: "https://github.com/your-org/paqtra/wiki/runbooks#ciliumvisionpolicydenialspike"
+
+        - alert: PaqtraAnomalyDetected
+          expr: paqtra_anomalies_open > 0
+          for: 0m
+          labels:
+            severity: info
+          annotations:
+            summary: "Network anomaly detected"
+            description: "{{ $value }} open anomalies detected by ML engine."
+            runbook_url: "https://github.com/your-org/paqtra/wiki/runbooks#ciliumvisionanomalydetected"
+
+    - name: paqtra.resources
+      rules:
+        - alert: PaqtraHighMemory
+          expr: container_memory_usage_bytes{container="paqtra-api"} / container_spec_memory_limit_bytes{container="paqtra-api"} > 0.9
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Paqtra API high memory usage"
+            description: "Memory usage is at {{ $value | humanizePercentage }} of limit."
+            runbook_url: "https://github.com/your-org/paqtra/wiki/runbooks#ciliumvisionhighmemory"
+
+        - alert: PaqtraHighCPU
+          expr: rate(container_cpu_usage_seconds_total{container="paqtra-api"}[5m]) > 0.8
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Paqtra API high CPU usage"
+            description: "CPU usage is {{ $value }} cores averaged over 5 minutes."
+            runbook_url: "https://github.com/your-org/paqtra/wiki/runbooks#ciliumvisionhighcpu"
+
+        - alert: PaqtraPodRestarts
+          expr: increase(kube_pod_container_status_restarts_total{container="paqtra-api"}[1h]) > 3
+          for: 0m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Paqtra API pod restarting"
+            description: "{{ $value }} restarts in the last hour."
+            runbook_url: "https://github.com/your-org/paqtra/wiki/runbooks#ciliumvisionpodrestarts"

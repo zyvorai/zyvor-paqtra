@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paqtra — Security Whitepaper</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #161a23;
+    --surface2: #1c2130;
+    --border: #2a2f3e;
+    --text: #e0e4ec;
+    --text-muted: #8a90a0;
+    --accent: #3b82f6;
+    --accent2: #22d3ee;
+    --green: #34d399;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --purple: #a78bfa;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a1f2e 0%, #0f1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+  .header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .header .subtitle {
+    color: var(--text-muted);
+    font-size: 1.1rem;
+  }
+  .header .badge {
+    display: inline-block;
+    margin-top: 1rem;
+    padding: 0.3rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .badge-confidential { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+  .meta {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+    padding: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 2.5rem;
+    font-size: 0.9rem;
+  }
+  .meta dt { color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .meta dd { color: var(--text); margin-top: 0.15rem; }
+  section { margin-bottom: 2.5rem; }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  h2 .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+  }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 1.2rem 0 0.5rem; color: var(--accent2); }
+  p { margin-bottom: 0.8rem; }
+  ul, ol { margin: 0.5rem 0 1rem 1.5rem; }
+  li { margin-bottom: 0.35rem; }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+    background: var(--surface2);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    font-size: 0.88em;
+    color: var(--accent2);
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--accent);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--border);
+  }
+  th { background: var(--surface2); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+  td { background: var(--surface); }
+  .severity-high { color: var(--red); font-weight: 600; }
+  .severity-medium { color: var(--orange); font-weight: 600; }
+  .severity-low { color: var(--green); font-weight: 600; }
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .toc h3 { color: var(--text); margin-top: 0; font-size: 1rem; }
+  .toc ol { margin-left: 1.2rem; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    margin-top: 2rem;
+  }
+  @media print {
+    body { background: #fff; color: #111; }
+    .header { background: none; border-bottom: 2px solid #111; }
+    .header h1 { color: #111; }
+    .header .subtitle, .meta dt, .footer { color: #555; }
+    .card, .toc, .meta, td { background: #f8f8f8; border-color: #ccc; }
+    th { background: #e8e8e8; color: #333; }
+    code { background: #eee; color: #333; }
+    h2, h3 { color: #111; }
+    a { color: #1a56db; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Paqtra &mdash; Security Whitepaper</h1>
+  <p class="subtitle">Platform Security Architecture and Controls &mdash; v1.0.0</p>
+  <span class="badge badge-confidential">Security Whitepaper</span>
+</div>
+
+<div class="container">
+
+<div class="meta">
+  <dl><dt>Version</dt><dd>1.0.0</dd></dl>
+  <dl><dt>Date</dt><dd>April 2026</dd></dl>
+  <dl><dt>Classification</dt><dd>Public</dd></dl>
+  <dl><dt>Language</dt><dd>Rust (API) / TypeScript (UI)</dd></dl>
+  <dl><dt>Framework</dt><dd>Axum + Tokio</dd></dl>
+</div>
+
+<div class="toc">
+  <h3>Table of Contents</h3>
+  <ol>
+    <li><a href="#auth">Authentication</a></li>
+    <li><a href="#rbac">Authorization (RBAC)</a></li>
+    <li><a href="#ratelimit">Rate Limiting</a></li>
+    <li><a href="#websocket">WebSocket Security</a></li>
+    <li><a href="#input">Input Validation</a></li>
+    <li><a href="#network">Network Security</a></li>
+    <li><a href="#data">Data Security</a></li>
+    <li><a href="#supply">Supply Chain Security</a></li>
+    <li><a href="#compliance">Compliance &amp; Audit</a></li>
+  </ol>
+</div>
+
+<!-- 1. Authentication -->
+<section id="auth">
+  <h2><span class="icon" style="background:rgba(59,130,246,0.15);color:var(--accent);">&#128274;</span> 1. Authentication</h2>
+  <p>All API requests are authenticated via JSON Web Tokens (JWT) using the HS256 (HMAC-SHA256) signing algorithm. Tokens are passed in the <code>Authorization: Bearer &lt;token&gt;</code> header on every request.</p>
+
+  <h3>Secret Enforcement</h3>
+  <p>The server enforces a minimum JWT secret length of <strong>32 characters</strong> at startup. If the configured secret is shorter, the server refuses to start, preventing weak-key deployments.</p>
+
+  <h3>Development Mode</h3>
+  <p>An <code>AUTH_DISABLED</code> environment variable is available for local development only. When set, the server emits a prominent startup warning to stderr and skips token validation. This flag has no effect when the binary is compiled in release mode with the <code>production</code> feature gate.</p>
+
+  <div class="card">
+    <div class="card-title">Token Structure</div>
+    <table>
+      <tr><th>Claim</th><th>Type</th><th>Description</th></tr>
+      <tr><td><code>sub</code></td><td>String</td><td>User identifier</td></tr>
+      <tr><td><code>role</code></td><td>String</td><td>One of: <code>admin</code>, <code>viewer</code></td></tr>
+      <tr><td><code>exp</code></td><td>Integer</td><td>Expiry timestamp (Unix epoch)</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- 2. RBAC -->
+<section id="rbac">
+  <h2><span class="icon" style="background:rgba(167,139,250,0.15);color:var(--purple);">&#128101;</span> 2. Authorization (RBAC)</h2>
+  <p>Role-Based Access Control is enforced at the handler level. The JWT middleware extracts claims and injects them into the request extensions. Handlers that perform destructive operations call <code>require_admin()</code>, which returns <code>403 Forbidden</code> if the caller's <code>role</code> claim is not <code>admin</code>.</p>
+
+  <h3>Protected Operations</h3>
+  <table>
+    <tr><th>Operation</th><th>Required Role</th><th>Risk Level</th></tr>
+    <tr><td>Create policy</td><td><code>admin</code></td><td class="severity-high">High</td></tr>
+    <tr><td>Update policy</td><td><code>admin</code></td><td class="severity-high">High</td></tr>
+    <tr><td>Delete policy</td><td><code>admin</code></td><td class="severity-high">High</td></tr>
+    <tr><td>Drain node</td><td><code>admin</code></td><td class="severity-high">High</td></tr>
+    <tr><td>Uncordon node</td><td><code>admin</code></td><td class="severity-medium">Medium</td></tr>
+    <tr><td>Run chaos experiment</td><td><code>admin</code></td><td class="severity-high">High</td></tr>
+    <tr><td>Apply healer fix</td><td><code>admin</code></td><td class="severity-medium">Medium</td></tr>
+    <tr><td>Rollback change</td><td><code>admin</code></td><td class="severity-high">High</td></tr>
+  </table>
+  <p>All read-only endpoints (GET) are accessible to both <code>admin</code> and <code>viewer</code> roles. Unauthenticated requests receive <code>401 Unauthorized</code>.</p>
+</section>
+
+<!-- 3. Rate Limiting -->
+<section id="ratelimit">
+  <h2><span class="icon" style="background:rgba(245,158,11,0.15);color:var(--orange);">&#9889;</span> 3. Rate Limiting</h2>
+  <p>The API implements a token-bucket rate limiter applied per source IP address to prevent abuse and ensure fair resource allocation.</p>
+
+  <div class="card">
+    <div class="card-title">Rate Limit Parameters</div>
+    <table>
+      <tr><th>Parameter</th><th>Value</th></tr>
+      <tr><td>Algorithm</td><td>Token Bucket</td></tr>
+      <tr><td>Burst capacity</td><td>100 requests</td></tr>
+      <tr><td>Sustained rate</td><td>50 requests/second</td></tr>
+      <tr><td>Granularity</td><td>Per source IP</td></tr>
+      <tr><td>Bucket cleanup interval</td><td>60 seconds</td></tr>
+    </table>
+  </div>
+
+  <h3>Implementation Details</h3>
+  <ul>
+    <li>Stale buckets (IPs that have not made requests recently) are purged every 60 seconds by a background task to prevent unbounded memory growth.</li>
+    <li>The bucket map is protected by a <code>Mutex</code>. If the mutex is poisoned (a previous holder panicked), the rate limiter recovers gracefully by replacing the poisoned lock rather than propagating the panic to all subsequent requests.</li>
+    <li>Clients that exceed the limit receive <code>429 Too Many Requests</code> with a <code>Retry-After</code> header.</li>
+  </ul>
+</section>
+
+<!-- 4. WebSocket -->
+<section id="websocket">
+  <h2><span class="icon" style="background:rgba(34,211,238,0.15);color:var(--accent2);">&#128268;</span> 4. WebSocket Security</h2>
+  <p>WebSocket connections are used for real-time streaming of network flows and metrics. Security controls are applied at both upgrade time and during the connection lifecycle.</p>
+
+  <h3>Connection Limiting</h3>
+  <p>A global <strong>maximum of 100 concurrent WebSocket connections</strong> is enforced. New upgrade requests beyond this limit receive <code>503 Service Unavailable</code>. This prevents resource exhaustion attacks via connection flooding.</p>
+
+  <h3>Authentication on Upgrade</h3>
+  <p>WebSocket upgrade requests pass through the same JWT authentication middleware as standard HTTP requests. The <code>Authorization</code> header must be present on the initial HTTP upgrade request. Tokens are validated before the protocol switch occurs.</p>
+
+  <h3>Streams</h3>
+  <ul>
+    <li><code>/ws/flows</code> &mdash; real-time Cilium network flow events</li>
+    <li><code>/ws/metrics</code> &mdash; live metric updates (node, pod, policy stats)</li>
+  </ul>
+</section>
+
+<!-- 5. Input Validation -->
+<section id="input">
+  <h2><span class="icon" style="background:rgba(52,211,153,0.15);color:var(--green);">&#128220;</span> 5. Input Validation</h2>
+
+  <h3>Kubernetes Resource Names</h3>
+  <p>All user-supplied Kubernetes resource names are validated against <strong>RFC 1123 DNS label rules</strong>: lowercase alphanumeric characters and hyphens, must start and end with an alphanumeric character, maximum 63 characters. Invalid names are rejected with <code>400 Bad Request</code> before any cluster interaction occurs.</p>
+
+  <h3>Resource Kind Allowlist</h3>
+  <p>Policy operations accept only a strict allowlist of Kubernetes resource kinds:</p>
+  <ul>
+    <li><code>CiliumNetworkPolicy</code></li>
+    <li><code>CiliumClusterwideNetworkPolicy</code></li>
+    <li><code>NetworkPolicy</code> (Kubernetes native)</li>
+    <li><code>CiliumEgressGatewayPolicy</code></li>
+  </ul>
+  <p>Requests specifying any other kind are rejected, preventing injection of unexpected resource types into the cluster.</p>
+
+  <h3>YAML Injection Prevention</h3>
+  <p>All user-supplied string values embedded into generated YAML policy documents are sanitized through a dedicated <code>yaml_escape()</code> helper function. This function escapes special YAML characters (colons, quotes, newlines, anchors, aliases) to prevent attackers from injecting additional YAML directives or altering the structure of generated policies.</p>
+</section>
+
+<!-- 6. Network Security -->
+<section id="network">
+  <h2><span class="icon" style="background:rgba(59,130,246,0.15);color:var(--accent);">&#127760;</span> 6. Network Security</h2>
+
+  <h3>CORS</h3>
+  <p>Cross-Origin Resource Sharing is configured with an <strong>explicit origin allowlist</strong>. Wildcard origins are not permitted. The allowlist is configurable at startup via environment variable, defaulting to the dashboard's origin only.</p>
+
+  <h3>Compression</h3>
+  <p>HTTP responses are compressed (gzip/brotli) via tower middleware to reduce bandwidth and mitigate data exfiltration volume in the event of a compromised session.</p>
+
+  <h3>TLS</h3>
+  <p>TLS termination is handled at the ingress layer (Kubernetes Ingress or load balancer). The API server binds to a local interface and expects TLS to be terminated upstream. In production deployments, all external traffic is encrypted in transit.</p>
+</section>
+
+<!-- 7. Data Security -->
+<section id="data">
+  <h2><span class="icon" style="background:rgba(245,158,11,0.15);color:var(--orange);">&#128451;</span> 7. Data Security</h2>
+
+  <h3>Caching</h3>
+  <p>The platform uses Redis as an optional caching layer. Cache entries have a <strong>configurable TTL</strong> (time-to-live), defaulting to short durations appropriate to the data type. Cache keys are derived from API path and query parameters only &mdash; no user-specific data is included in keys.</p>
+
+  <h3>Data Classification</h3>
+  <ul>
+    <li>No Personally Identifiable Information (PII) is stored or cached by the platform.</li>
+    <li>Cached data consists of Kubernetes resource metadata, Cilium policy state, and flow statistics.</li>
+    <li>JWT tokens are validated but never persisted to disk or cache.</li>
+  </ul>
+
+  <h3>Secret Handling</h3>
+  <p>JWT signing secrets should be provided via environment variable or mounted secret. Operators are advised to enable <strong>zeroization</strong> of the secret from memory upon server shutdown using the <code>zeroize</code> crate pattern, preventing cold-boot recovery of key material.</p>
+</section>
+
+<!-- 8. Supply Chain -->
+<section id="supply">
+  <h2><span class="icon" style="background:rgba(167,139,250,0.15);color:var(--purple);">&#128230;</span> 8. Supply Chain Security</h2>
+
+  <h3>Memory Safety</h3>
+  <p>The entire API server is written in <strong>Rust</strong>, providing compile-time guarantees against buffer overflows, use-after-free, double-free, and data races. These vulnerability classes account for approximately 70% of CVEs in C/C++ network services.</p>
+
+  <h3>Unsafe Code Audit</h3>
+  <p>The application codebase contains <strong>no <code>unsafe</code> blocks</strong> in application logic. The only <code>unsafe</code> usage is a single <code>libc::close()</code> call for file descriptor cleanup, which is guarded by a validity check (fd &gt; 2) to prevent closing stdin/stdout/stderr.</p>
+
+  <h3>eBPF Data Queries</h3>
+  <p>Kernel eBPF data (programs, maps, conntrack, IP cache, load balancer, drops) is queried by spawning a <code>bpftool</code> subprocess with a <strong>5-second timeout</strong>. If the subprocess exceeds this timeout, it is terminated and the API returns a graceful error response. All bpftool output is parsed with proper error handling; malformed or unexpected output does not cause panics or undefined behavior.</p>
+
+  <h3>Dependency Auditing</h3>
+  <p>Dependencies are audited using <code>cargo-audit</code> against the RustSec Advisory Database. The CI pipeline fails on any known vulnerability in the dependency tree. <code>Cargo.lock</code> is committed to ensure reproducible builds.</p>
+</section>
+
+<!-- 9. Compliance -->
+<section id="compliance">
+  <h2><span class="icon" style="background:rgba(52,211,153,0.15);color:var(--green);">&#9989;</span> 9. Compliance &amp; Audit</h2>
+
+  <h3>Framework Support</h3>
+  <p>The platform exposes API endpoints for automated compliance auditing against industry frameworks:</p>
+  <table>
+    <tr><th>Framework</th><th>Endpoint</th><th>Coverage</th></tr>
+    <tr><td>CIS Kubernetes Benchmark</td><td><code>/api/compliance/cis</code></td><td>Network policy controls</td></tr>
+    <tr><td>NIST 800-53</td><td><code>/api/compliance/nist</code></td><td>Access control, audit, system integrity</td></tr>
+    <tr><td>SOC 2 Type II</td><td><code>/api/compliance/soc2</code></td><td>Security, availability, confidentiality</td></tr>
+  </table>
+
+  <h3>Security Posture Scoring</h3>
+  <p>The platform computes a real-time security posture score (0&ndash;100) based on policy coverage, encryption status, and configuration compliance. This score is surfaced in both the web dashboard and the TUI.</p>
+
+  <h3>Audit Logging</h3>
+  <p>All state-changing operations (policy CRUD, node operations, chaos experiments) are logged with timestamp, actor identity (from JWT <code>sub</code> claim), action, target resource, and outcome. Logs are emitted in structured JSON format suitable for ingestion by SIEM systems.</p>
+</section>
+
+</div>
+
+<div class="footer">
+  Paqtra Security Whitepaper &mdash; v1.0.0 &mdash; April 2026 &mdash; Zyvor Production License v1.0
+</div>
+
+</body>
+</html>

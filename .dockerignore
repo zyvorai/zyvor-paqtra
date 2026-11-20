@@ -1,0 +1,14 @@
+.git
+target/
+node_modules/
+dist/
+*.md
+docs/
+monitoring/
+terraform/
+deployments/
+examples/
+e2e/
+.github/
+scripts/
+tests/

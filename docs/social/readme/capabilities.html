@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Paqtra capabilities</title>
+<!-- 1600x620. Rendered by ./build.sh to docs/ux/readme-capabilities.jpg. Every item is a row of the README capability table (now docs/capabilities.md). -->
+<link rel="stylesheet" href="card.css">
+<style>
+  body { height:620px; }
+  .grid { margin-top:24px; grid-template-columns:repeat(4,1fr); gap:24px; }
+  .grid .card { min-height:330px; }
+  .grid .card h3 { font-size:30px; }
+</style></head><body>
+<div class="glow"></div><div class="bar"></div>
+<div class="wrap">
+  <div class="top"><img src="../../../web-ui/public/zyvor-mark.svg" alt=""><b>Zyvor</b><span>&middot;</span><span>Paqtra</span><span class="r"> Capabilities at a glance</span></div>
+  <h1>See it. Explain it. <em>Fix it in Cilium.</em></h1>
+  <div class="row grid">
+    <div class="card b"><span class="lane">OBSERVE</span><h3>Watch every flow</h3><ul>
+      <li>Live Hubble flows, verdict-colored</li><li>Service map and topology</li><li>L7 DNS when Cilium visibility is on</li><li>Latency, bandwidth, heatmap</li><li>Ingest gaps shown on /health</li></ul></div>
+    <div class="card g"><span class="lane">INVESTIGATE</span><h3>Find the reason</h3><ul>
+      <li>Path explain: why can't A reach B?</li><li>Why denied? from any flow</li><li>Drop analytics by Cilium reason</li><li>Root cause with one-click fixes</li><li>Packet capture sessions</li></ul></div>
+    <div class="card a"><span class="lane">SECURE</span><h3>Preview, then apply</h3><ul>
+      <li>Visual builder and YAML editor</li><li>AutoPolicy from observed traffic</li><li>Simulate before applying</li><li>CIS, NIST, SOC 2 audits</li><li>Anomaly detection</li></ul></div>
+    <div class="card w"><span class="lane">OPERATE</span><h3>Run the fleet</h3><ul>
+      <li>Chaos engineering, canary rollouts</li><li>Multi-cluster views</li><li>SLOs, alerts, audit log</li><li>Incident timeline</li><li>ClusterMesh, BGP, WireGuard</li></ul></div>
+  </div>
+  <div class="foot"><b>github.com/zyvorai/paqtra</b><span class="r">Edition of PacketWolf</span></div>
+</div>
+</body></html>

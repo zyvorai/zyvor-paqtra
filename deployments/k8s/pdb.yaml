@@ -1,0 +1,23 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: paqtra-api-pdb
+  namespace: cilium-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: paqtra
+      component: api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: paqtra-ui-pdb
+  namespace: cilium-system
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: paqtra
+      component: ui

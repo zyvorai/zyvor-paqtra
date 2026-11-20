@@ -1,0 +1,78 @@
+[package]
+name = "paqtra"
+version = "2.2.6"
+edition = "2021"
+authors = ["Paqtra Contributors"]
+description = "Paqtra — trace every flow. Zero-touch Cilium observability TUI with automatic bootstrapping"
+license = "LicenseRef-Zyvor-Production-1.0"
+repository = "https://github.com/zyvorai/paqtra"
+homepage = "https://github.com/zyvorai/paqtra"
+readme = "README.md"
+keywords = ["cilium", "ebpf", "kubernetes", "observability", "networking"]
+categories = ["command-line-utilities", "network-programming"]
+
+[features]
+default = []
+grpc = ["tonic", "tonic-prost", "prost", "tonic-prost-build"]
+
+[dependencies]
+# Kubernetes client
+kube = { version = "4.2", features = ["client", "derive", "kube-runtime", "ws"] }
+k8s-openapi = { version = "0.28", features = ["v1_32"] }
+
+# Async runtime
+tokio = { version = "1.53", features = ["full"] }
+futures = "0.3"
+
+# TUI framework
+ratatui = "0.30"
+crossterm = "0.29"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "2.0"
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+# gRPC for Hubble (optional)
+tonic = { version = "0.14", optional = true }
+prost = { version = "0.14", optional = true }
+tonic-prost = { version = "0.14", optional = true }
+
+# CLI
+clap = { version = "4.6", features = ["derive", "env"] }
+owo-colors = "4"
+
+# Input validation
+regex = "1.13"
+
+# Utils
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1.26", features = ["v4"] }
+flate2 = "1.1"
+tempfile = "3.27"
+
+# Process management
+libc = "0.2"
+
+# BPF map access
+nix = { version = "0.31", features = ["fs"] }
+byteorder = "1.5"
+ureq = { version = "3.4.2", default-features = false, features = ["rustls", "gzip"] }
+tar = "0.4.46"
+include_dir = "0.7.4"
+clap_complete = "4.6.11"
+sha2 = "0.11.0"
+http = "1.5.0"
+zip = { version = "9.0.2", default-features = false, features = ["deflate"] }
+paqtra-metrics = { path = "web-api/paqtra-metrics" }
+
+[build-dependencies]
+tonic-prost-build = { version = "0.14", optional = true }

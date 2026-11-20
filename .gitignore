@@ -1,0 +1,50 @@
+# Rust
+**/target/
+**/*.rs.bk
+*.pdb
+
+# Node
+**/node_modules/
+web-ui/dist/
+e2e/playwright-report/
+e2e/test-results/
+
+# IDE / local agent
+.idea/
+.vscode/
+.cursor/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / coverage
+*.log
+coverage/
+*.lcov
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+!**/tls/*.example.key
+kubeconfig
+**/kubeconfig
+terraform.tfvars
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Local data (repo-root only; do not swallow website/src/data/)
+/data/
+*.sqlite
+*.db
+
+# Docs site / screenshot tooling
+website/build/
+website/.docusaurus/

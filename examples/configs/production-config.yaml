@@ -1,0 +1,96 @@
+# Paqtra - Production Configuration
+# High-confidence automation with safety guardrails
+
+kubernetes:
+  context: "production-cluster"
+  namespace: ""
+
+hubble:
+  port: 4245
+  auto_port_forward: true
+  filters:
+    # Only production namespaces
+    namespaces:
+      - "production"
+      - "prod-backend"
+      - "prod-frontend"
+    verdicts: []
+
+autopolicy:
+  enabled: true
+  learning_duration_secs: 1209600  # 14 days for production
+  min_observations: 50              # Higher threshold
+  auto_generate: false              # Manual approval required
+  ml_confidence_threshold: 0.90     # Very high confidence only
+  ml_weights:
+    temporal_stability: 0.25        # Emphasize stability
+    traffic_volume: 0.25
+    port_trust: 0.15
+    protocol_score: 0.10
+    namespace_trust: 0.15
+    label_specificity: 0.05
+    traffic_regularity: 0.05
+
+chaos:
+  enabled: false                    # Disabled in production by default
+  max_drop_rate: 0.10               # Very conservative
+  max_latency_ms: 1000
+  max_duration_secs: 60
+  auto_cleanup: true
+  auto_cleanup_duration: 60
+  require_confirmation: true
+  circuit_breaker_enabled: true
+
+canary:
+  enabled: true
+  initial_traffic_pct: 5            # Start very small
+  traffic_step_pct: 5               # Small increments
+  auto_promote_threshold: 0.995     # 99.5% success
+  auto_rollback_threshold: 0.95     # Aggressive rollback
+  health_check_interval_secs: 15    # Frequent checks
+  metrics_interval_secs: 5
+
+multicluster:
+  enabled: true
+  auto_sync_policies: true
+  health_check_interval_secs: 15
+  sync_interval_secs: 180
+  placement_weights:
+    resource_availability: 0.20
+    network_latency: 0.25           # Emphasize latency
+    cost_optimization: 0.15
+    region_affinity: 0.20           # Compliance important
+    load_balancing: 0.15
+    compliance: 0.05
+
+simulator:
+  enabled: true
+  risk_thresholds:
+    low: 0.02       # Very conservative
+    medium: 0.05
+    high: 0.10
+    critical: 0.10
+
+replay:
+  enabled: true
+  max_recorded_flows: 50000         # More capacity
+  auto_save: true
+  auto_save_interval_secs: 180
+  recordings_dir: "/var/log/paqtra/recordings"
+
+ui:
+  refresh_rate_ms: 16
+  theme: "default"
+  show_help_on_startup: false
+
+logging:
+  level: "info"
+  log_to_file: true
+  log_file_path: "/var/log/paqtra/paqtra.log"
+  audit_log: true
+  audit_log_path: "/var/log/paqtra/audit.log"
+
+security:
+  require_policy_confirmation: true
+  require_rollback_confirmation: true
+  dry_run: false

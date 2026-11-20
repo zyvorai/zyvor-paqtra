@@ -1,0 +1,104 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
+import js from '@eslint/js';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import tsParser from '@typescript-eslint/parser';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+
+export default [
+  js.configs.recommended,
+  {
+    files: ['**/*.{ts,tsx}'],
+    languageOptions: {
+      parser: tsParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: { jsx: true },
+      },
+      globals: {
+        document: 'readonly',
+        window: 'readonly',
+        console: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        sessionStorage: 'readonly',
+        localStorage: 'readonly',
+        fetch: 'readonly',
+        URLSearchParams: 'readonly',
+        process: 'readonly',
+        React: 'readonly',
+        vi: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        navigator: 'readonly',
+        Blob: 'readonly',
+        URL: 'readonly',
+        WebSocket: 'readonly',
+        Node: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLDivElement: 'readonly',
+        HTMLCanvasElement: 'readonly',
+        HTMLInputElement: 'readonly',
+        HTMLButtonElement: 'readonly',
+        Storage: 'readonly',
+        SVGSVGElement: 'readonly',
+        SVGGElement: 'readonly',
+        KeyboardEvent: 'readonly',
+        MouseEvent: 'readonly',
+        MessageEvent: 'readonly',
+        CloseEvent: 'readonly',
+        Event: 'readonly',
+        Notification: 'readonly',
+        NotificationPermission: 'readonly',
+        NotificationOptions: 'readonly',
+        RequestInit: 'readonly',
+        Response: 'readonly',
+        AbortController: 'readonly',
+        FormData: 'readonly',
+        File: 'readonly',
+        FileReader: 'readonly',
+        MutationObserver: 'readonly',
+        ResizeObserver: 'readonly',
+        IntersectionObserver: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
+        alert: 'readonly',
+        confirm: 'readonly',
+        performance: 'readonly',
+        location: 'readonly',
+        history: 'readonly',
+      },
+    },
+    plugins: {
+      '@typescript-eslint': tsPlugin,
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+    },
+    rules: {
+      ...tsPlugin.configs.recommended.rules,
+      ...reactHooks.configs.recommended.rules,
+      // react-hooks 7's compiler-oriented rule flags every fetch-in-effect data
+      // load (the pattern this UI uses throughout). Off until those views move
+      // to a data-fetching layer; the classic rules-of-hooks/exhaustive-deps stay on.
+      'react-hooks/set-state-in-effect': 'off',
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'off',
+    },
+  },
+  {
+    ignores: ['dist/', 'node_modules/', 'vite.config.ts'],
+  },
+];

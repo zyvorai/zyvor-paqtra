@@ -1,0 +1,68 @@
+
+Paqtra has been deployed successfully!
+
+Namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+
+Components:
+  - Agent (DaemonSet): {{ include "paqtra.fullname" . }}-agent (port {{ .Values.agent.port }})
+  - API Server: {{ include "paqtra.fullname" . }}-api (port {{ .Values.api.service.port }})
+  - UI Dashboard: {{ include "paqtra.fullname" . }}-ui (port {{ .Values.ui.service.port }})
+
+Check status from your workstation:
+
+  paqtra status
+
+{{- if .Values.ingress.enabled }}
+
+Access the application:
+{{- range .Values.ingress.hosts }}
+  {{- $host := .host }}
+  {{- range .paths }}
+  {{ .service }}: http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- if .Values.ingress.tls }}
+
+TLS is enabled. Ensure your TLS secrets are provisioned (e.g., via cert-manager).
+{{- end }}
+{{- else }}
+
+Access the application using port-forward:
+
+  # API Server
+  kubectl port-forward -n {{ .Values.global.namespace | default .Release.Namespace }} \
+    svc/{{ include "paqtra.fullname" . }}-api {{ .Values.api.service.port }}:{{ .Values.api.service.port }}
+
+  # UI Dashboard
+  kubectl port-forward -n {{ .Values.global.namespace | default .Release.Namespace }} \
+    svc/{{ include "paqtra.fullname" . }}-ui {{ .Values.ui.service.port }}:{{ .Values.ui.service.port }}
+
+Then open:
+{{- if .Values.tls.enabled }}
+  UI:  https://localhost:{{ .Values.ui.service.port }}  (self-signed — accept the browser warning)
+{{- else }}
+  UI:  http://localhost:{{ .Values.ui.service.port }}
+{{- end }}
+  API: http://localhost:{{ .Values.api.service.port }}
+
+Sign in:
+  Username: {{ .Values.auth.adminUsername | default "admin" }}
+  {{- if .Values.auth.adminPassword }}
+  Password: {{ .Values.auth.adminPassword }}
+  {{- else }}
+  Password: auto-generated — retrieve with:
+    kubectl get secret {{ include "paqtra.fullname" . }}-secret -n {{ .Values.global.namespace | default .Release.Namespace }} \
+      -o jsonpath='{.data.ADMIN_PASSWORD}' | base64 -d; echo
+  {{- end }}
+{{- end }}
+
+{{- if .Values.monitoring.enabled }}
+
+Monitoring:
+  ServiceMonitor has been created for Prometheus Operator.
+  {{- if .Values.monitoring.grafanaDashboard.enabled }}
+  Grafana dashboard ConfigMap has been provisioned.
+  {{- end }}
+{{- end }}
+
+For more information, visit: {{ .Chart.Home }}

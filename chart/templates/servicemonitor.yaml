@@ -1,0 +1,103 @@
+{{- if .Values.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "paqtra.fullname" . }}-api
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "paqtra.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+    {{- with .Values.monitoring.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "paqtra.api.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      interval: {{ .Values.monitoring.serviceMonitor.interval }}
+      scrapeTimeout: {{ .Values.monitoring.serviceMonitor.scrapeTimeout }}
+      path: /metrics
+---
+{{- if .Values.monitoring.prometheusRules.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "paqtra.fullname" . }}
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "paqtra.labels" . | nindent 4 }}
+spec:
+  groups:
+    - name: paqtra
+      rules:
+        - alert: PaqtraAPIDown
+          expr: up{job="{{ include "paqtra.fullname" . }}-api"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Paqtra API is down"
+            description: "The Paqtra API has been unreachable for more than 5 minutes."
+        - alert: PaqtraHighErrorRate
+          expr: rate(http_requests_total{job="{{ include "paqtra.fullname" . }}-api",status=~"5.."}[5m]) > 0.1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High error rate on Paqtra API"
+            description: "The API error rate has exceeded 10% for more than 10 minutes."
+        {{- with .Values.monitoring.prometheusRules.rules }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+{{- end }}
+---
+{{- if .Values.monitoring.grafanaDashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "paqtra.fullname" . }}-grafana-dashboard
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "paqtra.labels" . | nindent 4 }}
+    {{- with .Values.monitoring.grafanaDashboard.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+data:
+  paqtra.json: |
+    {
+      "dashboard": {
+        "title": "Paqtra Overview",
+        "uid": "paqtra",
+        "panels": [
+          {
+            "title": "Request Rate",
+            "type": "timeseries",
+            "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+            "targets": [{ "expr": "rate(paqtra_total_requests[5m])", "legendFormat": "req/s", "refId": "A" }],
+            "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "reqps" } }
+          },
+          {
+            "title": "Error Rate",
+            "type": "timeseries",
+            "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+            "targets": [{ "expr": "rate(paqtra_total_errors[5m]) / rate(paqtra_total_requests[5m]) * 100", "legendFormat": "error %", "refId": "A" }],
+            "fieldConfig": { "defaults": { "color": { "fixedColor": "red", "mode": "fixed" }, "unit": "percent" } }
+          },
+          {
+            "title": "Latency (P50/P95/P99)",
+            "type": "timeseries",
+            "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 },
+            "targets": [
+              { "expr": "histogram_quantile(0.50, rate(paqtra_request_duration_seconds_bucket[5m]))", "legendFormat": "P50", "refId": "A" },
+              { "expr": "histogram_quantile(0.95, rate(paqtra_request_duration_seconds_bucket[5m]))", "legendFormat": "P95", "refId": "B" },
+              { "expr": "histogram_quantile(0.99, rate(paqtra_request_duration_seconds_bucket[5m]))", "legendFormat": "P99", "refId": "C" }
+            ],
+            "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "unit": "s" } }
+          }
+        ]
+      }
+    }
+{{- end }}
+{{- end }}

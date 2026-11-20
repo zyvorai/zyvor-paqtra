@@ -1,0 +1,36 @@
+name: Release dry run
+
+# Runs the whole release pipeline without publishing: version gate, static
+# musl builds, checksums, installer test against the produced tarball, chart
+# package, SBOM, formula rendering and image builds. Catches a broken release
+# before a tag does.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/release*.yml'
+      - 'Dockerfile*'
+      - 'mcp/**'
+      - 'server.json'
+      - 'install.sh'
+      - 'scripts/render-homebrew-formula.sh'
+      - 'chart/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'src/cli/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dry-run:
+    uses: ./.github/workflows/release.yml
+    with:
+      dry_run: true
+    # Must cover what the called workflow's jobs ask for; a dry run never uses
+    # it (every publishing step is gated on a real tag), and fork PRs are
+    # read-only whatever is declared here.
+    permissions:
+      contents: write
+      packages: write
+      id-token: write

@@ -1,0 +1,4404 @@
+openapi: "3.0.3"
+
+info:
+  title: Paqtra API
+  version: "2.0.0"
+  description: >
+    Paqtra — trace every flow. Network observability and security for
+    Cilium, Hubble, and eBPF on Kubernetes. Real-time flow monitoring,
+    anomaly detection, policy management, zero-trust scoring, multi-cluster
+    visibility, cost analysis, and automated troubleshooting.
+  contact:
+    name: Paqtra Team
+  license:
+    name: Zyvor Production License v1.0
+    url: https://github.com/zyvorai/zyvor-paqtra/blob/main/LICENSE
+
+servers:
+  - url: /
+    description: Local server (health and metrics live at the root)
+  - url: /api/v1
+    description: Primary API base path
+
+tags:
+  - name: Health
+    description: Liveness and readiness probes
+  - name: Flows
+    description: Hubble flow observation and statistics
+  - name: Policies
+    description: CiliumNetworkPolicy CRUD and simulation
+  - name: Anomalies
+    description: ML-driven anomaly detection and remediation
+  - name: Compliance
+    description: Compliance frameworks and audit
+  - name: Modules
+    description: Autopolicy, Chaos, and Canary modules
+  - name: Events
+    description: Kubernetes event stream
+  - name: Endpoints
+    description: Cilium-managed endpoints
+  - name: Nodes
+    description: Kubernetes node inventory
+  - name: Security
+    description: Security posture, findings, and zero-trust scoring
+  - name: Heatmap
+    description: Namespace-to-namespace traffic heatmap
+  - name: Dependencies
+    description: Service dependency graph
+  - name: Metrics
+    description: Internal metrics and Prometheus exposition
+  - name: Replay
+    description: Flow recording and replay
+  - name: Healer
+    description: Automated problem detection and remediation
+  - name: RootCause
+    description: Packet drop root-cause analysis
+  - name: MultiCluster
+    description: Multi-cluster federation management
+  - name: Alerts
+    description: Alert rules and alert history
+  - name: DNS
+    description: DNS query monitoring and statistics
+  - name: Bandwidth
+    description: Per-pod bandwidth monitoring
+  - name: IPAM
+    description: IP Address Management pools and allocations
+  - name: Encryption
+    description: WireGuard / IPsec encryption status
+  - name: LoadBalancer
+    description: eBPF-based load balancer services
+  - name: Ingress
+    description: Ingress route configuration
+  - name: Egress
+    description: Egress gateway policies
+  - name: ServiceMesh
+    description: Cilium service mesh configuration
+  - name: KPR
+    description: KubeProxy Replacement status
+  - name: BGP
+    description: BGP peering sessions
+  - name: ClusterMesh
+    description: ClusterMesh peer management
+  - name: Identities
+    description: Cilium security identities
+  - name: Diagnostics
+    description: Cluster diagnostics and connectivity tests
+  - name: Troubleshoot
+    description: Automated troubleshooting workflows
+  - name: SLO
+    description: Service Level Objective tracking
+  - name: Incidents
+    description: Incident timeline and management
+  - name: Changes
+    description: Change log with rollback support
+  - name: Capture
+    description: Packet capture sessions
+  - name: Mirror
+    description: Traffic mirroring rules
+  - name: Costs
+    description: Namespace cost breakdown
+  - name: Forecast
+    description: Metric forecasting (ARIMA)
+  - name: RBAC
+    description: RBAC binding inventory
+  - name: Host
+    description: Host-level information
+  - name: WireGuard
+    description: WireGuard tunnel peers
+  - name: CiliumStatus
+    description: Per-node Cilium agent status
+  - name: WebSocket
+    description: Real-time streaming via WebSocket
+
+# ──────────────────────────────────────────────────────────────
+# Security
+# ──────────────────────────────────────────────────────────────
+security:
+  - BearerAuth: []
+
+# ──────────────────────────────────────────────────────────────
+# Paths
+# ──────────────────────────────────────────────────────────────
+paths:
+  # ── Health ──────────────────────────────────────────────────
+  /health:
+    get:
+      operationId: healthCheck
+      tags: [Health]
+      summary: Liveness probe
+      description: >
+        Returns the overall health status of the server and each subsystem
+        (Redis, Hubble Relay, Kubernetes API).
+      security: []
+      responses:
+        "200":
+          description: All subsystems healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: One or more critical subsystems unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /ready:
+    get:
+      operationId: readinessCheck
+      tags: [Health]
+      summary: Readiness probe
+      security: []
+      responses:
+        "200":
+          description: Service ready to accept traffic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: Service not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+
+  # ── Flows ───────────────────────────────────────────────────
+  /api/v1/flows:
+    get:
+      operationId: listFlows
+      tags: [Flows]
+      summary: List observed network flows
+      description: >-
+        `verdict` is applied by Hubble itself, so `limit` returns the most recent
+        flows with that verdict (not the few matches among the last N). Flows carry
+        an optional `hubble` object: identities, labels, `traffic_direction`,
+        `is_reply`, `policy_match_type`, `trace_observation_point`, `node_name`.
+      parameters:
+        - $ref: "#/components/parameters/Namespace"
+        - name: verdict
+          in: query
+          schema:
+            type: string
+            enum: [FORWARDED, DROPPED, AUDIT, REDIRECTED, ERROR, TRACED]
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Paginated flow list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlowListResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/flows/{id}:
+    get:
+      operationId: getFlow
+      tags: [Flows]
+      summary: Get a single flow by ID
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Flow detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Flow"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/flows/stats:
+    get:
+      operationId: flowStats
+      tags: [Flows]
+      summary: Aggregated flow statistics
+      responses:
+        "200":
+          description: Current flow statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlowStats"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/flows/exports:
+    get:
+      operationId: listExportConfigs
+      tags: [Flows]
+      summary: List flow export configurations
+      responses:
+        "200":
+          description: Export configuration list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  configs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/FlowExportConfig"
+    post:
+      operationId: createExportConfig
+      tags: [Flows]
+      summary: Create a flow export configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, format, destination]
+              properties:
+                name:
+                  type: string
+                format:
+                  type: string
+                  enum: [json, csv, cef]
+                destination:
+                  type: string
+                filter:
+                  type: string
+      responses:
+        "200":
+          description: Export config created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlowExportConfig"
+
+  /api/v1/flows/exports/{id}:
+    delete:
+      operationId: deleteExportConfig
+      tags: [Flows]
+      summary: Delete a flow export configuration
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── Policies ────────────────────────────────────────────────
+  /api/v1/policies:
+    get:
+      operationId: listPolicies
+      tags: [Policies]
+      summary: List CiliumNetworkPolicies
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Paginated policy list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyListResponse"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    post:
+      operationId: createPolicy
+      tags: [Policies]
+      summary: Create a CiliumNetworkPolicy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePolicyRequest"
+      responses:
+        "200":
+          description: Policy created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/policies/{id}:
+    get:
+      operationId: getPolicy
+      tags: [Policies]
+      summary: Get a single policy by ID or name
+      description: >-
+        Returns the policy's `spec`, its `resource_version` (send it back on rule
+        edits for optimistic concurrency) and per-direction `rule_counts`.
+        `namespace/name` (URL-encoded) disambiguates a name used in several namespaces.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Policy detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicyDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      operationId: updatePolicy
+      tags: [Policies]
+      summary: Update an existing policy
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePolicyRequest"
+      responses:
+        "200":
+          description: Policy updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      operationId: deletePolicy
+      tags: [Policies]
+      summary: Delete a policy
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Policy deleted
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/policies/{id}/rules:
+    post:
+      operationId: addPolicyRule
+      tags: [Policies]
+      summary: Add a rule to a policy
+      description: >-
+        Appends one rule to the policy's `ingress`, `egress`, `ingressDeny` or
+        `egressDeny` list and applies the result through the CiliumNetworkPolicy
+        CRD. Requires the editor role and access to the policy's namespace.
+        With `dry_run=true` the API server validates the change and nothing is
+        persisted. A stale `resource_version` returns 409.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/DryRun"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [direction, rule]
+              properties:
+                direction:
+                  $ref: "#/components/schemas/RuleDirection"
+                rule:
+                  type: object
+                resource_version:
+                  type: string
+      responses:
+        "200":
+          description: Rule added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuleChangeResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: The policy changed since `resource_version` was read
+    put:
+      operationId: updatePolicyRule
+      tags: [Policies]
+      summary: Replace one rule of a policy
+      description: Replaces the rule at `index` within `direction`. Same rules as adding.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/DryRun"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [direction, index, rule]
+              properties:
+                direction:
+                  $ref: "#/components/schemas/RuleDirection"
+                index:
+                  type: integer
+                  minimum: 0
+                rule:
+                  type: object
+                resource_version:
+                  type: string
+      responses:
+        "200":
+          description: Rule replaced
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuleChangeResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: The policy changed since `resource_version` was read
+    delete:
+      operationId: deletePolicyRule
+      tags: [Policies]
+      summary: Delete one rule of a policy
+      description: >-
+        Removes the rule at `index` within `direction`. The policy's last rule cannot
+        be removed (400): Cilium rejects a policy with no rules, so delete the policy.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/DryRun"
+        - name: direction
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/RuleDirection"
+        - name: index
+          in: query
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+        - name: resource_version
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Rule deleted (`result.removed` holds it)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuleChangeResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: The policy changed since `resource_version` was read
+
+  /api/v1/policies/simulate:
+    post:
+      operationId: simulatePolicy
+      tags: [Policies]
+      summary: Dry-run impact analysis for a policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePolicyRequest"
+      responses:
+        "200":
+          description: Simulation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PolicySimulationResult"
+
+  /api/v1/policies/validate:
+    post:
+      operationId: validatePolicy
+      tags: [Policies]
+      summary: Validate a policy YAML without applying
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [yaml]
+              properties:
+                yaml:
+                  type: string
+      responses:
+        "200":
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  errors:
+                    type: array
+                    items:
+                      type: string
+
+  /api/v1/policies/templates:
+    get:
+      operationId: listPolicyTemplates
+      tags: [Policies]
+      summary: List curated policy templates
+      responses:
+        "200":
+          description: Template list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  templates:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PolicyTemplate"
+
+  /api/v1/policies/templates/{id}/apply:
+    post:
+      operationId: applyPolicyTemplate
+      tags: [Policies]
+      summary: Apply a policy template to a namespace
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Template applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── Anomalies ───────────────────────────────────────────────
+  /api/v1/anomalies:
+    get:
+      operationId: listAnomalies
+      tags: [Anomalies]
+      summary: List detected anomalies
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Paginated anomaly list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnomalyListResponse"
+
+  /api/v1/anomalies/{id}:
+    get:
+      operationId: getAnomaly
+      tags: [Anomalies]
+      summary: Get a single anomaly
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Anomaly detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Anomaly"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/anomalies/{id}/remediate:
+    post:
+      operationId: remediateAnomaly
+      tags: [Anomalies]
+      summary: Trigger automated remediation for an anomaly
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Remediation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemediationResult"
+
+  # ── Compliance ──────────────────────────────────────────────
+  /api/v1/compliance/frameworks:
+    get:
+      operationId: listComplianceFrameworks
+      tags: [Compliance]
+      summary: List supported compliance frameworks
+      responses:
+        "200":
+          description: Framework list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  frameworks:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        description:
+                          type: string
+
+  /api/v1/compliance/audit:
+    post:
+      operationId: runComplianceAudit
+      tags: [Compliance]
+      summary: Run a compliance audit against a framework
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                framework:
+                  type: string
+      responses:
+        "200":
+          description: Audit result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  framework:
+                    type: string
+                  score:
+                    type: number
+                  controls_passed:
+                    type: integer
+                  controls_failed:
+                    type: integer
+
+  # ── Events ──────────────────────────────────────────────────
+  /api/v1/events:
+    get:
+      operationId: listEvents
+      tags: [Events]
+      summary: List Kubernetes events
+      parameters:
+        - $ref: "#/components/parameters/Namespace"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Event list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/K8sEvent"
+                  total:
+                    type: integer
+
+  # ── Endpoints ───────────────────────────────────────────────
+  /api/v1/endpoints:
+    get:
+      operationId: listEndpoints
+      tags: [Endpoints]
+      summary: List Cilium-managed endpoints
+      parameters:
+        - $ref: "#/components/parameters/Namespace"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Offset"
+      responses:
+        "200":
+          description: Endpoint list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  endpoints:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CiliumEndpoint"
+                  total:
+                    type: integer
+
+  # ── Nodes ───────────────────────────────────────────────────
+  /api/v1/nodes:
+    get:
+      operationId: listNodes
+      tags: [Nodes]
+      summary: List Kubernetes nodes with Cilium status
+      responses:
+        "200":
+          description: Node list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nodes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/K8sNode"
+                  total:
+                    type: integer
+
+  /api/v1/nodes/drain/status:
+    get:
+      operationId: nodeDrainStatus
+      tags: [Nodes]
+      summary: Get drain status for all nodes
+      responses:
+        "200":
+          description: Drain status per node
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  nodes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/NodeDrainStatus"
+
+  /api/v1/nodes/drain:
+    post:
+      operationId: drainNode
+      tags: [Nodes]
+      summary: Initiate graceful node drain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [node]
+              properties:
+                node:
+                  type: string
+      responses:
+        "200":
+          description: Drain initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  /api/v1/nodes/uncordon:
+    post:
+      operationId: uncordonNode
+      tags: [Nodes]
+      summary: Uncordon a previously cordoned node
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [node]
+              properties:
+                node:
+                  type: string
+      responses:
+        "200":
+          description: Node uncordoned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── Security ────────────────────────────────────────────────
+  /api/v1/security/posture:
+    get:
+      operationId: securityPosture
+      tags: [Security]
+      summary: Overall security posture assessment
+      responses:
+        "200":
+          description: Security posture
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SecurityPosture"
+
+  /api/v1/security/findings:
+    get:
+      operationId: listSecurityFindings
+      tags: [Security]
+      summary: List security findings
+      responses:
+        "200":
+          description: Finding list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  findings:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SecurityFinding"
+
+  /api/v1/security/zero-trust:
+    get:
+      operationId: zeroTrustScore
+      tags: [Security]
+      summary: Zero-trust maturity score breakdown
+      responses:
+        "200":
+          description: Zero-trust scores
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ZeroTrustScore"
+
+  /api/v1/security/pods:
+    get:
+      operationId: podSecurity
+      tags: [Security]
+      summary: Pod security standard compliance per namespace
+      responses:
+        "200":
+          description: Pod security reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reports:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PodSecurityReport"
+
+  # ── Heatmap ─────────────────────────────────────────────────
+  /api/v1/heatmap:
+    get:
+      operationId: heatmapData
+      tags: [Heatmap]
+      summary: Namespace-to-namespace traffic heatmap
+      responses:
+        "200":
+          description: Heatmap data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HeatmapResponse"
+
+  # ── Dependencies ────────────────────────────────────────────
+  /api/v1/dependencies:
+    get:
+      operationId: listDependencies
+      tags: [Dependencies]
+      summary: Service dependency graph
+      responses:
+        "200":
+          description: Dependency list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dependencies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ServiceDependency"
+
+  # ── Service Map ─────────────────────────────────────────────
+  /api/v1/servicemap:
+    get:
+      operationId: serviceMap
+      tags: [Dependencies]
+      summary: Full service topology with nodes and edges
+      responses:
+        "200":
+          description: Service map
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceMapResponse"
+
+  # ── Modules — Autopolicy ────────────────────────────────────
+  /api/v1/modules/autopolicy/generate:
+    post:
+      operationId: generateAutopolicy
+      tags: [Modules]
+      summary: Auto-generate a CiliumNetworkPolicy from observed flows
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                namespace:
+                  type: string
+                label_selector:
+                  type: string
+      responses:
+        "200":
+          description: Generated policy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  policy_yaml:
+                    type: string
+                  flows_analyzed:
+                    type: integer
+
+  # ── Modules — Chaos ─────────────────────────────────────────
+  /api/v1/modules/chaos/experiments:
+    get:
+      operationId: listChaosExperiments
+      tags: [Modules]
+      summary: List chaos experiments
+      responses:
+        "200":
+          description: Experiment list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  experiments:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChaosExperiment"
+
+  /api/v1/modules/chaos/run:
+    post:
+      operationId: runChaosExperiment
+      tags: [Modules]
+      summary: Execute a chaos experiment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [experiment_id]
+              properties:
+                experiment_id:
+                  type: string
+                duration_secs:
+                  type: integer
+      responses:
+        "200":
+          description: Experiment started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── Modules — Canary ────────────────────────────────────────
+  /api/v1/modules/canary/{id}:
+    get:
+      operationId: canaryStatus
+      tags: [Modules]
+      summary: Get canary deployment status
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Canary status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CanaryStatus"
+
+  # ── Replay ──────────────────────────────────────────────────
+  /api/v1/modules/replay/recordings:
+    get:
+      operationId: listRecordings
+      tags: [Replay]
+      summary: List flow recordings
+      responses:
+        "200":
+          description: Recording list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recordings:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ReplayRecording"
+
+  /api/v1/modules/replay/start:
+    post:
+      operationId: startRecording
+      tags: [Replay]
+      summary: Start a new flow recording
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                namespace:
+                  type: string
+      responses:
+        "200":
+          description: Recording started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  /api/v1/modules/replay/{id}/stop:
+    post:
+      operationId: stopRecording
+      tags: [Replay]
+      summary: Stop an active recording
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Recording stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── Healer ──────────────────────────────────────────────────
+  /api/v1/modules/healer/problems:
+    get:
+      operationId: listHealerProblems
+      tags: [Healer]
+      summary: List detected network problems
+      responses:
+        "200":
+          description: Problem list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  problems:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/HealerProblem"
+
+  /api/v1/modules/healer/{id}/fix:
+    post:
+      operationId: applyHealerFix
+      tags: [Healer]
+      summary: Apply the proposed fix for a problem
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Fix applied
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── RootCause ───────────────────────────────────────────────
+  /api/v1/modules/rootcause/drops:
+    get:
+      operationId: listPacketDrops
+      tags: [RootCause]
+      summary: List packet drops with root-cause annotation
+      responses:
+        "200":
+          description: Packet drop list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  drops:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PacketDrop"
+                  total:
+                    type: integer
+
+  /api/v1/modules/rootcause/analyze:
+    post:
+      operationId: analyzeDrops
+      tags: [RootCause]
+      summary: Run aggregated drop analysis
+      responses:
+        "200":
+          description: Drop analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DropAnalysis"
+
+  # ── MultiCluster ────────────────────────────────────────────
+  /api/v1/modules/multicluster/clusters:
+    get:
+      operationId: listClusters
+      tags: [MultiCluster]
+      summary: List federated clusters
+      responses:
+        "200":
+          description: Cluster list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  clusters:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ClusterInfo"
+
+  /api/v1/modules/multicluster/{name}/sync:
+    post:
+      operationId: syncCluster
+      tags: [MultiCluster]
+      summary: Trigger policy sync with a remote cluster
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Sync initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── eBPF Profiler ───────────────────────────────────────────
+  /api/v1/modules/ebpf/programs:
+    get:
+      operationId: listEbpfPrograms
+      tags: [Modules]
+      summary: List loaded eBPF programs
+      responses:
+        "200":
+          description: eBPF program list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  programs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EbpfProgram"
+
+  /api/v1/modules/ebpf/maps:
+    get:
+      operationId: listEbpfMaps
+      tags: [Modules]
+      summary: List eBPF maps with usage
+      responses:
+        "200":
+          description: eBPF map list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  maps:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EbpfMapInfo"
+
+  # ── Metrics ─────────────────────────────────────────────────
+  /api/v1/metrics/summary:
+    get:
+      operationId: metricsSummary
+      tags: [Metrics]
+      summary: Internal API metrics summary
+      responses:
+        "200":
+          description: Metrics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsSummary"
+
+  /metrics:
+    get:
+      operationId: prometheusMetrics
+      tags: [Metrics]
+      summary: Prometheus exposition endpoint
+      security: []
+      responses:
+        "200":
+          description: Prometheus text format
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  # ── Alerts ──────────────────────────────────────────────────
+  /api/v1/alerts/rules:
+    get:
+      operationId: listAlertRules
+      tags: [Alerts]
+      summary: List alert rules
+      responses:
+        "200":
+          description: Alert rule list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rules:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AlertRule"
+    post:
+      operationId: createAlertRule
+      tags: [Alerts]
+      summary: Create an alert rule
+      description: >-
+        Requires the editor role. The condition must be one the engine can
+        evaluate: `drop_rate > N%`, `dns_servfail > N/min`, `policy_denied > N/min`
+        or `endpoint_status != ready`; anything else is a 400.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AlertRuleInput"
+      responses:
+        "201":
+          description: Rule created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlertRule"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /api/v1/alerts/rules/{id}/definition:
+    put:
+      operationId: updateAlertRule
+      tags: [Alerts]
+      summary: Edit an alert rule's name, condition and severity
+      description: >-
+        Keeps the id and trigger history. `enabled` is changed only if sent.
+        A stored condition may be left unchanged even if the engine cannot evaluate it.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AlertRuleInput"
+      responses:
+        "200":
+          description: Rule updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AlertRule"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/alerts/rules/{id}:
+    delete:
+      operationId: deleteAlertRule
+      tags: [Alerts]
+      summary: Delete an alert rule
+      description: >-
+        The five seeded default rules (`rule-001`..`rule-005`) need `force=true`;
+        without it they are refused with 400 (disable them instead). Deleting every
+        rule does not bring the defaults back.
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - name: force
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "204":
+          description: Rule deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      operationId: toggleAlertRule
+      tags: [Alerts]
+      summary: Enable or disable an alert rule
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Rule updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  /api/v1/alerts/history:
+    get:
+      operationId: alertHistory
+      tags: [Alerts]
+      summary: List fired alerts
+      responses:
+        "200":
+          description: Alert history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alerts:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AlertEvent"
+
+  # ── DNS ─────────────────────────────────────────────────────
+  /api/v1/dns/queries:
+    get:
+      operationId: dnsQueries
+      tags: [DNS]
+      summary: Recent DNS queries observed via Cilium DNS proxy
+      responses:
+        "200":
+          description: DNS query list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  queries:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DnsQuery"
+                  total:
+                    type: integer
+
+  /api/v1/dns/stats:
+    get:
+      operationId: dnsStats
+      tags: [DNS]
+      summary: Aggregated DNS statistics
+      responses:
+        "200":
+          description: DNS statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DnsStats"
+
+  # ── Bandwidth ───────────────────────────────────────────────
+  /api/v1/bandwidth:
+    get:
+      operationId: bandwidthData
+      tags: [Bandwidth]
+      summary: Per-pod bandwidth usage
+      responses:
+        "200":
+          description: Bandwidth entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BandwidthEntry"
+
+  # ── IPAM ────────────────────────────────────────────────────
+  /api/v1/ipam/pools:
+    get:
+      operationId: ipamPools
+      tags: [IPAM]
+      summary: List IPAM pools and utilisation
+      responses:
+        "200":
+          description: Pool list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  pools:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/IpamPool"
+
+  /api/v1/ipam/allocations:
+    get:
+      operationId: ipAllocations
+      tags: [IPAM]
+      summary: List individual IP allocations
+      responses:
+        "200":
+          description: Allocation list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  allocations:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/IpAllocation"
+
+  # ── Encryption ──────────────────────────────────────────────
+  /api/v1/encryption/status:
+    get:
+      operationId: encryptionStatus
+      tags: [Encryption]
+      summary: Node-to-node encryption status
+      responses:
+        "200":
+          description: Encryption status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EncryptionStatus"
+
+  # ── Load Balancer ───────────────────────────────────────────
+  /api/v1/loadbalancer/services:
+    get:
+      operationId: lbServices
+      tags: [LoadBalancer]
+      summary: eBPF load-balancer service inventory
+      responses:
+        "200":
+          description: LB service list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  services:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/LBService"
+
+  # ── Ingress ─────────────────────────────────────────────────
+  /api/v1/ingress/routes:
+    get:
+      operationId: ingressRoutes
+      tags: [Ingress]
+      summary: List ingress routes
+      responses:
+        "200":
+          description: Ingress route list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  routes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/IngressRoute"
+
+  # ── Egress ──────────────────────────────────────────────────
+  /api/v1/egress/policies:
+    get:
+      operationId: egressPolicies
+      tags: [Egress]
+      summary: List egress gateway policies
+      responses:
+        "200":
+          description: Egress policy list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  policies:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/EgressPolicy"
+
+  # ── Service Mesh ────────────────────────────────────────────
+  /api/v1/servicemesh/services:
+    get:
+      operationId: meshServices
+      tags: [ServiceMesh]
+      summary: List service mesh managed services
+      responses:
+        "200":
+          description: Mesh service list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  services:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MeshService"
+
+  # ── KPR ─────────────────────────────────────────────────────
+  /api/v1/kpr/status:
+    get:
+      operationId: kprStatus
+      tags: [KPR]
+      summary: KubeProxy Replacement status
+      responses:
+        "200":
+          description: KPR status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KPRStatus"
+
+  # ── BGP ─────────────────────────────────────────────────────
+  /api/v1/bgp/peers:
+    get:
+      operationId: listBgpPeers
+      tags: [BGP]
+      summary: List BGP peering sessions
+      responses:
+        "200":
+          description: BGP peer list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  peers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/BgpPeer"
+
+  # ── ClusterMesh ─────────────────────────────────────────────
+  /api/v1/clustermesh/peers:
+    get:
+      operationId: listMeshPeers
+      tags: [ClusterMesh]
+      summary: List ClusterMesh peers
+      responses:
+        "200":
+          description: Mesh peer list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  peers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MeshPeer"
+
+  /api/v1/clustermesh/connect:
+    post:
+      operationId: connectMeshPeer
+      tags: [ClusterMesh]
+      summary: Connect a new ClusterMesh peer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, endpoint]
+              properties:
+                name:
+                  type: string
+                endpoint:
+                  type: string
+      responses:
+        "200":
+          description: Peer connection initiated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── Identities ──────────────────────────────────────────────
+  /api/v1/identities:
+    get:
+      operationId: listIdentities
+      tags: [Identities]
+      summary: List Cilium security identities
+      responses:
+        "200":
+          description: Identity list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  identities:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CiliumIdentity"
+
+  # ── Diagnostics ─────────────────────────────────────────────
+  /api/v1/diagnostics/run:
+    post:
+      operationId: runDiagnostics
+      tags: [Diagnostics]
+      summary: Run a full diagnostic suite
+      responses:
+        "200":
+          description: Diagnostic results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  tests:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/DiagnosticTest"
+
+  /api/v1/diagnostics/connectivity:
+    post:
+      operationId: connectivityTest
+      tags: [Diagnostics]
+      summary: Test pod-to-pod connectivity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                source:
+                  type: string
+                destination:
+                  type: string
+      responses:
+        "200":
+          description: Connectivity result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reachable:
+                    type: boolean
+                  latency_ms:
+                    type: number
+                  hops:
+                    type: integer
+
+  # ── Troubleshoot ────────────────────────────────────────────
+  /api/v1/troubleshoot/run:
+    post:
+      operationId: runTroubleshoot
+      tags: [Troubleshoot]
+      summary: Run automated troubleshooting workflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                target:
+                  type: string
+                  description: Target scope (e.g. "cluster", "namespace/default", "pod/frontend-abc123")
+      responses:
+        "200":
+          description: Troubleshoot report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TroubleshootReport"
+
+  # ── SLO ─────────────────────────────────────────────────────
+  /api/v1/slo/targets:
+    get:
+      operationId: listSlos
+      tags: [SLO]
+      summary: List SLO targets and current burn-down
+      responses:
+        "200":
+          description: SLO list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  slos:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SLOTarget"
+
+  # ── Incidents ───────────────────────────────────────────────
+  /api/v1/incidents:
+    get:
+      operationId: listIncidents
+      tags: [Incidents]
+      summary: List incidents with timeline
+      responses:
+        "200":
+          description: Incident list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  incidents:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/Incident"
+
+  # ── Changes ─────────────────────────────────────────────────
+  /api/v1/changes:
+    get:
+      operationId: listChanges
+      tags: [Changes]
+      summary: List recent resource changes
+      responses:
+        "200":
+          description: Change list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  changes:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ChangeRecord"
+
+  /api/v1/changes/{id}/rollback:
+    post:
+      operationId: rollbackChange
+      tags: [Changes]
+      summary: Rollback a change
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Rollback result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── Capture ─────────────────────────────────────────────────
+  /api/v1/modules/capture/sessions:
+    get:
+      operationId: listCaptureSessions
+      tags: [Capture]
+      summary: List packet capture sessions
+      responses:
+        "200":
+          description: Session list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CaptureSession"
+
+  /api/v1/modules/capture/start:
+    post:
+      operationId: startCapture
+      tags: [Capture]
+      summary: Start a packet capture
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                target_pod:
+                  type: string
+                namespace:
+                  type: string
+                filter:
+                  type: string
+      responses:
+        "200":
+          description: Capture started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  /api/v1/modules/capture/{id}/stop:
+    post:
+      operationId: stopCapture
+      tags: [Capture]
+      summary: Stop an active capture session
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Capture stopped
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── Mirror ──────────────────────────────────────────────────
+  /api/v1/modules/mirror/rules:
+    get:
+      operationId: listMirrorRules
+      tags: [Mirror]
+      summary: List traffic mirroring rules
+      responses:
+        "200":
+          description: Mirror rule list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rules:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/MirrorRule"
+    post:
+      operationId: createMirrorRule
+      tags: [Mirror]
+      summary: Create a traffic mirroring rule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                source:
+                  type: object
+                  properties:
+                    namespace:
+                      type: string
+                    labels:
+                      type: object
+                      additionalProperties:
+                        type: string
+                destination:
+                  type: object
+                  properties:
+                    namespace:
+                      type: string
+                    service:
+                      type: string
+                    port:
+                      type: integer
+                filter:
+                  type: object
+                  properties:
+                    protocols:
+                      type: array
+                      items:
+                        type: string
+                    ports:
+                      type: array
+                      items:
+                        type: integer
+                sampling_rate:
+                  type: number
+      responses:
+        "200":
+          description: Rule created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  /api/v1/modules/mirror/rules/{id}:
+    delete:
+      operationId: deleteMirrorRule
+      tags: [Mirror]
+      summary: Delete a mirror rule
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Rule deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusMessage"
+
+  # ── Costs ───────────────────────────────────────────────────
+  /api/v1/costs/breakdown:
+    get:
+      operationId: costBreakdown
+      tags: [Costs]
+      summary: Namespace-level cost breakdown
+      responses:
+        "200":
+          description: Cost breakdown
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostBreakdown"
+
+  # ── Forecast ────────────────────────────────────────────────
+  /api/v1/forecast/metrics:
+    get:
+      operationId: forecastMetrics
+      tags: [Forecast]
+      summary: List available metrics for forecasting
+      responses:
+        "200":
+          description: Metric list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metrics:
+                    type: array
+                    items:
+                      type: string
+
+  /api/v1/forecast/{metric}:
+    get:
+      operationId: forecastData
+      tags: [Forecast]
+      summary: Get forecast data for a metric
+      parameters:
+        - name: metric
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Forecast data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ForecastResponse"
+
+  # ── Cluster Health ──────────────────────────────────────────
+  /api/v1/cluster/health:
+    get:
+      operationId: clusterHealth
+      tags: [Health]
+      summary: Cluster-wide health summary including Cilium components
+      responses:
+        "200":
+          description: Cluster health
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClusterHealthSummary"
+
+  # ── RBAC ────────────────────────────────────────────────────
+  /api/v1/rbac/bindings:
+    get:
+      operationId: rbacBindings
+      tags: [RBAC]
+      summary: List RBAC bindings for Cilium components
+      responses:
+        "200":
+          description: Binding list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  bindings:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RbacBinding"
+
+  # ── Host ────────────────────────────────────────────────────
+  /api/v1/host/info:
+    get:
+      operationId: hostInfo
+      tags: [Host]
+      summary: Host-level system information
+      responses:
+        "200":
+          description: Host info
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HostInfo"
+
+  # ── Network Interfaces ──────────────────────────────────────
+  /api/v1/network/interfaces:
+    get:
+      operationId: netInterfaces
+      tags: [Host]
+      summary: List network interfaces with statistics
+      responses:
+        "200":
+          description: Interface list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  interfaces:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/NetworkInterface"
+
+  # ── Latency Analysis ────────────────────────────────────────
+  /api/v1/latency/analysis:
+    get:
+      operationId: latencyAnalysis
+      tags: [Metrics]
+      summary: Per-service latency percentile analysis
+      responses:
+        "200":
+          description: Latency analysis
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LatencyAnalysis"
+
+  # ── Audit Log ───────────────────────────────────────────────
+  /api/v1/audit/log:
+    get:
+      operationId: auditLog
+      tags: [Security]
+      summary: API audit trail
+      responses:
+        "200":
+          description: Audit entries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AuditEntry"
+                  total:
+                    type: integer
+
+  # ── WireGuard ───────────────────────────────────────────────
+  /api/v1/wireguard/peers:
+    get:
+      operationId: wireguardPeers
+      tags: [WireGuard]
+      summary: List WireGuard tunnel peers
+      responses:
+        "200":
+          description: Peer list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  peers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/WireGuardPeer"
+
+  # ── Cilium / Hubble insights (read-only) ──────────────────
+  /api/v1/cilium/features:
+    get:
+      operationId: ciliumFeatures
+      tags: [CiliumStatus]
+      summary: Which Cilium features the cluster has enabled
+      description: >-
+        Read from the `cilium-config` ConfigMap. `state` is `enabled`, `disabled`,
+        `set` (a setting with a value) or `unknown` when the key is absent, which
+        means an older Cilium or a feature that was never configured, not that it is off.
+      responses:
+        "200":
+          description: "Feature list (`available: false` when the ConfigMap cannot be read)"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                  reason:
+                    type: string
+                  features:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CiliumFeature"
+
+  /api/v1/cilium/resources/{kind}:
+    get:
+      operationId: ciliumResources
+      tags: [CiliumStatus]
+      summary: List a Cilium (or Cilium-served Gateway API) custom resource
+      description: >-
+        `kind` is one of `nodes`, `egress-gateway-policies`, `bgp-peering-policies`,
+        `bgp-cluster-configs`, `bgp-peer-configs`, `bgp-advertisements`,
+        `bgp-node-configs`, `lb-ip-pools`, `l2-announcement-policies`, `pod-ip-pools`,
+        `cidr-groups`, `gateway-classes`, `gateways`, `http-routes`. Anything else is 404.
+        Read-only; cluster-wide, so not available to namespace-scoped users.
+      parameters:
+        - name: kind
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Items with `spec` and `status` (`installed: false` when the CRD is absent)"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/cilium/metrics:
+    get:
+      operationId: ciliumMetrics
+      tags: [CiliumStatus]
+      summary: Cilium agent metrics from Prometheus
+      description: >-
+        A fixed catalog of queries (drops by reason, forwarded packets, endpoint
+        state, policy enforcement, unreachable nodes, BPF map pressure, ...). Needs
+        `PROMETHEUS_URL`; without it `available` is false and `reason` says so.
+      responses:
+        "200":
+          description: Metric groups
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsReport"
+
+  /api/v1/hubble/metrics:
+    get:
+      operationId: hubbleMetrics
+      tags: [CiliumStatus]
+      summary: Hubble flow metrics from Prometheus
+      description: >-
+        Flows by verdict, drops by reason, policy verdicts, DNS by rcode, HTTP by
+        status, TCP flags, ICMP and lost events. A group with no data carries a `hint`
+        naming the `hubble.metrics.enabled` entry that exports it.
+      responses:
+        "200":
+          description: Metric groups
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MetricsReport"
+
+  /api/v1/hubble/nodes:
+    get:
+      operationId: hubbleNodes
+      tags: [CiliumStatus]
+      summary: Nodes behind Hubble Relay, with flow-buffer fill
+      description: >-
+        From Hubble `GetNodes`. `num_flows == max_flows` means the node's ring
+        buffer is full and older flows are being overwritten.
+      responses:
+        "200":
+          description: Node list, plus per-cluster `errors`
+
+  /api/v1/cilium/agent/{what}:
+    get:
+      operationId: ciliumAgentQuery
+      tags: [CiliumStatus]
+      summary: Read-only query against one Cilium agent
+      description: >-
+        `what` is `endpoints`, `identities`, `services`, `fqdn-cache`, `status` or
+        `policy-selectors` (anything else is 404). Runs the matching `cilium-dbg ... -o json` in the first
+        agent pod found, so it samples one node. Editor role. A failing agent is 502
+        with the reason.
+      parameters:
+        - name: what
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [endpoints, identities, services, fqdn-cache, status, policy-selectors]
+      responses:
+        "200":
+          description: "The agent's JSON output under `data`"
+        "403":
+          description: Editor role required
+        "502":
+          description: The agent could not be reached or the command failed
+
+  # ── Cilium Status ───────────────────────────────────────────
+  /api/v1/cilium/status:
+    get:
+      operationId: ciliumStatus
+      tags: [CiliumStatus]
+      summary: Per-node Cilium agent status
+      responses:
+        "200":
+          description: Agent status list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agents:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CiliumAgentStatus"
+
+  # ── WebSocket ───────────────────────────────────────────────
+  /api/v1/ws/flows:
+    get:
+      operationId: wsFlows
+      tags: [WebSocket]
+      summary: Real-time flow stream (WebSocket upgrade)
+      description: >
+        Upgrades to a WebSocket connection that streams JSON-encoded Flow
+        objects in real time.
+      responses:
+        "101":
+          description: Switching Protocols -- WebSocket connection established
+
+  /api/v1/ws/metrics:
+    get:
+      operationId: wsMetrics
+      tags: [WebSocket]
+      summary: Real-time metrics stream (WebSocket upgrade)
+      description: >
+        Upgrades to a WebSocket connection that pushes periodic MetricsSummary
+        snapshots.
+      responses:
+        "101":
+          description: Switching Protocols -- WebSocket connection established
+
+# ──────────────────────────────────────────────────────────────
+# Components
+# ──────────────────────────────────────────────────────────────
+components:
+
+  # ── Security Schemes ────────────────────────────────────────
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT token issued by the cluster identity provider. Include in the
+        Authorization header as `Bearer <token>`.
+
+  # ── Reusable Parameters ─────────────────────────────────────
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Unique resource identifier
+
+    DryRun:
+      name: dry_run
+      in: query
+      schema:
+        type: boolean
+        default: false
+      description: Validate against the cluster (server-side dry run) without persisting
+
+    Namespace:
+      name: namespace
+      in: query
+      schema:
+        type: string
+      description: Kubernetes namespace filter
+
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 1000
+        default: 100
+      description: Maximum number of items to return
+
+    Offset:
+      name: offset
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      description: Number of items to skip for pagination
+
+  # ── Reusable Responses ──────────────────────────────────────
+  responses:
+    BadRequest:
+      description: Invalid request (the `error` field says why)
+    NotFound:
+      description: Resource not found
+    InternalError:
+      description: Internal server error
+
+  # ── Schemas ─────────────────────────────────────────────────
+  schemas:
+
+    CiliumFeature:
+      type: object
+      properties:
+        key:
+          type: string
+        title:
+          type: string
+        category:
+          type: string
+        state:
+          type: string
+          enum: [enabled, disabled, set, unknown]
+        value:
+          type: string
+        config_key:
+          type: string
+          description: The cilium-config key that answered (newer name preferred)
+        view:
+          type: string
+          description: Paqtra page that shows this feature
+
+    MetricsReport:
+      type: object
+      properties:
+        available:
+          type: boolean
+        reason:
+          type: string
+        window:
+          type: string
+          example: 5m
+        metrics:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              title:
+                type: string
+              unit:
+                type: string
+              series:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    labels:
+                      type: object
+                      additionalProperties:
+                        type: string
+                    value:
+                      type: number
+              hint:
+                type: string
+                nullable: true
+              error:
+                type: string
+                nullable: true
+
+    RuleDirection:
+      type: string
+      enum: [ingress, egress, ingressDeny, egressDeny]
+
+    PolicyDetail:
+      allOf:
+        - $ref: "#/components/schemas/Policy"
+        - type: object
+          properties:
+            resource_version:
+              type: string
+            rule_counts:
+              type: object
+              additionalProperties:
+                type: integer
+            spec:
+              type: object
+
+    RuleChangeResult:
+      type: object
+      properties:
+        policy:
+          type: string
+          description: namespace/name
+        action:
+          type: string
+          enum: [add, edit, delete]
+        direction:
+          $ref: "#/components/schemas/RuleDirection"
+        dry_run:
+          type: boolean
+        rule_counts:
+          type: object
+          additionalProperties:
+            type: integer
+        spec:
+          type: object
+          description: The resulting policy spec
+        result:
+          type: object
+          properties:
+            index:
+              type: integer
+            removed:
+              type: object
+
+    AlertRuleInput:
+      type: object
+      required: [name, condition, severity]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        condition:
+          type: string
+          maxLength: 200
+        severity:
+          type: string
+          enum: [critical, high, warning, info]
+        enabled:
+          type: boolean
+
+    # ── Generic ────────────────────────────────────────────────
+    StatusMessage:
+      type: object
+      properties:
+        status:
+          type: string
+        message:
+          type: string
+        id:
+          type: string
+
+    # ── Health ─────────────────────────────────────────────────
+    HealthResponse:
+      type: object
+      required: [status, uptime_secs, subsystems]
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        version:
+          type: string
+        uptime_secs:
+          type: integer
+          format: int64
+        timestamp:
+          type: string
+          format: date-time
+        subsystems:
+          type: object
+          properties:
+            cache:
+              type: string
+              enum: [ok, error]
+            hubble_relay:
+              type: string
+              enum: [ok, unavailable]
+            kubernetes:
+              type: string
+              enum: [ok, unavailable]
+
+    ReadinessResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ready, degraded, not_ready]
+        version:
+          type: string
+        uptime_secs:
+          type: integer
+          format: int64
+        timestamp:
+          type: string
+          format: date-time
+        checks:
+          type: object
+          additionalProperties:
+            type: string
+
+    ClusterHealthSummary:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        components:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              status:
+                type: string
+              version:
+                type: string
+              instances:
+                type: integer
+              ready:
+                type: integer
+              message:
+                type: string
+        kubernetes:
+          type: object
+          properties:
+            version:
+              type: string
+            platform:
+              type: string
+            nodes_total:
+              type: integer
+            nodes_ready:
+              type: integer
+            pods_total:
+              type: integer
+            pods_running:
+              type: integer
+            pods_pending:
+              type: integer
+            pods_failed:
+              type: integer
+        cilium:
+          type: object
+          properties:
+            version:
+              type: string
+            datapath_mode:
+              type: string
+            ipam_mode:
+              type: string
+            kube_proxy_replacement:
+              type: string
+            host_routing:
+              type: string
+            masquerading:
+              type: string
+            encryption:
+              type: string
+        last_check:
+          type: string
+          format: date-time
+
+    # ── Flows ──────────────────────────────────────────────────
+    Flow:
+      type: object
+      required: [id, timestamp, source, destination, verdict, protocol, port]
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        source:
+          $ref: "#/components/schemas/FlowEndpoint"
+        destination:
+          $ref: "#/components/schemas/FlowEndpoint"
+        verdict:
+          type: string
+          enum: [FORWARDED, DROPPED, AUDIT, REDIRECTED, ERROR, TRACED]
+        protocol:
+          type: string
+        port:
+          type: integer
+
+    FlowEndpoint:
+      type: object
+      properties:
+        namespace:
+          type: string
+        pod:
+          type: string
+        ip:
+          type: string
+
+    FlowListResponse:
+      type: object
+      properties:
+        flows:
+          type: array
+          items:
+            $ref: "#/components/schemas/Flow"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        cached:
+          type: boolean
+
+    FlowStats:
+      type: object
+      properties:
+        total_flows:
+          type: integer
+          format: int64
+        forwarded:
+          type: integer
+          format: int64
+        dropped:
+          type: integer
+          format: int64
+        requests_per_second:
+          type: number
+          format: double
+        avg_latency_ms:
+          type: number
+          format: double
+
+    FlowExportConfig:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        format:
+          type: string
+          enum: [json, csv, cef]
+        destination:
+          type: string
+        filter:
+          type: string
+        status:
+          type: string
+          enum: [active, paused]
+        exported_count:
+          type: integer
+          format: int64
+        last_export:
+          type: string
+          format: date-time
+
+    # ── Policies ───────────────────────────────────────────────
+    Policy:
+      type: object
+      required: [id, name, namespace, status]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        namespace:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+
+    CreatePolicyRequest:
+      type: object
+      required: [name, namespace, spec]
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        spec:
+          type: object
+          description: CiliumNetworkPolicy spec (endpointSelector, ingress, egress, etc.)
+          additionalProperties: true
+
+    PolicyListResponse:
+      type: object
+      properties:
+        policies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Policy"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+
+    PolicySimulationResult:
+      type: object
+      properties:
+        policy:
+          type: string
+        namespace:
+          type: string
+        analysis:
+          type: object
+          properties:
+            ingress_rules:
+              type: integer
+            egress_rules:
+              type: integer
+            total_rules:
+              type: integer
+            has_endpoint_selector:
+              type: boolean
+            has_port_restrictions:
+              type: boolean
+        impact:
+          type: object
+          properties:
+            estimated_flows_affected:
+              type: integer
+              format: int64
+            services_impacted:
+              type: integer
+            risk_level:
+              type: string
+              enum: [low, medium, high]
+
+    PolicyTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        yaml:
+          type: string
+
+    # ── Anomalies ──────────────────────────────────────────────
+    Anomaly:
+      type: object
+      required: [id, detected_at, severity, anomaly_type, description, source_namespace, status]
+      properties:
+        id:
+          type: string
+        detected_at:
+          type: string
+          format: date-time
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        anomaly_type:
+          type: string
+          enum: [traffic_spike, port_scan, latency_increase, dns_anomaly, data_exfiltration]
+        description:
+          type: string
+        source_namespace:
+          type: string
+        source_pod:
+          type: string
+          nullable: true
+        destination_namespace:
+          type: string
+          nullable: true
+        destination_pod:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [active, investigating, resolved, dismissed]
+        remediation:
+          type: string
+          nullable: true
+
+    AnomalyListResponse:
+      type: object
+      properties:
+        anomalies:
+          type: array
+          items:
+            $ref: "#/components/schemas/Anomaly"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        detection_engine:
+          type: string
+        engine_version:
+          type: string
+        detection_window_secs:
+          type: integer
+
+    RemediationResult:
+      type: object
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+        action_taken:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    # ── Events ─────────────────────────────────────────────────
+    K8sEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        type:
+          type: string
+          enum: [Normal, Warning]
+        reason:
+          type: string
+        message:
+          type: string
+        object:
+          type: string
+        namespace:
+          type: string
+        count:
+          type: integer
+
+    # ── Endpoints ──────────────────────────────────────────────
+    CiliumEndpoint:
+      type: object
+      properties:
+        id:
+          type: integer
+        pod_name:
+          type: string
+        namespace:
+          type: string
+        identity:
+          type: integer
+        ipv4:
+          type: string
+        ipv6:
+          type: string
+        state:
+          type: string
+          enum: [ready, waiting-for-identity, not-ready, disconnected, restoring]
+        policy_enforcement:
+          type: string
+        ingress_enforced:
+          type: boolean
+        egress_enforced:
+          type: boolean
+
+    # ── Nodes ──────────────────────────────────────────────────
+    K8sNode:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+          enum: [Ready, NotReady, SchedulingDisabled]
+        role:
+          type: string
+        kubelet_version:
+          type: string
+        os_image:
+          type: string
+        kernel_version:
+          type: string
+        container_runtime:
+          type: string
+        cilium_version:
+          type: string
+        pod_cidr:
+          type: string
+        internal_ip:
+          type: string
+        cpu_capacity:
+          type: integer
+        memory_capacity_gi:
+          type: number
+
+    NodeDrainStatus:
+      type: object
+      properties:
+        node:
+          type: string
+        status:
+          type: string
+          enum: [ready, cordoned, draining]
+        pods_evicted:
+          type: integer
+        pods_remaining:
+          type: integer
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        cordon:
+          type: boolean
+
+    # ── Security ───────────────────────────────────────────────
+    SecurityPosture:
+      type: object
+      properties:
+        overall_score:
+          type: integer
+        grade:
+          type: string
+        findings_by_severity:
+          type: object
+          properties:
+            critical:
+              type: integer
+            high:
+              type: integer
+            medium:
+              type: integer
+            low:
+              type: integer
+
+    SecurityFinding:
+      type: object
+      required: [id, category, severity, title]
+      properties:
+        id:
+          type: string
+        category:
+          type: string
+          enum: [network_policy, encryption, identity, least_privilege, runtime]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        title:
+          type: string
+        description:
+          type: string
+        resource:
+          type: string
+        namespace:
+          type: string
+        remediation:
+          type: string
+        status:
+          type: string
+          enum: [open, acknowledged, resolved, dismissed]
+
+    ZeroTrustScore:
+      type: object
+      properties:
+        overall:
+          type: integer
+          minimum: 0
+          maximum: 100
+        network_segmentation:
+          type: integer
+        identity_verification:
+          type: integer
+        encryption:
+          type: integer
+        least_privilege:
+          type: integer
+        monitoring:
+          type: integer
+
+    PodSecurityReport:
+      type: object
+      properties:
+        namespace:
+          type: string
+        enforce_level:
+          type: string
+          enum: [privileged, baseline, restricted]
+        audit_level:
+          type: string
+        warn_level:
+          type: string
+        total_pods:
+          type: integer
+        compliant_pods:
+          type: integer
+        violations:
+          type: array
+          items:
+            type: object
+            properties:
+              pod:
+                type: string
+              violation:
+                type: string
+              severity:
+                type: string
+
+    AuditEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        action:
+          type: string
+        actor:
+          type: string
+        resource:
+          type: string
+        namespace:
+          type: string
+        details:
+          type: string
+        outcome:
+          type: string
+          enum: [success, failure]
+
+    # ── Heatmap ────────────────────────────────────────────────
+    HeatmapResponse:
+      type: object
+      properties:
+        cells:
+          type: array
+          items:
+            $ref: "#/components/schemas/HeatmapCell"
+        namespaces:
+          type: array
+          items:
+            type: string
+
+    HeatmapCell:
+      type: object
+      properties:
+        source_namespace:
+          type: string
+        destination_namespace:
+          type: string
+        flow_count:
+          type: integer
+          format: int64
+        dropped_count:
+          type: integer
+          format: int64
+        avg_latency_ms:
+          type: number
+          format: double
+
+    # ── Dependencies ───────────────────────────────────────────
+    ServiceDependency:
+      type: object
+      properties:
+        source:
+          type: string
+        destination:
+          type: string
+        protocol:
+          type: string
+        port:
+          type: integer
+        request_rate:
+          type: number
+          format: double
+        error_rate:
+          type: number
+          format: double
+        latency_p50:
+          type: number
+          format: double
+        latency_p99:
+          type: number
+          format: double
+
+    ServiceMapResponse:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              namespace:
+                type: string
+              type:
+                type: string
+              pods:
+                type: integer
+              status:
+                type: string
+              request_rate:
+                type: number
+              error_rate:
+                type: number
+        edges:
+          type: array
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+              target:
+                type: string
+              protocol:
+                type: string
+              request_rate:
+                type: number
+              latency_ms:
+                type: number
+
+    # ── Modules ────────────────────────────────────────────────
+    ChaosExperiment:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [latency, packet-loss, partition, dns-failure, bandwidth-limit]
+        target_namespace:
+          type: string
+        target_labels:
+          type: object
+          additionalProperties:
+            type: string
+        duration_secs:
+          type: integer
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+
+    CanaryStatus:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        namespace:
+          type: string
+        status:
+          type: string
+          enum: [progressing, succeeded, failed, paused]
+        weight:
+          type: integer
+          description: Percentage of traffic routed to canary
+        success_rate:
+          type: number
+        latency_p99_ms:
+          type: number
+        iterations:
+          type: integer
+
+    # ── Replay ─────────────────────────────────────────────────
+    ReplayRecording:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        namespace:
+          type: string
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+        flow_count:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum: [recording, completed, failed]
+        size_bytes:
+          type: integer
+          format: int64
+
+    # ── Healer ─────────────────────────────────────────────────
+    HealerProblem:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [policy_denial, unreachable_backend, dns_failure, endpoint_not_ready]
+        severity:
+          type: string
+          enum: [low, medium, high, critical]
+        description:
+          type: string
+        affected_pods:
+          type: array
+          items:
+            type: string
+        namespace:
+          type: string
+        detected_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [open, investigating, fixed]
+        proposed_fix:
+          type: string
+
+    # ── RootCause ──────────────────────────────────────────────
+    PacketDrop:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        source:
+          type: string
+        destination:
+          type: string
+        protocol:
+          type: string
+        drop_reason:
+          type: string
+          enum: [POLICY_DENIED, CT_MAP_INSERTION_FAILED, INVALID_PACKET, NO_TUNNEL_KEY, STALE_CT_ENTRY]
+        root_cause:
+          type: string
+        remediation:
+          type: string
+        namespace:
+          type: string
+        count:
+          type: integer
+
+    DropAnalysis:
+      type: object
+      properties:
+        analysis:
+          type: object
+          properties:
+            total_drops:
+              type: integer
+            unique_reasons:
+              type: integer
+            top_reason:
+              type: string
+            top_source_namespace:
+              type: string
+            recommendation:
+              type: string
+
+    # ── MultiCluster ───────────────────────────────────────────
+    ClusterInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+          enum: [connected, disconnected, degraded]
+        endpoint:
+          type: string
+        region:
+          type: string
+        nodes:
+          type: integer
+        pods:
+          type: integer
+        latency_ms:
+          type: number
+          format: double
+        last_sync:
+          type: string
+          format: date-time
+        cilium_version:
+          type: string
+
+    # ── Alerts ─────────────────────────────────────────────────
+    AlertRule:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        condition:
+          type: string
+        severity:
+          type: string
+          enum: [info, warning, high, critical]
+        enabled:
+          type: boolean
+        last_triggered:
+          type: string
+          format: date-time
+          nullable: true
+        trigger_count:
+          type: integer
+        channels:
+          type: array
+          items:
+            type: string
+
+    AlertEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        rule_name:
+          type: string
+        severity:
+          type: string
+        message:
+          type: string
+        fired_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [firing, resolved]
+
+    # ── DNS ────────────────────────────────────────────────────
+    DnsQuery:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        source_pod:
+          type: string
+        namespace:
+          type: string
+        query_name:
+          type: string
+        query_type:
+          type: string
+          enum: [A, AAAA, CNAME, SRV, MX, TXT, PTR]
+        response_code:
+          type: string
+          enum: [NOERROR, NXDOMAIN, SERVFAIL, REFUSED]
+        response_ips:
+          type: array
+          items:
+            type: string
+        latency_ms:
+          type: number
+          format: double
+
+    DnsStats:
+      type: object
+      properties:
+        total_queries:
+          type: integer
+          format: int64
+        successful:
+          type: integer
+          format: int64
+        nxdomain:
+          type: integer
+        servfail:
+          type: integer
+        avg_latency_ms:
+          type: number
+          format: double
+        top_domains:
+          type: array
+          items:
+            type: object
+            properties:
+              domain:
+                type: string
+              count:
+                type: integer
+                format: int64
+
+    # ── Bandwidth ──────────────────────────────────────────────
+    BandwidthEntry:
+      type: object
+      properties:
+        pod:
+          type: string
+        namespace:
+          type: string
+        egress_rate_mbps:
+          type: number
+          format: double
+        ingress_rate_mbps:
+          type: number
+          format: double
+        egress_limit_mbps:
+          type: number
+          format: double
+          nullable: true
+        ingress_limit_mbps:
+          type: number
+          format: double
+          nullable: true
+        total_bytes_tx:
+          type: integer
+          format: int64
+        total_bytes_rx:
+          type: integer
+          format: int64
+
+    # ── IPAM ───────────────────────────────────────────────────
+    IpamPool:
+      type: object
+      properties:
+        name:
+          type: string
+        cidr:
+          type: string
+        allocated:
+          type: integer
+        available:
+          type: integer
+        total:
+          type: integer
+        utilization:
+          type: string
+
+    IpAllocation:
+      type: object
+      properties:
+        ip:
+          type: string
+        pod:
+          type: string
+        namespace:
+          type: string
+        node:
+          type: string
+        pool:
+          type: string
+        allocated_at:
+          type: string
+          format: date-time
+
+    # ── Encryption ─────────────────────────────────────────────
+    EncryptionStatus:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        type:
+          type: string
+          enum: [WireGuard, IPsec, disabled]
+        nodes_encrypted:
+          type: integer
+        nodes_total:
+          type: integer
+        interfaces:
+          type: array
+          items:
+            type: object
+            properties:
+              node:
+                type: string
+              interface:
+                type: string
+              public_key:
+                type: string
+              listen_port:
+                type: integer
+              peer_count:
+                type: integer
+        key_rotation:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            interval_hours:
+              type: integer
+            last_rotation:
+              type: string
+              format: date-time
+            next_rotation:
+              type: string
+              format: date-time
+        stats:
+          type: object
+          properties:
+            bytes_encrypted:
+              type: integer
+              format: int64
+            bytes_decrypted:
+              type: integer
+              format: int64
+            handshakes_completed:
+              type: integer
+
+    # ── Load Balancer ──────────────────────────────────────────
+    LBService:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        namespace:
+          type: string
+        frontend:
+          type: object
+          properties:
+            address:
+              type: string
+            port:
+              type: integer
+            protocol:
+              type: string
+        backends:
+          type: array
+          items:
+            type: object
+            properties:
+              address:
+                type: string
+              port:
+                type: integer
+              weight:
+                type: integer
+              state:
+                type: string
+                enum: [active, draining, terminating]
+        algorithm:
+          type: string
+          enum: [round-robin, weighted-round-robin, maglev, random]
+        session_affinity:
+          type: string
+          enum: [none, client-ip]
+        active_connections:
+          type: integer
+
+    # ── Ingress ────────────────────────────────────────────────
+    IngressRoute:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        namespace:
+          type: string
+        host:
+          type: string
+        paths:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              path_type:
+                type: string
+                enum: [Prefix, Exact, ImplementationSpecific]
+              backend_service:
+                type: string
+              backend_port:
+                type: integer
+        tls:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            secret:
+              type: string
+            hosts:
+              type: array
+              items:
+                type: string
+        annotations:
+          type: object
+          additionalProperties:
+            type: string
+
+    # ── Egress ─────────────────────────────────────────────────
+    EgressPolicy:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        gateway_node:
+          type: string
+        egress_ip:
+          type: string
+        destination_cidrs:
+          type: array
+          items:
+            type: string
+        selectors:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum: [active, inactive]
+
+    # ── Service Mesh ───────────────────────────────────────────
+    MeshService:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        protocol:
+          type: string
+          enum: [HTTP/1.1, HTTP/2, gRPC, TCP]
+        mtls:
+          type: boolean
+        retries:
+          type: integer
+        timeout_ms:
+          type: integer
+        circuit_breaker:
+          type: boolean
+        traffic_policy:
+          type: string
+          enum: [round-robin, least-connections, random]
+
+    # ── KPR ────────────────────────────────────────────────────
+    KPRStatus:
+      type: object
+      properties:
+        enabled:
+          type: boolean
+        mode:
+          type: string
+          enum: [strict, probe, partial]
+        device:
+          type: string
+        dsr_mode:
+          type: string
+          enum: [geneve, ipip, disabled]
+        session_affinity:
+          type: boolean
+        graceful_termination:
+          type: boolean
+        node_port_range:
+          type: string
+        services:
+          type: integer
+        backends:
+          type: integer
+        nat_entries:
+          type: integer
+        ct_entries:
+          type: integer
+
+    # ── BGP ────────────────────────────────────────────────────
+    BgpPeer:
+      type: object
+      properties:
+        name:
+          type: string
+        peer_address:
+          type: string
+        peer_asn:
+          type: integer
+        local_asn:
+          type: integer
+        state:
+          type: string
+          enum: [Established, Active, Idle, OpenSent, OpenConfirm, Connect]
+        uptime:
+          type: string
+        prefixes_received:
+          type: integer
+        prefixes_advertised:
+          type: integer
+        messages_received:
+          type: integer
+          format: int64
+        messages_sent:
+          type: integer
+          format: int64
+
+    # ── ClusterMesh ────────────────────────────────────────────
+    MeshPeer:
+      type: object
+      properties:
+        name:
+          type: string
+        endpoint:
+          type: string
+        status:
+          type: string
+          enum: [connected, disconnected, connecting]
+        connected_since:
+          type: string
+          format: date-time
+        synced_identities:
+          type: integer
+        synced_endpoints:
+          type: integer
+        synced_services:
+          type: integer
+        latency_ms:
+          type: number
+          format: double
+
+    # ── Identities ─────────────────────────────────────────────
+    CiliumIdentity:
+      type: object
+      properties:
+        id:
+          type: integer
+        labels:
+          type: array
+          items:
+            type: string
+        namespace:
+          type: string
+        endpoints_count:
+          type: integer
+        policy_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    # ── Diagnostics ────────────────────────────────────────────
+    DiagnosticTest:
+      type: object
+      properties:
+        name:
+          type: string
+        status:
+          type: string
+          enum: [pass, warn, fail]
+        message:
+          type: string
+        duration_ms:
+          type: integer
+
+    # ── Troubleshoot ───────────────────────────────────────────
+    TroubleshootReport:
+      type: object
+      properties:
+        target:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [completed, failed, running]
+        steps:
+          type: array
+          items:
+            type: object
+            properties:
+              step:
+                type: integer
+              name:
+                type: string
+              status:
+                type: string
+                enum: [pass, warn, fail]
+              output:
+                type: string
+              duration_ms:
+                type: integer
+        summary:
+          type: object
+          properties:
+            total_steps:
+              type: integer
+            passed:
+              type: integer
+            warnings:
+              type: integer
+            failed:
+              type: integer
+            recommendation:
+              type: string
+
+    # ── SLO ────────────────────────────────────────────────────
+    SLOTarget:
+      type: object
+      properties:
+        name:
+          type: string
+        service:
+          type: string
+        metric:
+          type: string
+          enum: [availability, latency_p99, latency_p95, error_rate, throughput]
+        target:
+          type: number
+          format: double
+        current:
+          type: number
+          format: double
+        budget_remaining:
+          type: number
+          format: double
+          description: Fraction of error budget remaining (0.0 to 1.0)
+        budget_total:
+          type: number
+          format: double
+        window:
+          type: string
+          description: "Measurement window (e.g. 7d, 30d)"
+        status:
+          type: string
+          enum: [met, at_risk, breached]
+
+    # ── Incidents ──────────────────────────────────────────────
+    Incident:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        severity:
+          type: string
+          enum: [info, warning, critical]
+        status:
+          type: string
+          enum: [investigating, identified, monitoring, resolved]
+        started_at:
+          type: string
+          format: date-time
+        resolved_at:
+          type: string
+          format: date-time
+          nullable: true
+        duration_minutes:
+          type: integer
+          nullable: true
+        affected_services:
+          type: array
+          items:
+            type: string
+        root_cause:
+          type: string
+          nullable: true
+        timeline:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              event:
+                type: string
+              actor:
+                type: string
+
+    # ── Changes ────────────────────────────────────────────────
+    ChangeRecord:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        type:
+          type: string
+        resource:
+          type: string
+        namespace:
+          type: string
+        diff_summary:
+          type: string
+        author:
+          type: string
+        rollback_available:
+          type: boolean
+
+    # ── Capture ────────────────────────────────────────────────
+    CaptureSession:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        target_pod:
+          type: string
+        namespace:
+          type: string
+        interface_name:
+          type: string
+        filter:
+          type: string
+        status:
+          type: string
+          enum: [capturing, completed, failed]
+        packet_count:
+          type: integer
+          format: int64
+        size_bytes:
+          type: integer
+          format: int64
+        started_at:
+          type: string
+          format: date-time
+
+    # ── Mirror ─────────────────────────────────────────────────
+    MirrorRule:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        source:
+          type: object
+          properties:
+            namespace:
+              type: string
+            labels:
+              type: object
+              additionalProperties:
+                type: string
+        destination:
+          type: object
+          properties:
+            namespace:
+              type: string
+            service:
+              type: string
+            port:
+              type: integer
+        filter:
+          type: object
+          properties:
+            protocols:
+              type: array
+              items:
+                type: string
+            ports:
+              type: array
+              items:
+                type: integer
+        sampling_rate:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 1
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+
+    # ── Costs ──────────────────────────────────────────────────
+    CostBreakdown:
+      type: object
+      properties:
+        namespaces:
+          type: array
+          items:
+            type: object
+            properties:
+              namespace:
+                type: string
+              cpu_cost:
+                type: number
+                format: double
+              memory_cost:
+                type: number
+                format: double
+              network_cost:
+                type: number
+                format: double
+              storage_cost:
+                type: number
+                format: double
+              total_cost:
+                type: number
+                format: double
+              trend:
+                type: string
+        summary:
+          type: object
+          properties:
+            total_monthly_cost:
+              type: number
+              format: double
+            projected_annual_cost:
+              type: number
+              format: double
+            cost_trend:
+              type: string
+            currency:
+              type: string
+            billing_period:
+              type: string
+
+    # ── Forecast ───────────────────────────────────────────────
+    ForecastResponse:
+      type: object
+      properties:
+        metric:
+          type: string
+        unit:
+          type: string
+        forecast_horizon:
+          type: string
+        points:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              actual:
+                type: number
+                format: double
+                nullable: true
+              predicted:
+                type: number
+                format: double
+              lower_bound:
+                type: number
+                format: double
+              upper_bound:
+                type: number
+                format: double
+        model:
+          type: string
+        confidence_interval:
+          type: number
+          format: double
+
+    # ── Metrics ────────────────────────────────────────────────
+    MetricsSummary:
+      type: object
+      properties:
+        total_requests:
+          type: integer
+          format: int64
+        total_errors:
+          type: integer
+          format: int64
+        total_queries:
+          type: integer
+          format: int64
+        cache_hits:
+          type: integer
+          format: int64
+        cache_misses:
+          type: integer
+          format: int64
+        uptime_seconds:
+          type: integer
+          format: int64
+
+    LatencyAnalysis:
+      type: object
+      properties:
+        services:
+          type: array
+          items:
+            type: object
+            properties:
+              service:
+                type: string
+              namespace:
+                type: string
+              p50_ms:
+                type: number
+                format: double
+              p90_ms:
+                type: number
+                format: double
+              p95_ms:
+                type: number
+                format: double
+              p99_ms:
+                type: number
+                format: double
+              max_ms:
+                type: number
+                format: double
+              sample_count:
+                type: integer
+                format: int64
+              histogram:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    bucket:
+                      type: string
+                    count:
+                      type: integer
+                      format: int64
+        measurement_window:
+          type: string
+
+    # ── eBPF ───────────────────────────────────────────────────
+    EbpfProgram:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [tc, xdp, sock_ops, cgroup, kprobe, tracepoint]
+        attach_point:
+          type: string
+        run_count:
+          type: integer
+          format: int64
+        run_time_ns:
+          type: integer
+          format: int64
+        avg_run_time_ns:
+          type: integer
+          format: int64
+        map_count:
+          type: integer
+        loaded_at:
+          type: string
+          format: date-time
+
+    EbpfMapInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [hash, lpm_trie, percpu_hash, array, lru_hash, ringbuf]
+        key_size:
+          type: integer
+        value_size:
+          type: integer
+        max_entries:
+          type: integer
+        current_entries:
+          type: integer
+
+    # ── RBAC ───────────────────────────────────────────────────
+    RbacBinding:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [ClusterRoleBinding, RoleBinding]
+        subjects:
+          type: array
+          items:
+            type: object
+            properties:
+              kind:
+                type: string
+                enum: [ServiceAccount, User, Group]
+              name:
+                type: string
+              namespace:
+                type: string
+        role:
+          type: string
+        permissions:
+          type: array
+          items:
+            type: string
+        resources:
+          type: array
+          items:
+            type: string
+        created_at:
+          type: string
+          format: date-time
+
+    # ── Host ───────────────────────────────────────────────────
+    HostInfo:
+      type: object
+      properties:
+        hostname:
+          type: string
+        os:
+          type: string
+        kernel:
+          type: string
+        arch:
+          type: string
+        cpu_model:
+          type: string
+        cpu_cores:
+          type: integer
+        cpu_usage:
+          type: number
+          format: double
+        memory_total_gb:
+          type: number
+          format: double
+        memory_used_gb:
+          type: number
+          format: double
+        disk_total_gb:
+          type: number
+          format: double
+        disk_used_gb:
+          type: number
+          format: double
+        uptime_seconds:
+          type: integer
+          format: int64
+        load_average:
+          type: array
+          items:
+            type: number
+            format: double
+          minItems: 3
+          maxItems: 3
+        network_interfaces:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              ip:
+                type: string
+              mac:
+                type: string
+              speed:
+                type: string
+              status:
+                type: string
+                enum: [up, down]
+
+    NetworkInterface:
+      type: object
+      properties:
+        name:
+          type: string
+        node:
+          type: string
+        type:
+          type: string
+          enum: [physical, virtual, vxlan, wireguard, veth]
+        mac:
+          type: string
+        mtu:
+          type: integer
+        state:
+          type: string
+          enum: [up, down]
+        addresses:
+          type: array
+          items:
+            type: string
+        stats:
+          type: object
+          properties:
+            rx_bytes:
+              type: integer
+              format: int64
+            tx_bytes:
+              type: integer
+              format: int64
+            rx_packets:
+              type: integer
+              format: int64
+            tx_packets:
+              type: integer
+              format: int64
+            rx_errors:
+              type: integer
+            tx_errors:
+              type: integer
+            rx_dropped:
+              type: integer
+            tx_dropped:
+              type: integer
+
+    # ── WireGuard ──────────────────────────────────────────────
+    WireGuardPeer:
+      type: object
+      properties:
+        public_key:
+          type: string
+        endpoint:
+          type: string
+        allowed_ips:
+          type: array
+          items:
+            type: string
+        latest_handshake:
+          type: string
+          format: date-time
+        transfer_rx:
+          type: integer
+          format: int64
+        transfer_tx:
+          type: integer
+          format: int64
+        persistent_keepalive:
+          type: integer
+        node:
+          type: string
+
+    # ── Cilium Agent ───────────────────────────────────────────
+    CiliumAgentStatus:
+      type: object
+      properties:
+        node:
+          type: string
+        status:
+          type: string
+          enum: [OK, Warning, Failure]
+        version:
+          type: string
+        uptime:
+          type: string
+        controllers_failing:
+          type: integer
+        controllers_total:
+          type: integer
+        endpoint_count:
+          type: integer
+        policy_revision:
+          type: integer
+        proxy_redirects:
+          type: integer
+        identity_count:
+          type: integer
+        datapath:
+          type: string
+        masquerading:
+          type: string
+        encryption:
+          type: string
+        kube_proxy_replacement:
+          type: string

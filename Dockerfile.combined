@@ -1,0 +1,56 @@
+# ─────────────────────────────────────────────────────────────
+# Paqtra — Combined API + UI Image
+# Single container with Rust API backend + React UI
+# ─────────────────────────────────────────────────────────────
+
+# ── Stage 1: Build UI ────────────────────────────────────────
+FROM docker.io/library/node:22-alpine AS ui-builder
+WORKDIR /ui
+COPY web-ui/package*.json ./
+RUN npm ci --silent
+COPY web-ui/ ./
+RUN npm run build
+
+# ── Stage 2: Build API ───────────────────────────────────────
+FROM docker.io/library/rust:bookworm AS api-builder
+WORKDIR /build
+RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+COPY web-api/Cargo.toml web-api/Cargo.lock ./
+COPY web-api/build.rs ./build.rs
+COPY web-api/proto ./proto
+COPY web-api/src ./src
+COPY web-api/paqtra-metrics ./paqtra-metrics
+RUN cargo build --release
+
+# ── Stage 3: Runtime ─────────────────────────────────────────
+FROM docker.io/library/debian:bookworm-slim
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates libssl3 wget curl && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd -r -u 1000 -m -s /sbin/nologin paqtra && \
+    mkdir -p /app/ui /etc/paqtra /data && chown paqtra:paqtra /data
+
+WORKDIR /app
+
+# Copy API binary
+COPY --from=api-builder --chown=paqtra:paqtra /build/target/release/paqtra-api ./
+
+# Copy UI static files
+COPY --from=ui-builder --chown=paqtra:paqtra /ui/dist ./ui/
+
+# Default configuration
+ENV PAQTRA_HOST=0.0.0.0 \
+    PAQTRA_PORT=9191 \
+    HUBBLE_ADDRESS=hubble-relay.kube-system.svc.cluster.local:80 \
+    HUBBLE_MODE=grpc \
+    RUST_LOG=info \
+    UI_DIST_DIR=/app/ui
+
+USER paqtra
+EXPOSE 9191
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget --quiet --tries=1 --spider http://localhost:9191/health || exit 1
+
+CMD ["./paqtra-api"]

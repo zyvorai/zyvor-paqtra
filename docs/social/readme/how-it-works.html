@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Paqtra how it works</title>
+<!-- 1600x560. Rendered by ./build.sh to docs/ux/readme-how-it-works.jpg. Claims are the README's own. -->
+<link rel="stylesheet" href="card.css">
+<style>
+  body { height:560px; }
+  .flow { margin-top:24px; grid-template-columns:repeat(5,1fr); }
+  .flow .card { min-height:212px; }
+  .flow .card:not(:last-child)::after { content:""; position:absolute; right:-31px; top:50%; margin-top:-11px;
+    border-left:16px solid var(--soft); border-top:11px solid transparent; border-bottom:11px solid transparent; }
+  .lease { margin-top:24px; display:flex; align-items:center; gap:16px; background:var(--panel); border:2px solid var(--blue); color:#e4e4e7; border-radius:12px; padding:14px 22px; font-family:var(--mono); font-size:20px; }
+  .lease .tag { color:var(--blue); font-weight:700; letter-spacing:.1em; font-size:15px; }
+</style></head><body>
+<div class="glow"></div><div class="bar"></div>
+<div class="wrap">
+  <div class="top"><img src="../../../web-ui/public/zyvor-mark.svg" alt=""><b>Zyvor</b><span>&middot;</span><span>Paqtra</span><span class="r"> How it works</span></div>
+  <h1>Hubble in. Answers out. <em>Cilium still decides.</em></h1>
+  <div class="row flow">
+    <div class="card b"><span class="lane">HUBBLE</span><h3>Live flows</h3><p>Observer gRPC follow-stream into a local flow store, with ingest gaps visible.</p></div>
+    <div class="card g"><span class="lane">API</span><h3>Paqtra API</h3><p>Rust and Axum. JWT auth, Redis cache, OpenAPI-documented.</p></div>
+    <div class="card a"><span class="lane">INSIGHT</span><h3>Verdicts and drops</h3><p>Path explain, Why denied?, drop analytics, service map, topology.</p></div>
+    <div class="card w"><span class="lane">YOU</span><h3>Dashboard, TUI, API</h3><p>60+ pages, a 13-tab terminal UI, and a REST API.</p></div>
+    <div class="card r"><span class="lane">CILIUM</span><h3>Enforces</h3><p>Policy goes out as a <b>CiliumNetworkPolicy</b>. Cilium applies it.</p></div>
+  </div>
+  <div class="lease"><span class="tag">READ-ONLY LANE</span><span>Never writes Cilium BPF maps. Never attaches or replaces programs. Not a second CNI.</span></div>
+  <div class="foot"><b>github.com/zyvorai/paqtra</b><span class="r">Zyvor Production 1.0 &middot; Cilium 1.14+</span></div>
+</div>
+</body></html>

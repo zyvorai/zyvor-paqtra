@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paqtra - Network Intelligence Platform</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  :root {
+    --bg: #0a0b0f;
+    --bg-card: #12131a;
+    --bg-card-hover: #1a1b26;
+    --border: #1e2030;
+    --text: #e2e8f0;
+    --text-muted: #8892b0;
+    --primary: #3b82f6;
+    --primary-light: #60a5fa;
+    --accent: #8b5cf6;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --cyan: #06b6d4;
+    --orange: #f97316;
+    --pink: #ec4899;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* Slide system */
+  .slide {
+    min-height: 100vh;
+    padding: 60px 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .slide::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .slide::after {
+    content: '';
+    position: absolute;
+    bottom: -200px;
+    left: -200px;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(139,92,246,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* Title slide */
+  .slide-title {
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #0a0b0f 0%, #111827 50%, #0a0b0f 100%);
+  }
+
+  .logo-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 40px;
+    font-size: 48px;
+    box-shadow: 0 20px 60px rgba(59,130,246,0.3);
+  }
+
+  h1.hero {
+    font-size: 64px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 16px;
+  }
+
+  .subtitle {
+    font-size: 24px;
+    color: var(--text-muted);
+    font-weight: 300;
+    margin-bottom: 48px;
+  }
+
+  .badge-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    padding: 8px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 1px solid;
+  }
+
+  .badge-blue { background: rgba(59,130,246,0.1); color: var(--primary-light); border-color: rgba(59,130,246,0.3); }
+  .badge-green { background: rgba(16,185,129,0.1); color: var(--green); border-color: rgba(16,185,129,0.3); }
+  .badge-purple { background: rgba(139,92,246,0.1); color: var(--accent); border-color: rgba(139,92,246,0.3); }
+  .badge-cyan { background: rgba(6,182,212,0.1); color: var(--cyan); border-color: rgba(6,182,212,0.3); }
+  .badge-orange { background: rgba(249,115,22,0.1); color: var(--orange); border-color: rgba(249,115,22,0.3); }
+
+  /* Section headers */
+  .section-label {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--primary);
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 48px;
+    font-weight: 800;
+    letter-spacing: -1.5px;
+    margin-bottom: 16px;
+    line-height: 1.1;
+  }
+
+  h3 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+
+  .desc {
+    font-size: 18px;
+    color: var(--text-muted);
+    max-width: 700px;
+    margin-bottom: 48px;
+  }
+
+  /* Cards grid */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 20px; }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card-glow-blue { border-color: rgba(59,130,246,0.2); box-shadow: 0 0 40px rgba(59,130,246,0.05); }
+  .card-glow-green { border-color: rgba(16,185,129,0.2); box-shadow: 0 0 40px rgba(16,185,129,0.05); }
+  .card-glow-purple { border-color: rgba(139,92,246,0.2); box-shadow: 0 0 40px rgba(139,92,246,0.05); }
+  .card-glow-cyan { border-color: rgba(6,182,212,0.2); box-shadow: 0 0 40px rgba(6,182,212,0.05); }
+  .card-glow-orange { border-color: rgba(249,115,22,0.2); box-shadow: 0 0 40px rgba(249,115,22,0.05); }
+  .card-glow-red { border-color: rgba(239,68,68,0.2); box-shadow: 0 0 40px rgba(239,68,68,0.05); }
+  .card-glow-pink { border-color: rgba(236,72,153,0.2); box-shadow: 0 0 40px rgba(236,72,153,0.05); }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 16px;
+  }
+
+  .icon-blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+  .icon-green { background: linear-gradient(135deg, #10b981, #059669); }
+  .icon-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+  .icon-cyan { background: linear-gradient(135deg, #06b6d4, #0891b2); }
+  .icon-orange { background: linear-gradient(135deg, #f97316, #ea580c); }
+  .icon-red { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .icon-pink { background: linear-gradient(135deg, #ec4899, #db2777); }
+  .icon-yellow { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+  .card h4 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  /* Stat cards */
+  .stat-value {
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .stat-blue .stat-value { color: var(--primary-light); }
+  .stat-green .stat-value { color: var(--green); }
+  .stat-purple .stat-value { color: var(--accent); }
+  .stat-cyan .stat-value { color: var(--cyan); }
+  .stat-orange .stat-value { color: var(--orange); }
+
+  /* Pipeline */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin: 32px 0;
+  }
+
+  .pipeline-stage {
+    padding: 16px 28px;
+    border-radius: 12px;
+    text-align: center;
+    min-width: 140px;
+  }
+
+  .pipeline-arrow {
+    font-size: 24px;
+    color: var(--text-muted);
+    margin: 0 8px;
+  }
+
+  .pipeline-stage .stage-name {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Architecture diagram */
+  .arch-layer {
+    padding: 20px 32px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .arch-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .arch-items {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .arch-item {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* Table */
+  .comparison-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  .comparison-table th {
+    text-align: left;
+    padding: 14px 20px;
+    border-bottom: 2px solid var(--border);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .comparison-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid rgba(30,32,48,0.5);
+  }
+
+  .check { color: var(--green); font-weight: 700; }
+  .cross { color: #4a5568; }
+
+  /* Timeline */
+  .timeline-item {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .timeline-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+
+  .timeline-content h5 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .timeline-content p {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  /* Footer */
+  .slide-footer {
+    position: absolute;
+    bottom: 30px;
+    left: 80px;
+    right: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .slide-number {
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  /* List styles */
+  .feature-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .feature-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(30,32,48,0.5);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 15px;
+  }
+
+  .feature-list li::before {
+    content: '';
+    display: none;
+  }
+
+  .li-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Print */
+  @media print {
+    .slide { page-break-after: always; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title -->
+<div class="slide slide-title">
+  <div class="logo-icon">&#x1f6e1;</div>
+  <h1 class="hero">Paqtra</h1>
+  <div class="subtitle">Real-Time Network Intelligence Platform for Kubernetes</div>
+  <div class="badge-row">
+    <span class="badge badge-blue">eBPF-Powered</span>
+    <span class="badge badge-green">Zero-Trust</span>
+    <span class="badge badge-purple">ML-Enhanced</span>
+    <span class="badge badge-cyan">Real-Time</span>
+    <span class="badge badge-orange">Multi-Cluster</span>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">01</span>
+  </div>
+</div>
+
+<!-- SLIDE 2: Problem -->
+<div class="slide">
+  <div class="section-label">The Challenge</div>
+  <h2>Kubernetes Networking<br>Is a Black Box</h2>
+  <p class="desc">Modern microservice architectures generate millions of network flows daily. Without deep visibility, teams struggle with security blind spots, performance bottlenecks, and compliance gaps.</p>
+  <div class="grid-3">
+    <div class="card card-glow-red">
+      <div class="card-icon icon-red">&#x1f6a8;</div>
+      <h4>Security Blind Spots</h4>
+      <p>No visibility into east-west traffic. Policy misconfigurations go undetected until a breach occurs.</p>
+    </div>
+    <div class="card card-glow-orange">
+      <div class="card-icon icon-orange">&#x23f1;</div>
+      <h4>Slow Troubleshooting</h4>
+      <p>Mean time to resolution measured in hours. Engineers manually correlate logs, metrics, and traces across services.</p>
+    </div>
+    <div class="card card-glow-purple">
+      <div class="card-icon icon-purple">&#x1f4cb;</div>
+      <h4>Compliance Gaps</h4>
+      <p>No automated audit trail for network policies. Manual compliance checks are error-prone and incomplete.</p>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">02</span>
+  </div>
+</div>
+
+<!-- SLIDE 3: Solution Overview -->
+<div class="slide">
+  <div class="section-label">The Solution</div>
+  <h2>One Platform.<br>Complete Visibility.</h2>
+  <p class="desc">Paqtra transforms Cilium's eBPF data plane into an intelligent observability and operations console with 75+ features across security, observability, and operations.</p>
+  <div class="grid-4">
+    <div class="card card-glow-blue stat-blue">
+      <div class="stat-value">75+</div>
+      <div class="stat-label">API Endpoints</div>
+    </div>
+    <div class="card card-glow-green stat-green">
+      <div class="stat-value">64</div>
+      <div class="stat-label">Dashboard Pages</div>
+    </div>
+    <div class="card card-glow-purple stat-purple">
+      <div class="stat-value">961</div>
+      <div class="stat-label">Tests Passing</div>
+    </div>
+    <div class="card card-glow-cyan stat-cyan">
+      <div class="stat-value">&lt;3s</div>
+      <div class="stat-label">Data Latency</div>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">03</span>
+  </div>
+</div>
+
+<!-- SLIDE 4: Architecture -->
+<div class="slide">
+  <div class="section-label">Architecture</div>
+  <h2>Three-Tier Platform</h2>
+  <p class="desc">Built on Rust for performance, React for UX, and Cilium eBPF for kernel-level observability.</p>
+
+  <div class="arch-layer" style="background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(139,92,246,0.05));">
+    <div class="arch-label" style="color: var(--primary);">Web Dashboard (React + TypeScript)</div>
+    <div class="arch-items">
+      <span class="arch-item">64 Pages</span>
+      <span class="arch-item">34 Components</span>
+      <span class="arch-item">WebSocket Live Data</span>
+      <span class="arch-item">Dark/Light Theme</span>
+      <span class="arch-item">Responsive</span>
+    </div>
+  </div>
+
+  <div class="arch-layer" style="background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(6,182,212,0.05));">
+    <div class="arch-label" style="color: var(--green);">API Server (Rust + Axum)</div>
+    <div class="arch-items">
+      <span class="arch-item">75+ REST Endpoints</span>
+      <span class="arch-item">2 WebSocket Streams</span>
+      <span class="arch-item">JWT Auth</span>
+      <span class="arch-item">Redis Cache</span>
+      <span class="arch-item">Rate Limiting</span>
+    </div>
+  </div>
+
+  <div class="arch-layer" style="background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(239,68,68,0.05));">
+    <div class="arch-label" style="color: var(--orange);">Data Plane (eBPF + Hubble + Kubernetes)</div>
+    <div class="arch-items">
+      <span class="arch-item">Hubble Relay</span>
+      <span class="arch-item">eBPF Maps</span>
+      <span class="arch-item">Conntrack</span>
+      <span class="arch-item">Policy Maps</span>
+      <span class="arch-item">K8s API</span>
+      <span class="arch-item">bpftool</span>
+    </div>
+  </div>
+
+  <div class="arch-layer" style="background: linear-gradient(135deg, rgba(236,72,153,0.08), rgba(139,92,246,0.05));">
+    <div class="arch-label" style="color: var(--pink);">Terminal TUI (Rust + Ratatui)</div>
+    <div class="arch-items">
+      <span class="arch-item">13 Interactive Tabs</span>
+      <span class="arch-item">32K Lines of Rust</span>
+      <span class="arch-item">Live Flow Monitoring</span>
+      <span class="arch-item">Packet Explainer</span>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">04</span>
+  </div>
+</div>
+
+<!-- SLIDE 5: Flow Pipeline -->
+<div class="slide">
+  <div class="section-label">Core Capability</div>
+  <h2>Real-Time Flow Intelligence</h2>
+  <p class="desc">Every packet traversing the cluster is observed, classified, and enriched with Kubernetes metadata in real-time via Hubble and eBPF.</p>
+
+  <div class="pipeline">
+    <div class="pipeline-stage" style="background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);">
+      <div style="font-size: 28px; margin-bottom: 4px;">&#x1f4e5;</div>
+      <div class="stage-name" style="color: var(--primary-light);">Ingress</div>
+    </div>
+    <div class="pipeline-arrow">&#x2192;</div>
+    <div class="pipeline-stage" style="background: rgba(139,92,246,0.15); border: 1px solid rgba(139,92,246,0.3);">
+      <div style="font-size: 28px; margin-bottom: 4px;">&#x1f6e1;</div>
+      <div class="stage-name" style="color: var(--accent);">Policy Check</div>
+    </div>
+    <div class="pipeline-arrow">&#x2192;</div>
+    <div class="pipeline-stage" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3);">
+      <div style="font-size: 28px; margin-bottom: 4px;">&#x2705;</div>
+      <div class="stage-name" style="color: var(--green);">Forwarded</div>
+    </div>
+    <div class="pipeline-arrow">&#x2192;</div>
+    <div class="pipeline-stage" style="background: rgba(6,182,212,0.15); border: 1px solid rgba(6,182,212,0.3);">
+      <div style="font-size: 28px; margin-bottom: 4px;">&#x1f4e4;</div>
+      <div class="stage-name" style="color: var(--cyan);">Egress</div>
+    </div>
+  </div>
+
+  <div class="grid-3" style="margin-top: 32px;">
+    <div class="card card-glow-blue">
+      <h4>Per-Packet Visibility</h4>
+      <p>Every flow enriched with source/destination pod, namespace, labels, verdict, and protocol details.</p>
+    </div>
+    <div class="card card-glow-green">
+      <h4>Packet Explainer</h4>
+      <p>Select any flow and get a plain-English explanation of what happened, why, and how to fix it.</p>
+    </div>
+    <div class="card card-glow-purple">
+      <h4>Time-Travel Replay</h4>
+      <p>Record traffic sessions and replay with VCR controls. Jump to any point in time to debug issues.</p>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">05</span>
+  </div>
+</div>
+
+<!-- SLIDE 6: Security Features -->
+<div class="slide">
+  <div class="section-label">Security</div>
+  <h2>Zero-Trust Network Security</h2>
+  <p class="desc">Automated policy management from discovery to enforcement, with ML-powered confidence scoring and visual rule building.</p>
+  <div class="grid-2">
+    <div class="card card-glow-blue">
+      <div class="card-icon icon-blue">&#x1f9e0;</div>
+      <h4>AutoPolicy Engine</h4>
+      <p>ML-powered traffic analysis learns communication patterns and generates least-privilege CiliumNetworkPolicies with confidence scores. Observe traffic, generate policies, simulate impact, apply with one click.</p>
+    </div>
+    <div class="card card-glow-green">
+      <div class="card-icon icon-green">&#x1f3af;</div>
+      <h4>Visual Rule Builder</h4>
+      <p>Form-based policy creation without YAML. Select namespaces, pods via labels, set ingress/egress rules, ports, CIDRs, FQDNs. Live YAML preview auto-generates as you configure.</p>
+    </div>
+    <div class="card card-glow-purple">
+      <div class="card-icon icon-purple">&#x1f50d;</div>
+      <h4>Policy Simulator</h4>
+      <p>Dry-run policy changes before applying. See which flows would be affected, how many services impacted, and get a risk assessment score. No production impact.</p>
+    </div>
+    <div class="card card-glow-cyan">
+      <div class="card-icon icon-cyan">&#x1f4dc;</div>
+      <h4>Compliance Audit</h4>
+      <p>Automated compliance checks against CIS, NIST, and SOC2 frameworks. Security posture scoring, findings dashboard, and audit log for every policy change.</p>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">06</span>
+  </div>
+</div>
+
+<!-- SLIDE 7: Observability Features -->
+<div class="slide">
+  <div class="section-label">Observability</div>
+  <h2>Deep Network Observability</h2>
+  <p class="desc">From DNS queries to service dependencies, see everything happening in your cluster network.</p>
+  <div class="grid-3">
+    <div class="card card-glow-blue">
+      <div class="card-icon icon-blue">&#x1f5fa;</div>
+      <h4>Service Map</h4>
+      <p>Interactive topology showing service-to-service communication with traffic volume and latency overlays.</p>
+    </div>
+    <div class="card card-glow-green">
+      <div class="card-icon icon-green">&#x1f4ca;</div>
+      <h4>Flow Heatmap</h4>
+      <p>Namespace-to-namespace traffic heatmap revealing communication patterns and unexpected traffic flows.</p>
+    </div>
+    <div class="card card-glow-purple">
+      <div class="card-icon icon-purple">&#x1f4e1;</div>
+      <h4>DNS Monitor</h4>
+      <p>Real-time DNS query tracking with resolution times, failure rates, and NXDOMAIN detection.</p>
+    </div>
+    <div class="card card-glow-cyan">
+      <div class="card-icon icon-cyan">&#x23f1;</div>
+      <h4>Latency Analysis</h4>
+      <p>Per-service latency breakdown with P50/P95/P99 percentiles and trend analysis over time.</p>
+    </div>
+    <div class="card card-glow-orange">
+      <div class="card-icon icon-orange">&#x1f4b0;</div>
+      <h4>Cost Analytics</h4>
+      <p>Network cost breakdown by namespace showing bandwidth consumption and cross-zone traffic charges.</p>
+    </div>
+    <div class="card card-glow-pink">
+      <div class="card-icon icon-pink">&#x1f52e;</div>
+      <h4>Forecasting</h4>
+      <p>Predictive analytics for traffic patterns, capacity planning, and anomaly prediction.</p>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">07</span>
+  </div>
+</div>
+
+<!-- SLIDE 8: Intelligence Features -->
+<div class="slide">
+  <div class="section-label">Intelligence</div>
+  <h2>Self-Healing Network</h2>
+  <p class="desc">Automated problem detection, root cause analysis, and remediation. The network fixes itself.</p>
+  <div class="grid-2">
+    <div class="card card-glow-red">
+      <div class="card-icon icon-red">&#x1fa7a;</div>
+      <h4>Network Healer</h4>
+      <p>Continuously scans for DNS failures, MTU mismatches, policy denials, and unhealthy endpoints. Proposes and applies fixes automatically with severity-based prioritization.</p>
+    </div>
+    <div class="card card-glow-orange">
+      <div class="card-icon icon-orange">&#x1f50e;</div>
+      <h4>Root Cause Analysis</h4>
+      <p>Correlates packet drops with policies, identifies the exact rule causing denials, and generates one-click fix actions. Reduces MTTR from hours to seconds.</p>
+    </div>
+    <div class="card card-glow-purple">
+      <div class="card-icon icon-purple">&#x1f4a5;</div>
+      <h4>Chaos Engineering</h4>
+      <p>Inject packet loss, latency, and DNS failures via tc-netem. Built-in circuit breaker, preset experiments, and detailed impact metrics for resilience testing.</p>
+    </div>
+    <div class="card card-glow-green">
+      <div class="card-icon icon-green">&#x1f680;</div>
+      <h4>Canary Deployments</h4>
+      <p>Progressive traffic shifting with health gates. Promote or rollback canaries based on error rate, latency, and custom SLO thresholds.</p>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">08</span>
+  </div>
+</div>
+
+<!-- SLIDE 9: Networking Features -->
+<div class="slide">
+  <div class="section-label">Networking</div>
+  <h2>Full-Stack Network Management</h2>
+  <p class="desc">Complete visibility and control over every networking layer in your Kubernetes infrastructure.</p>
+  <div class="grid-4">
+    <div class="card card-glow-blue">
+      <div class="card-icon icon-blue" style="width:40px;height:40px;font-size:18px;">&#x2696;</div>
+      <h4>Load Balancer</h4>
+      <p>Service backend health, connection distribution, and failover status.</p>
+    </div>
+    <div class="card card-glow-green">
+      <div class="card-icon icon-green" style="width:40px;height:40px;font-size:18px;">&#x1f310;</div>
+      <h4>Ingress Gateway</h4>
+      <p>Route configuration, TLS termination, and traffic routing rules.</p>
+    </div>
+    <div class="card card-glow-purple">
+      <div class="card-icon icon-purple" style="width:40px;height:40px;font-size:18px;">&#x1f4cd;</div>
+      <h4>IPAM</h4>
+      <p>IP pool utilization, allocation tracking, and subnet management.</p>
+    </div>
+    <div class="card card-glow-cyan">
+      <div class="card-icon icon-cyan" style="width:40px;height:40px;font-size:18px;">&#x1f512;</div>
+      <h4>Encryption</h4>
+      <p>WireGuard/IPsec status, peer connectivity, and cipher configuration.</p>
+    </div>
+    <div class="card card-glow-orange">
+      <div class="card-icon icon-orange" style="width:40px;height:40px;font-size:18px;">&#x1f30d;</div>
+      <h4>ClusterMesh</h4>
+      <p>Multi-cluster connectivity, peer status, and cross-cluster policies.</p>
+    </div>
+    <div class="card card-glow-pink">
+      <div class="card-icon icon-pink" style="width:40px;height:40px;font-size:18px;">&#x1f4e1;</div>
+      <h4>BGP Peering</h4>
+      <p>BGP session status, route advertisements, and peering health.</p>
+    </div>
+    <div class="card card-glow-red">
+      <div class="card-icon icon-red" style="width:40px;height:40px;font-size:18px;">&#x1f6aa;</div>
+      <h4>Egress Gateway</h4>
+      <p>Outbound policies, SNAT rules, and external connectivity.</p>
+    </div>
+    <div class="card card-glow-blue">
+      <div class="card-icon icon-yellow" style="width:40px;height:40px;font-size:18px;">&#x1f4f6;</div>
+      <h4>Interfaces</h4>
+      <p>Network interface stats, MTU, speed, and error counters.</p>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">09</span>
+  </div>
+</div>
+
+<!-- SLIDE 10: Operations -->
+<div class="slide">
+  <div class="section-label">Operations</div>
+  <h2>Day-2 Operations Built In</h2>
+  <p class="desc">Everything operators need for production management, from diagnostics to incident response.</p>
+  <div class="grid-3">
+    <div>
+      <h3 style="color: var(--primary-light); font-size: 20px; margin-bottom: 16px;">Diagnostics</h3>
+      <ul class="feature-list">
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Automated connectivity tests</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Troubleshoot runner</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Packet capture sessions</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Traffic mirroring rules</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> eBPF program profiler</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color: var(--green); font-size: 20px; margin-bottom: 16px;">Reliability</h3>
+      <ul class="feature-list">
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> SLO dashboard with targets</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Alert rules with history</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Incident timeline</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Change log with rollback</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Cluster health monitoring</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="color: var(--accent); font-size: 20px; margin-bottom: 16px;">Administration</h3>
+      <ul class="feature-list">
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> RBAC visualizer</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Audit log</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Node drain management</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Pod security reports</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Flow export configuration</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">10</span>
+  </div>
+</div>
+
+<!-- SLIDE 11: Tech Stack -->
+<div class="slide">
+  <div class="section-label">Technology</div>
+  <h2>Built for Performance</h2>
+  <p class="desc">Every component chosen for production reliability, speed, and developer experience.</p>
+  <div class="grid-2">
+    <div class="card card-glow-orange">
+      <h4 style="margin-bottom: 16px;">Backend</h4>
+      <ul class="feature-list">
+        <li><span class="li-icon" style="color: var(--orange);">&#x25CF;</span> <strong>Rust</strong> &mdash; Memory-safe, zero-cost abstractions, 2MB API server</li>
+        <li><span class="li-icon" style="color: var(--orange);">&#x25CF;</span> <strong>Axum</strong> &mdash; Async web framework on Tokio runtime</li>
+        <li><span class="li-icon" style="color: var(--orange);">&#x25CF;</span> <strong>Redis</strong> &mdash; Sub-millisecond caching layer</li>
+        <li><span class="li-icon" style="color: var(--orange);">&#x25CF;</span> <strong>JWT</strong> &mdash; Stateless authentication with RBAC</li>
+      </ul>
+    </div>
+    <div class="card card-glow-blue">
+      <h4 style="margin-bottom: 16px;">Frontend</h4>
+      <ul class="feature-list">
+        <li><span class="li-icon" style="color: var(--primary);">&#x25CF;</span> <strong>React 19</strong> &mdash; Latest with TypeScript strict mode</li>
+        <li><span class="li-icon" style="color: var(--primary);">&#x25CF;</span> <strong>Tailwind CSS</strong> &mdash; Utility-first with dark/light themes</li>
+        <li><span class="li-icon" style="color: var(--primary);">&#x25CF;</span> <strong>Recharts</strong> &mdash; Real-time charts and visualizations</li>
+        <li><span class="li-icon" style="color: var(--primary);">&#x25CF;</span> <strong>Monaco Editor</strong> &mdash; VS Code-grade YAML editing</li>
+      </ul>
+    </div>
+    <div class="card card-glow-green">
+      <h4 style="margin-bottom: 16px;">Data Plane</h4>
+      <ul class="feature-list">
+        <li><span class="li-icon" style="color: var(--green);">&#x25CF;</span> <strong>Cilium eBPF</strong> &mdash; Kernel-level packet processing</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x25CF;</span> <strong>Hubble</strong> &mdash; Flow observability and export</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x25CF;</span> <strong>Aya</strong> &mdash; Native BPF map access from Rust</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x25CF;</span> <strong>K8s API</strong> &mdash; Real-time resource watching</li>
+      </ul>
+    </div>
+    <div class="card card-glow-purple">
+      <h4 style="margin-bottom: 16px;">TUI</h4>
+      <ul class="feature-list">
+        <li><span class="li-icon" style="color: var(--accent);">&#x25CF;</span> <strong>Ratatui</strong> &mdash; Terminal UI framework</li>
+        <li><span class="li-icon" style="color: var(--accent);">&#x25CF;</span> <strong>Crossterm</strong> &mdash; Cross-platform terminal control</li>
+        <li><span class="li-icon" style="color: var(--accent);">&#x25CF;</span> <strong>32K lines</strong> &mdash; 13 interactive tabs</li>
+        <li><span class="li-icon" style="color: var(--accent);">&#x25CF;</span> <strong>13MB binary</strong> &mdash; Single static binary</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">11</span>
+  </div>
+</div>
+
+<!-- SLIDE 12: Deployment -->
+<div class="slide">
+  <div class="section-label">Deployment</div>
+  <h2>Deploy in Minutes</h2>
+  <p class="desc">Single binary or containerized. Works with any K3s, EKS, GKE, or AKS cluster running Cilium.</p>
+  <div class="grid-2" style="margin-bottom: 32px;">
+    <div class="card card-glow-green">
+      <h4 style="margin-bottom: 12px;">Prerequisites</h4>
+      <ul class="feature-list">
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Kubernetes cluster with Cilium CNI</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Hubble relay enabled</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> Redis instance (for caching)</li>
+        <li><span class="li-icon" style="color: var(--green);">&#x2713;</span> kubectl access configured</li>
+      </ul>
+    </div>
+    <div class="card card-glow-blue">
+      <h4 style="margin-bottom: 12px;">Deployment Options</h4>
+      <ul class="feature-list">
+        <li><span class="li-icon" style="color: var(--primary);">&#x25CF;</span> <strong>Binary</strong> &mdash; Single 13MB binary + static UI</li>
+        <li><span class="li-icon" style="color: var(--primary);">&#x25CF;</span> <strong>Docker</strong> &mdash; Multi-stage containers</li>
+        <li><span class="li-icon" style="color: var(--primary);">&#x25CF;</span> <strong>Helm</strong> &mdash; Kubernetes chart with HPA</li>
+        <li><span class="li-icon" style="color: var(--primary);">&#x25CF;</span> <strong>Systemd</strong> &mdash; Native OS service</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card" style="background: #0d1117; border-color: #21262d; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 14px; padding: 24px 28px;">
+    <div style="color: #8b949e; margin-bottom: 8px;"># Quick Start</div>
+    <div style="color: #c9d1d9;">$ git clone https://github.com/zyvorai/paqtra.git</div>
+    <div style="color: #c9d1d9;">$ cd paqtra && cargo build --release</div>
+    <div style="color: #c9d1d9;">$ ./scripts/deploy-k3s-test.sh &lt;host&gt; root &lt;pass&gt; --test</div>
+    <div style="color: #58a6ff; margin-top: 8px;"># Dashboard available at http://&lt;host&gt;:9191</div>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">12</span>
+  </div>
+</div>
+
+<!-- SLIDE 13: Summary -->
+<div class="slide slide-title">
+  <h1 class="hero" style="font-size: 52px;">Complete Network Intelligence</h1>
+  <div class="subtitle" style="margin-bottom: 40px;">Everything you need to secure, observe, and operate<br>Kubernetes networking at scale</div>
+  <div class="grid-3" style="max-width: 900px; margin: 0 auto 48px;">
+    <div class="card card-glow-blue" style="text-align: center;">
+      <div class="stat-value" style="color: var(--primary-light); font-size: 36px;">64</div>
+      <div class="stat-label">Dashboard Pages</div>
+    </div>
+    <div class="card card-glow-green" style="text-align: center;">
+      <div class="stat-value" style="color: var(--green); font-size: 36px;">75+</div>
+      <div class="stat-label">API Endpoints</div>
+    </div>
+    <div class="card card-glow-purple" style="text-align: center;">
+      <div class="stat-value" style="color: var(--accent); font-size: 36px;">0</div>
+      <div class="stat-label">External Dependencies</div>
+    </div>
+  </div>
+  <div class="badge-row">
+    <span class="badge badge-green" style="font-size: 15px; padding: 10px 24px;">http://185.165.240.5:9191</span>
+  </div>
+  <div class="slide-footer">
+    <span>Paqtra v1.0</span>
+    <span class="slide-number">13</span>
+  </div>
+</div>
+
+</body>
+</html>

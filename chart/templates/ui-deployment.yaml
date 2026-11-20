@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "paqtra.fullname" . }}-ui
+  namespace: {{ .Values.global.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "paqtra.labels" . | nindent 4 }}
+    app.kubernetes.io/component: ui
+spec:
+  replicas: {{ .Values.ui.replicas }}
+  selector:
+    matchLabels:
+      {{- include "paqtra.ui.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "paqtra.ui.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      {{- if .Values.tls.enabled }}
+      initContainers:
+        - name: gen-cert
+          image: {{ .Values.tls.opensslImage | quote }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              openssl req -x509 -nodes -days 3650 \
+                -newkey ec -pkeyopt ec_paramgen_curve:prime256v1 \
+                -keyout /certs/tls.key -out /certs/tls.crt \
+                -subj "/CN=paqtra/O=Zyvor AI Labs" \
+                -addext "subjectAltName=DNS:paqtra,DNS:localhost,IP:127.0.0.1"
+              chown 1000:1000 /certs/tls.key /certs/tls.crt
+              chmod 600 /certs/tls.key
+          securityContext:
+            runAsNonRoot: false
+            runAsUser: 0
+          volumeMounts:
+            - name: tls-certs
+              mountPath: /certs
+      {{- end }}
+      containers:
+        - name: ui
+          image: {{ include "paqtra.ui.image" . }}
+          imagePullPolicy: {{ .Values.ui.image.pullPolicy }}
+          ports:
+            - name: {{ if .Values.tls.enabled }}https{{ else }}http{{ end }}
+              containerPort: {{ .Values.ui.port }}
+              protocol: TCP
+          env:
+            - name: UI_PORT
+              value: {{ .Values.ui.port | quote }}
+            - name: API_UPSTREAM
+              value: {{ printf "%s-api:%v" (include "paqtra.fullname" .) .Values.api.service.port | quote }}
+            - name: API_SCHEME
+              value: "http"
+            {{- if .Values.tls.enabled }}
+            - name: TLS_CERT_PATH
+              value: /certs/tls.crt
+            - name: TLS_KEY_PATH
+              value: /certs/tls.key
+            {{- else }}
+            - name: TLS_DISABLED
+              value: "1"
+            {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ if .Values.tls.enabled }}https{{ else }}http{{ end }}
+              {{- if .Values.tls.enabled }}
+              scheme: HTTPS
+              {{- end }}
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ if .Values.tls.enabled }}https{{ else }}http{{ end }}
+              {{- if .Values.tls.enabled }}
+              scheme: HTTPS
+              {{- end }}
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.ui.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            - name: tmp
+              mountPath: /tmp
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+            {{- if .Values.tls.enabled }}
+            - name: tls-certs
+              mountPath: /certs
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: nginx-conf
+          emptyDir: {}
+        {{- if .Values.tls.enabled }}
+        - name: tls-certs
+          emptyDir: {}
+        {{- end }}

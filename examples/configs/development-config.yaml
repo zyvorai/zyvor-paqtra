@@ -1,0 +1,92 @@
+# Paqtra - Development Configuration
+# Permissive settings for testing and experimentation
+
+kubernetes:
+  context: "dev-cluster"
+  namespace: "default"
+
+hubble:
+  port: 4245
+  auto_port_forward: true
+  filters:
+    namespaces: []
+    verdicts: []
+
+autopolicy:
+  enabled: true
+  learning_duration_secs: 86400     # 1 day
+  min_observations: 5               # Low threshold for testing
+  auto_generate: true               # Auto-generate for faster iteration
+  ml_confidence_threshold: 0.60     # Accept medium confidence
+  ml_weights:
+    temporal_stability: 0.20
+    traffic_volume: 0.20
+    port_trust: 0.15
+    protocol_score: 0.10
+    namespace_trust: 0.15
+    label_specificity: 0.10
+    traffic_regularity: 0.10
+
+chaos:
+  enabled: true                     # Enabled for testing
+  max_drop_rate: 0.80               # Aggressive testing
+  max_latency_ms: 10000             # High latency testing
+  max_duration_secs: 600            # Longer experiments
+  auto_cleanup: true
+  auto_cleanup_duration: 600
+  require_confirmation: false       # No confirmation needed
+  circuit_breaker_enabled: true
+
+canary:
+  enabled: true
+  initial_traffic_pct: 20           # Faster progression
+  traffic_step_pct: 20
+  auto_promote_threshold: 0.95      # Lower threshold
+  auto_rollback_threshold: 0.85
+  health_check_interval_secs: 60
+  metrics_interval_secs: 30
+
+multicluster:
+  enabled: false                    # Typically single cluster in dev
+  auto_sync_policies: false
+  health_check_interval_secs: 60
+  sync_interval_secs: 600
+  placement_weights:
+    resource_availability: 0.30     # Emphasize resources
+    network_latency: 0.10
+    cost_optimization: 0.30         # Cost matters in dev
+    region_affinity: 0.10
+    load_balancing: 0.15
+    compliance: 0.05
+
+simulator:
+  enabled: true
+  risk_thresholds:
+    low: 0.10
+    medium: 0.30
+    high: 0.50
+    critical: 0.50
+
+replay:
+  enabled: true
+  max_recorded_flows: 5000
+  auto_save: true
+  auto_save_interval_secs: 600
+  recordings_dir: "~/.config/paqtra/dev-recordings"
+
+ui:
+  refresh_rate_ms: 16
+  theme: "default"
+  show_help_on_startup: true        # Show help for new users
+
+logging:
+  level: "debug"                    # Verbose logging
+  log_to_file: true
+  log_file_path: "~/.config/paqtra/dev.log"
+  audit_log: true
+  audit_log_path: "~/.config/paqtra/dev-audit.log"
+
+security:
+  require_policy_confirmation: false  # No confirmations in dev
+  require_rollback_confirmation: false
+  dry_run: false

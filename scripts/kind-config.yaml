@@ -1,0 +1,9 @@
+# kind cluster for scripts/ci-cli-e2e.sh: no default CNI, so `paqtra install
+# --with-cilium` is what brings the network up (and is itself under test).
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+networking:
+  disableDefaultCNI: true
+nodes:
+  - role: control-plane
+  - role: worker

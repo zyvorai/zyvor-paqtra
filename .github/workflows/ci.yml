@@ -1,0 +1,229 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+# One run per ref; a new push to a PR supersedes the old run, main/develop queue.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Runner routing. Heavy, trusted jobs (push / tag / dispatch) run on the org
+# self-hosted pool (labels self-hosted, zyvor-build, docker; Linux x86_64 only);
+# pull_request events, and macOS/arm jobs, stay on GitHub-hosted runners.
+# fromJSON turns the string result into a runs-on label string or list.
+jobs:
+  # ─── Core TUI Crate ───────────────────────────────────────────────────
+  check:
+    name: Check (TUI)
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install protobuf compiler
+        run: command -v protoc >/dev/null || { sudo apt-get update && sudo apt-get install -y protobuf-compiler; }
+      - run: cargo check --all-features
+
+  fmt:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all -- --check
+
+  clippy:
+    name: Clippy
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Install protobuf compiler
+        run: command -v protoc >/dev/null || { sudo apt-get update && sudo apt-get install -y protobuf-compiler; }
+      - run: cargo clippy --all-features -- -D warnings
+
+  test:
+    name: Test (TUI)
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Install protobuf compiler
+        run: command -v protoc >/dev/null || { sudo apt-get update && sudo apt-get install -y protobuf-compiler; }
+      - run: cargo test --all-features
+
+  build:
+    name: Build (TUI)
+    runs-on: ${{ fromJSON(matrix.os == 'ubuntu-latest' && github.event_name != 'pull_request' && '["self-hosted","zyvor-build","docker"]' || format('"{0}"', matrix.os)) }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release
+      - uses: actions/upload-artifact@v7
+        with:
+          name: paqtra-${{ matrix.os }}
+          path: target/release/paqtra${{ matrix.os == 'windows-latest' && '.exe' || '' }}
+
+  cli-smoke:
+    name: CLI smoke
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: paqtra-ubuntu-latest
+          path: target/release
+      - name: Fix binary permissions
+        run: chmod +x target/release/paqtra
+      - name: CLI smoke
+        run: bash scripts/ci-cli-smoke.sh
+        env:
+          PAQTRA_BIN: ${{ github.workspace }}/target/release/paqtra
+
+  chart-lint:
+    name: Chart lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install Helm
+        uses: azure/setup-helm@v5
+        with:
+          version: v3.16.3
+      - name: Helm lint + template
+        run: bash scripts/ci-chart-smoke.sh
+
+  investigate-golden:
+    name: Investigate golden (offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Offline investigate contracts
+        run: bash scripts/ci-investigate-golden.sh
+
+  packet-visibility:
+    name: Packet visibility (offline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Offline packet-visibility contracts
+        run: bash scripts/ci-packet-visibility.sh
+
+  installer:
+    name: install.sh
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: shellcheck
+        run: |
+          shellcheck -s sh install.sh
+          shellcheck scripts/ci-install-sh.sh scripts/render-homebrew-formula.sh scripts/dev-install.sh
+      - name: Installer refuses tampered, unlisted and unverified downloads
+        run: bash scripts/ci-install-sh.sh
+
+  agent-image:
+    name: Agent Dockerfile
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build agent/CLI image
+        run: docker build -f Dockerfile -t paqtra:ci .
+        # Full Rust image build is heavy; keep the job but don't block the PR merge path on transient registry issues.
+        continue-on-error: true
+
+  # ─── Web API ───────────────────────────────────────────────────────────
+  web-api-check:
+    name: Check (Web API)
+    runs-on: ${{ fromJSON(github.event_name == 'pull_request' && '"ubuntu-latest"' || '["self-hosted","zyvor-build","docker"]') }}
+    defaults:
+      run:
+        working-directory: web-api
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: web-api
+      - run: cargo check
+      - run: cargo clippy -- -D warnings
+      - run: cargo test
+      # Metrics platform crate shared by the agent and the API.
+      - run: cargo fmt --manifest-path paqtra-metrics/Cargo.toml -- --check
+      - run: cargo clippy --manifest-path paqtra-metrics/Cargo.toml --all-targets -- -D warnings
+      - run: cargo test --manifest-path paqtra-metrics/Cargo.toml
+
+  # ─── Web UI ────────────────────────────────────────────────────────────
+  web-ui-build:
+    name: Build (Web UI)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web-ui
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web-ui/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npx vitest run
+      - name: NPM audit
+        run: npm audit --audit-level=high
+
+  # ─── Docs Site ──────────────────────────────────────────────────────────
+  website:
+    name: Build (Docs site)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with: {workspaces: mcp}
+      - run: npm --prefix website ci
+      # The MCP tool catalog, facts and synced docs are generated and committed;
+      # the site must not drift from the code or the repo docs. Regenerate and
+      # fail on any difference (fix with: python3 scripts/gen-site-facts.py &&
+      # npm --prefix website run sync-docs).
+      - name: Generated docs and facts are current
+        run: |
+          python3 scripts/gen-site-facts.py
+          npm --prefix website run sync-docs
+          git diff --exit-code -- website/docs website/src/data
+      - run: npm --prefix website run build
+
+  # ─── Security Scanning ──────────────────────────────────────────────────
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Cargo audit
+        run: cargo install cargo-audit && cargo audit

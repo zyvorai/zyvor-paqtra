@@ -1,0 +1,278 @@
+nameOverride: ""
+fullnameOverride: ""
+
+# -- Global settings
+global:
+  # -- Namespace to deploy into
+  namespace: paqtra
+  # -- Image pull secrets
+  imagePullSecrets: []
+  # -- Cluster label on exported metrics (PAQTRA_CLUSTER_NAME)
+  clusterName: ""
+
+# -- API server configuration
+api:
+  image:
+    repository: ghcr.io/zyvorai/paqtra-api
+    tag: ""  # defaults to appVersion
+    pullPolicy: IfNotPresent
+  replicas: 2
+  port: 9191
+  # API memory: durable flows.db + bpftool inventory need headroom.
+  # Lab OOM-killed at 512Mi–1Gi under stacked Overview/eBPF probes.
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "100m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  env:
+    # Cilium's hubble-relay Service maps port 80 → container 4245 (gRPC).
+    # Use the Service port in-cluster; use localhost:4245 with port-forward locally.
+    hubbleAddress: "hubble-relay.kube-system.svc.cluster.local:80"
+    # grpc = Observer API only; auto = gRPC then CLI fallback; cli = hubble binary only.
+    hubbleMode: "grpc"
+    # Prometheus that scrapes Cilium and Hubble, e.g. http://prometheus-server.monitoring:80.
+    # Feeds /api/v1/hubble/metrics and /api/v1/cilium/metrics; empty leaves them "unavailable".
+    # Hubble metrics need `hubble.metrics.enabled` in Cilium's own values.
+    prometheusUrl: ""
+    jwtSecret: ""  # auto-generated if empty
+    rustLog: "info"
+  probes:
+    liveness:
+      path: /health
+      initialDelaySeconds: 15
+      periodSeconds: 20
+      timeoutSeconds: 15
+      failureThreshold: 6
+    readiness:
+      path: /ready
+      initialDelaySeconds: 10
+      periodSeconds: 15
+      timeoutSeconds: 15
+      failureThreshold: 6
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+  service:
+    type: ClusterIP
+    port: 9191
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  # -- Persist alert rules, audit log, exports, change history, and the flow
+  # index in SQLite so investigations survive restarts. SQLite is single-writer,
+  # so enabling this pins the API to 1 replica (strategy Recreate) and disables
+  # the HPA. Leave disabled only for HA memory-only demos.
+  # -- Metrics platform storage, alerts and exporters (docs/metrics.md).
+  # Metrics live in the API process: keep one replica (the default with
+  # persistence) so every agent's stream lands in the same store.
+  metrics:
+    tier0Seconds: 3600        # per-second
+    tier1Seconds: 1209600     # per-minute, 14 days
+    tier2Seconds: 31536000    # per-hour, 365 days
+    # Per node store (and the Hubble-derived store); keep the total under
+    # persistence.size.
+    diskQuotaMB: 128
+    alerts:
+      enabled: true
+      defaults: true
+      rulesDir: ""
+    export:
+      remoteWriteURL: ""
+      otlpEndpoint: ""
+      graphiteAddr: ""
+      resolution: ""
+      contexts: ""
+      exclude: ""
+      prefix: ""
+      # Secret with optional keys remote-write-headers / otlp-headers
+      # ("Name: value, Name2: value2").
+      headersSecret: ""
+  persistence:
+    enabled: true
+    size: 1Gi
+    storageClass: ""
+    existingClaim: ""
+    mountPath: /data
+  # -- Mount kubeconfig for out-of-cluster access (optional)
+  kubeconfig:
+    enabled: false
+    secretName: ""
+    mountPath: /etc/kubeconfig
+
+# -- UI configuration (HTTPS by default, like Netra)
+ui:
+  image:
+    repository: ghcr.io/zyvorai/paqtra-ui
+    tag: ""  # defaults to appVersion
+    pullPolicy: IfNotPresent
+  replicas: 1
+  port: 8443
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  service:
+    type: ClusterIP
+    port: 8443
+
+# -- TLS for the UI (self-signed P-256 via init container). Set enabled=false
+# only when TLS is terminated by a trusted ingress/proxy.
+tls:
+  enabled: true
+  opensslImage: docker.io/alpine/openssl:3.3.2
+
+# -- Node agent (DaemonSet on every node, like Cilium agent)
+agent:
+  enabled: true
+  image:
+    repository: ghcr.io/zyvorai/paqtra
+    tag: ""  # defaults to appVersion
+    pullPolicy: IfNotPresent
+  port: 9192
+  # Metrics keep agent.metrics.bufferSeconds of per-second samples in memory:
+  # ~20k series (100+ pods with per-container cgroups) settle near 250Mi and
+  # ~300m CPU; a 200m limit throttles collection and the sender falls behind.
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "1"
+  tolerations:
+    - operator: Exists
+  updateStrategy:
+    type: RollingUpdate
+  bpf:
+    # Mount host BPF filesystem for local map access
+    mountPath: /sys/fs/bpf
+  # -- Per-second node metrics streamed to the API (docs/metrics.md).
+  # Collectors are read-only; the process collector records comm only.
+  metrics:
+    enabled: true
+    # Share the host network/PID namespaces and mount / read-only at /host so
+    # host, network, filesystem and pod cgroup metrics describe the node.
+    hostAccess: true
+    processGroups: 64
+    containers: true
+    # Scrape pods on this node annotated paqtra.io/app-kind or prometheus.io/scrape.
+    appDiscovery: true
+    anomaly: true
+    # Seconds of local history kept for replay while the API is unreachable.
+    bufferSeconds: 3600
+    # Static app collectors (docs/app-collectors.md). Credentials come only
+    # from env vars named here (username_env/password_env/bearer_env); add
+    # those via extraEnv.
+    apps: []
+    # - kind: redis
+    #   name: cache
+    #   address: 10.0.0.5:6379
+    #   password_env: REDIS_PASSWORD
+    extraEnv: []
+
+# -- Ingress configuration
+ingress:
+  enabled: false
+  className: ""  # nginx, cilium, traefik, etc.
+  annotations: {}
+  # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: paqtra.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service: ui
+          port: 8080
+        - path: /api
+          pathType: Prefix
+          service: api
+          port: 9191
+        - path: /swagger-ui
+          pathType: Prefix
+          service: api
+          port: 9191
+  tls: []
+  # - secretName: paqtra-tls
+  #   hosts:
+  #     - paqtra.example.com
+
+# -- Envoy in front of the UI and API through Gateway API (Envoy Gateway or any
+# Gateway API implementation). Off by default; Paqtra auth is unchanged. See
+# docs/envoy-gateway.md.
+gateway:
+  enabled: false
+  # Gateway to attach to, e.g. [{name: eg, namespace: envoy-gateway-system}].
+  parentRefs: []
+  hostnames: []
+  apiPaths: ["/api", "/swagger-ui"]
+  uiPath: /
+  annotations: {}
+  # "0s" keeps long-lived streams from being cut by Envoy.
+  requestTimeout: "0s"
+  # The UI serves HTTPS by default, so Envoy must verify the pod cert. The
+  # per-pod self-signed cert cannot be verified; behind the gateway set
+  # tls.enabled=false and backendTLS.enabled=false, or supply a CA.
+  backendTLS:
+    enabled: true
+    apiVersion: gateway.networking.k8s.io/v1alpha3
+    hostname: ""
+    caCertificateRefs: []
+    wellKnownCACertificates: ""
+  # Envoy Gateway only. Needed for WebSocket streams when backendTLS is on.
+  backendTrafficPolicy:
+    enabled: false
+    useClientProtocol: true
+
+# -- Authentication (empty password/apiKey → auto-generated on install)
+auth:
+  jwtSecret: ""  # If empty, auto-generated
+  autoGenerate: true
+  adminUsername: admin
+  # Empty → Helm auto-generates. Lab pin is set only by scripts/deploy-remote.sh.
+  adminPassword: ""
+  apiKey: ""
+  # Shared by the API and agents for metric ingest. Empty → auto-generated
+  # once and kept across upgrades.
+  agentKey: ""
+
+# -- Monitoring configuration
+monitoring:
+  enabled: false
+  serviceMonitor:
+    interval: 30s
+    scrapeTimeout: 10s
+    labels: {}
+  prometheusRules:
+    enabled: false
+    rules: []
+  grafanaDashboard:
+    enabled: false
+    labels:
+      grafana_dashboard: "1"
+
+# -- RBAC configuration
+rbac:
+  create: true
+  # -- Additional rules to add to the ClusterRole
+  additionalRules: []

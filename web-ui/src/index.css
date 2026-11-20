@@ -1,0 +1,25 @@
+/* Residual utilities for views still on Tailwind during the Netra reskin.
+   Shell chrome lives in styles.css (ported from Netra). */
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+/* Soften Tailwind preflight conflict with Netra body */
+body {
+  margin: 0;
+}
+
+/* Loading / empty fallbacks when views still use slate utilities */
+.paqtra-spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--border);
+  border-top-color: var(--apple-blue);
+  border-radius: 50%;
+  animation: paqtra-spin 0.7s linear infinite;
+}
+
+@keyframes paqtra-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

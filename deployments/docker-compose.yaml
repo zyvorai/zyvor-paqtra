@@ -1,0 +1,54 @@
+services:
+  api:
+    build:
+      context: ../web-api
+      dockerfile: Dockerfile
+    container_name: paqtra-api
+    ports:
+      - "${API_PORT:-9191}:9191"
+    environment:
+      - PAQTRA_HOST=0.0.0.0
+      - PAQTRA_PORT=9191
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET environment variable is required}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?ADMIN_PASSWORD environment variable is required}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - HUBBLE_ADDRESS=${HUBBLE_ADDRESS:-hubble-relay.kube-system.svc.cluster.local:80}
+      - RUST_LOG=${RUST_LOG:-info,paqtra_api=debug}
+      - ALLOWED_ORIGINS=http://localhost:3001,http://localhost:3000,http://localhost:8080
+      - PAQTRA_DATA_DIR=/data
+    volumes:
+      - ${KUBECONFIG:-~/.kube/config}:/home/appuser/.kube/config:ro
+      - paqtra-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9191/health"]
+      interval: 15s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  ui:
+    build:
+      context: ../web-ui
+      dockerfile: Dockerfile
+    container_name: paqtra-ui
+    ports:
+      - "${UI_PORT:-3001}:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  paqtra-data:
+
+networks:
+  default:
+    name: paqtra-network

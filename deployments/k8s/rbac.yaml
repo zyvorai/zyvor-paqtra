@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: paqtra-api
+  namespace: cilium-system
+  labels:
+    app: paqtra
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: paqtra-api
+  labels:
+    app: paqtra
+rules:
+# Read access to pods, services, namespaces
+- apiGroups: [""]
+  resources:
+  - pods
+  - services
+  - namespaces
+  - endpoints
+  verbs:
+  - get
+  - list
+  - watch
+
+# Read and write access to Cilium network policies
+- apiGroups: ["cilium.io"]
+  resources:
+  - ciliumnetworkpolicies
+  - ciliumclusterwidenetworkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+
+# Read access to Kubernetes network policies
+- apiGroups: ["networking.k8s.io"]
+  resources:
+  - networkpolicies
+  verbs:
+  - get
+  - list
+  - watch
+
+# Access to Cilium identities and endpoints, plus read-only views of IPAM,
+# egress gateway, BGP, LB-IPAM, L2 announcements and pod IP pools
+- apiGroups: ["cilium.io"]
+  resources:
+  - ciliumidentities
+  - ciliumendpoints
+  - ciliumnodes
+  - ciliumegressgatewaypolicies
+  - ciliumbgppeeringpolicies
+  - ciliumbgpclusterconfigs
+  - ciliumbgppeerconfigs
+  - ciliumbgpadvertisements
+  - ciliumbgpnodeconfigs
+  - ciliumloadbalancerippools
+  - ciliuml2announcementpolicies
+  - ciliumpodippools
+  - ciliumcidrgroups
+  verbs:
+  - get
+  - list
+  - watch
+
+# Gateway API objects served by Cilium's Gateway controller (read-only)
+- apiGroups: ["gateway.networking.k8s.io"]
+  resources:
+  - gatewayclasses
+  - gateways
+  - httproutes
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: paqtra-api
+  labels:
+    app: paqtra
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: paqtra-api
+subjects:
+- kind: ServiceAccount
+  name: paqtra-api
+  namespace: cilium-system
