@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import React, { useState, useCallback } from 'react';
 import { DollarSign, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
 import { fetchCostBreakdown, CostBreakdown, CostSummary } from '../../services/api';

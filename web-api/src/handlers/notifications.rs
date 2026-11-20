@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Alert notification channels and silences (admin only).
 
 use super::{actor_from_claims, audit_log as emit_audit, check_admin, track_request};

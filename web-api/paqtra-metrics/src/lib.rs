@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Per-second metrics platform shared by the Paqtra node agent and API:
 //! collectors, the tiered time-series store, the agent-to-API stream format,
 //! anomaly detection, metric alerts and exporters.

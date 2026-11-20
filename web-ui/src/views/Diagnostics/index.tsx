@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import React, { useState } from 'react';
 import { Stethoscope, Play, Loader2, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import { runDiagnostics, DiagnosticTest } from '../../services/api';

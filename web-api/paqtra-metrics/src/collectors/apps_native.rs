@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Native application collectors: nginx stub_status, Apache mod_status,
 //! HAProxy CSV, Redis INFO (RESP) and memcached stats.
 

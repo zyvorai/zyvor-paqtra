@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Policy data model - canonical definition used across handlers and services
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

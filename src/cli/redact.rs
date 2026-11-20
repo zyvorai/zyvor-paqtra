@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Scrubbing secrets from what `paqtra sysdump` collects. A support bundle is
 //! meant to be attached to a ticket, so anything that looks like a credential
 //! is replaced before it is written, and Kubernetes Secrets are never read.

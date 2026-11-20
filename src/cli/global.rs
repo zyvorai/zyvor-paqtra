@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Flags every cluster-facing command shares (like cilium-cli's `--context`,
 //! `--namespace`, `--kubeconfig`). They are `global`, so both
 //! `paqtra --context prod status` and `paqtra status --context prod` work.

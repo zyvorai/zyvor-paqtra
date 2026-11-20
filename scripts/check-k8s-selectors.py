@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 """Check that PDB / NetworkPolicy selectors in deployments/k8s match a workload's labels."""
 import glob, sys, yaml
 

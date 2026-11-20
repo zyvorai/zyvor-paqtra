@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # ─────────────────────────────────────────────────────────────
 # Paqtra — Remote Kubernetes Deployment via SSH + rsync
 # Builds container images on the host and installs via Helm into K3s/K8s.

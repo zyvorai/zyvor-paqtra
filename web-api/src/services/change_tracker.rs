@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Background GitOps change tracker
 //
 // Runs every 120 seconds, queries K8s events for recent changes to

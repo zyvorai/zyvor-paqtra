@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! `paqtra metrics` — read the per-second metrics platform through the API:
 //! status, nodes, contexts, queries, a node top view, anomalies and metric
 //! alerts. Read-only.

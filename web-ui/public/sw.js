@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Paqtra Service Worker — Offline Support
 const CACHE_NAME = 'paqtra-v2';
 const OFFLINE_URL = '/';

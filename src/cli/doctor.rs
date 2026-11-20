@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! `paqtra doctor`: is this installation healthy, and if not, what to do?
 //! Goes beyond `status` (are pods up?) to the causes people actually hit:
 //! crash loops, OOM kills, an agent missing from a node, Hubble ingest lag.

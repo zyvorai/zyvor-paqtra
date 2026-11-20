@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import type { TimelineBucketData } from '../../services/api';
 
 /** Stack order, bottom to top. Dropped sits on the baseline, where it is easiest to compare. */

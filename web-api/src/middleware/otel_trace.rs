@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // OpenTelemetry distributed tracing middleware.
 //
 // Wraps each HTTP request in a trace span that records method, path, status

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Request correlation ID middleware
 use axum::{extract::Request, http::HeaderValue, middleware::Next, response::Response};
 

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Network healer: detects problems in live flows and builds fixes.
 //
 // Problem IDs are derived from the problem kind and namespace (for example

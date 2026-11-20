@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import React, { useState, useCallback, useMemo } from 'react';
 import { Bell, Loader2, AlertTriangle, Info, CheckCircle } from 'lucide-react';
 import { fetchEvents, K8sEvent } from '../../services/api';

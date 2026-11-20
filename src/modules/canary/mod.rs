@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// Sidecarless Canary Deployment Module
 ///
 /// Progressive traffic shifting for canary deployments without sidecars.

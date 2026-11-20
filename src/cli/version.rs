@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! `paqtra version`: client, installed release, and running server versions,
 //! with a warning when they disagree (like `cilium version`).
 

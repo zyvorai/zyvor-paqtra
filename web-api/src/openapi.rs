@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // OpenAPI 3.0 specification and Swagger UI handler
 use axum::{http::header, response::IntoResponse, Json};
 

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Per-second host, network, cgroup, process-group and application
 //! collectors. Every collector is read-only: it parses /proc, /sys,
 //! cgroupfs or an application status endpoint and never writes to what it

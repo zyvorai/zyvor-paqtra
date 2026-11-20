@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import React, { useState, useMemo, useCallback } from 'react';
 import {
   Shield, Plus, Trash2, Copy, Play, CheckCircle, XCircle,

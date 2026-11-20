@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// Policy-specific healing logic
 use super::*;
 use crate::modules::{sanitize_k8s_name, yaml_escape};

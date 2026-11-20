@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # Golden investigation scenarios against a live Cilium cluster.
 # Usage:
 #   PAQTRA_API=http://127.0.0.1:31463 ADMIN_USER=admin ADMIN_PASS=Admin@321 \

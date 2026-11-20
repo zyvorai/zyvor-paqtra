@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // In-memory cache service (replaces Redis) with optional SQLite durability.
 //
 // Thread-safe TTL map via DashMap. Same API as the former Redis wrapper so

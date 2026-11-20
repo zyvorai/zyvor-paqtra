@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! paqtra-mcp: a stdio Model Context Protocol server for Paqtra.
 //!
 //! One JSON-RPC 2.0 message per line on stdin/stdout. Every tool is a read of

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Agent side of the per-second metrics platform: runs the read-only
 //! collectors, keeps an hour of samples in a local store that doubles as the
 //! replay buffer, flags anomalies on the node and streams everything to the

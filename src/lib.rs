@@ -1,4 +1,7 @@
 #![allow(clippy::upper_case_acronyms)]
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Many types and methods are intentionally public for the TUI binary
 // but appear unused in library-only builds.
 #![allow(dead_code)]

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Which Cilium features are switched on in this cluster.
 //
 // Cilium's runtime configuration lives in the `cilium-config` ConfigMap. This

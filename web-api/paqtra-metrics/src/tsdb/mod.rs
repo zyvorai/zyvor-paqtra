@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Per-second metrics store: a compressed 1s tier in memory plus per-minute
 //! and per-hour rollup tiers kept in memory or on disk.
 

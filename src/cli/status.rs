@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! `paqtra status [--wait]`: are Paqtra, Cilium and Hubble Relay healthy?
 //!
 //! Reads the Kubernetes API directly (no `kubectl`), waits for real when asked,

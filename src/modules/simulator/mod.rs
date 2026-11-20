@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// What-If Simulator Module
 ///
 /// Simulates policy changes and predicts their impact before applying.

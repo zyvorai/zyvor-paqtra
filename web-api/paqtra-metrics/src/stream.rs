@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Both ends of the agent-to-API stream without a transport: `Hub` is the
 //! API's set of per-node stores and `Sender` walks an agent store forward,
 //! replaying from the API's newest second after a gap. Hosts plug in their

@@ -1,4 +1,7 @@
 #!/bin/sh
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 set -eu
 
 CERT_DIR="${TLS_CERT_DIR:-/certs}"

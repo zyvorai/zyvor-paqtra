@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// BPF Data Structure Parsers
 ///
 /// Parses raw binary data from Cilium BPF maps into Rust structures

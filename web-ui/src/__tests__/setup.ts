@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import '@testing-library/jest-dom';
 
 // Node 22+ exposes a broken global localStorage unless --localstorage-file is set,

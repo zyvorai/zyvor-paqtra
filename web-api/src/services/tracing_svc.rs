@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Lightweight OpenTelemetry-compatible span exporter.
 //
 // When OTEL_EXPORTER_ENDPOINT is configured, completed request spans are

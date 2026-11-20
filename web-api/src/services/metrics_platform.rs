@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Per-second metrics platform, API side: the ingest hub holding one store per
 //! node (fed by the agents), a cluster store of series derived from Hubble
 //! flows, anomaly scoring, metric alert rules wired to the notifier and the

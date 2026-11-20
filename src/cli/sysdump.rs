@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! `paqtra sysdump`: one zip with what support needs to diagnose an install,
 //! like `cilium sysdump`.
 //!

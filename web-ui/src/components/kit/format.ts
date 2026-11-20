@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 export function compact(n: number): string {
   if (!Number.isFinite(n)) return '—';
   const abs = Math.abs(n);

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// Real Cilium BPF Map Reader
 ///
 /// Reads data directly from Cilium's pinned BPF maps in /sys/fs/bpf/

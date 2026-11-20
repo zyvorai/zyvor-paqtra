@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Generic Prometheus text-format scraper and the presets built on it.
 
 use super::apps::{App, AppConfig, HttpGet};

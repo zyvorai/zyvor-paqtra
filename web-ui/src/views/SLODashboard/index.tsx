@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import React, { useState, useCallback } from 'react';
 import { Target, Loader2, CheckCircle, AlertTriangle, XCircle, HelpCircle, Trash2, Plus } from 'lucide-react';
 import { fetchSLOs, createSLO, deleteSLO, apiErrorMessage, SLOTarget } from '../../services/api';

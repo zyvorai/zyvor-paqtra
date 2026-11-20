@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Read-only BPF attachment inventory and brotherhood classification.
 //!
 //! Paqtra never attaches, detaches, or replaces programs. It only lists what

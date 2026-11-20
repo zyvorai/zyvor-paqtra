@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import React, { useState, useCallback } from 'react';
 import axios from 'axios';
 import { BellRing, Loader2, Bell, BellOff, Clock, VolumeX, Plus, Pencil, Trash2 } from 'lucide-react';

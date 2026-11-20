@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { describe, it, expect } from 'vitest';
 import { safeFixed, safeLocale, safePct, safeArray } from '../utils/safe';
 import { formatBytes, formatDuration, formatRelativeTime, formatNumber, getStatusColor } from '../utils/formatters';

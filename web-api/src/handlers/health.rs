@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Health / readiness — keep probes cheap so kubelet never kills the API under load.
 //!
 //! `/ready` never calls Hubble or kubectl. `/health` serves last-known subsystem

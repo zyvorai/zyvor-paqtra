@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # Render the Homebrew formula for a release from its sha256sums.txt.
 #   scripts/render-homebrew-formula.sh <version> <sha256sums.txt> [repo]
 # Prints Formula/paqtra.rb on stdout. Fails if a platform's checksum is missing

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 use super::expr::{compile as compile_expr, Expr};
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};

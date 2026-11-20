@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Prometheus metrics endpoint
 use axum::{extract::State, http::StatusCode, response::IntoResponse};
 use std::sync::atomic::Ordering;

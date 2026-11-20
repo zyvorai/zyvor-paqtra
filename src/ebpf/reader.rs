@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// eBPF Map Reader Implementation
 ///
 /// Reads Cilium eBPF maps from /sys/fs/bpf/ using bpftool when available,

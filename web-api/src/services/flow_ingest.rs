@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Background Hubble → FlowStore ingestion.
 //!
 //! Prefers a live Observer `follow` stream. On disconnect, records a gap and

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /** Safe number formatting — prevents crashes on undefined/null API responses */
 
 export function safeFixed(val: number | undefined | null, digits = 1): string {

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Background flow export pipeline
 //
 // Periodically reads active export configs from the in-memory cache and exports Hubble flows

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Installing and configuring Cilium/Hubble through Cilium's own Helm chart,
 //! for `paqtra install --with-cilium` and `paqtra hubble enable|disable`.
 //! Paqtra only drives Cilium's public chart; it never touches its datapath.

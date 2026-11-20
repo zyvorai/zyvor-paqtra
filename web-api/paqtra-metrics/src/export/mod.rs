@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Ships the per-second store to external systems: Prometheus remote write
 //! (hand-encoded protobuf + in-tree snappy), OTLP/HTTP JSON and Graphite
 //! plaintext. This module builds batches and request bodies; the host sends

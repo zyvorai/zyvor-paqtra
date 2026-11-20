@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // CORS middleware
 use axum::http::{HeaderValue, Method};
 use tower_http::cors::CorsLayer;

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Running Helm. cilium-cli embeds the Helm SDK; Rust has none, so Paqtra runs
 //! the `helm` binary, and (like a package manager bootstrapping its tool)
 //! downloads a pinned, checksum-verified copy when none is installed.

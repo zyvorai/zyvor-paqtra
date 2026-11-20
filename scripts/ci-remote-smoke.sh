@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # Remote / local cluster smoke: pods Ready, API health, UI HTTPS, status CLI.
 # Usage:
 #   ./scripts/ci-remote-smoke.sh                 # local kubecontext, ns=paqtra

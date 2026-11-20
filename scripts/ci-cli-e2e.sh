@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # End-to-end test of the paqtra CLI against a real cluster (kind, no CNI).
 # The CLI does everything, including installing Cilium, so a regression in any
 # lifecycle command fails here. Expects images paqtra-api:ci, paqtra-ui:ci and

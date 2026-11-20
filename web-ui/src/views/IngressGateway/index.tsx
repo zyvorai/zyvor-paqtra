@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import React, { useState, useCallback } from 'react';
 import { Globe, Loader2, Lock, LockOpen, ExternalLink } from 'lucide-react';
 import { fetchIngressRoutes } from '../../services/api';

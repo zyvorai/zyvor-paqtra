@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import React, { useState, useCallback } from 'react';
 import { Globe, Loader2, Wifi, WifiOff, ArrowRightLeft, Clock } from 'lucide-react';
 import { fetchClusters, syncClusterPolicies, ClusterInfo, apiErrorMessage } from '../../services/api';

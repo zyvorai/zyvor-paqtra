@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// Integration layer combining eBPF and Kubernetes
 ///
 /// Provides enriched data structures with both kernel-level network data

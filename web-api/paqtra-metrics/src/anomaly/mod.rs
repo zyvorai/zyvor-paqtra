@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Per-metric anomaly detection (k-means per dimension), node anomaly rates,
 //! and highlight-window correlation.
 

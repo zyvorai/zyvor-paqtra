@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import React, { useState, useCallback } from 'react';
 import { Shield, Loader2, ArrowUpDown, Clock } from 'lucide-react';
 import { fetchWireGuardPeers, WireGuardPeer } from '../../services/api';

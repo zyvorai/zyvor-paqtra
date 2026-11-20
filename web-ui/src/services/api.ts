@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
 /** Readable message for a failed request: prefers the API's `error` field, then `message`. */

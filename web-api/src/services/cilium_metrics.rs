@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Cilium and Hubble metrics read from Prometheus.
 //
 // Cilium exports its own metrics (agent, operator) and Hubble exports flow

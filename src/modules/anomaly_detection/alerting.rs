@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Alert Management - Intelligent alerting with noise reduction
 use anyhow::Result;
 use chrono::{DateTime, Duration, Utc};

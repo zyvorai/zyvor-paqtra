@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # ─────────────────────────────────────────────────────────────
 # Paqtra — DEVELOPER installer: builds the CLI from a source checkout.
 # End users: use ./install.sh (downloads and verifies a release).

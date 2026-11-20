@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// eBPF reader layer for direct Cilium map access
 ///
 /// This module provides low-level access to Cilium's eBPF maps for:

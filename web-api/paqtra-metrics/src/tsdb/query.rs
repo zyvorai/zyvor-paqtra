@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 use super::db::{Db, SeriesInfo, TIER0_RESOLUTION, TIER1_RESOLUTION, TIER2_RESOLUTION};
 use super::series::{match_any, match_glob, NullFloat, Rollup};
 use serde::{Deserialize, Serialize};

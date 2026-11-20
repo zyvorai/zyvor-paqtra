@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 // Tiered per-endpoint rate limiter using token buckets keyed by (IP, tier).
 //
 // Rate tiers:

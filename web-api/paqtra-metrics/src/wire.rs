@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Agent-to-API metric stream. The agent's tier-0 store doubles as the replay
 //! buffer: after a disconnect or an API restart the API reports the newest
 //! second it holds for the node and the agent resends everything after it.

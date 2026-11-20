@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// Integration tests for the Self-Healer module.
 ///
 /// Tests the healer's problem detection and fix generation workflow

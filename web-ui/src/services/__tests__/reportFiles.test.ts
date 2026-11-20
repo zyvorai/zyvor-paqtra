@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { AxiosError, AxiosResponse } from 'axios';
 import { openBlobInNewTab, downloadBlob, blobErrorMessage } from '../reportFiles';

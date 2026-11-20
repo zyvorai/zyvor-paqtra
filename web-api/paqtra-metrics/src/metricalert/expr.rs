@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! calc/warn/crit expressions: a small subset of Netdata's language.
 //! Numbers, `$variables`, `+ - * / %`, comparisons, `&& || !` (also `and`,
 //! `or`, `not`), the ternary `?:`, parentheses and `abs()/min()/max()`. Any

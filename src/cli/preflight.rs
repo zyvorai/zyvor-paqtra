@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Prerequisite checks, shared by `paqtra install` (blocks on failures) and
 //! `paqtra doctor`. Each check is a pure function of what was observed, so the
 //! judgement (is Cilium old enough? is Hubble usable?) is unit-tested without a

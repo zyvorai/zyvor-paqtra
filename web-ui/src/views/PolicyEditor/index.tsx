@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import React, { useState, useRef } from 'react';
 import { FileEdit, CheckCircle, XCircle, Play, Loader2, Copy, RotateCcw } from 'lucide-react';
 import Editor, { OnMount } from '@monaco-editor/react';

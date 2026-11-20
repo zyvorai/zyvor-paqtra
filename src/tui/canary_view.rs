@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// Canary Deployment View - Sidecarless Progressive Traffic Shifting
 use ratatui::{
     layout::{Constraint, Direction, Layout},

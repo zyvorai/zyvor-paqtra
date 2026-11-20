@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+# SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 # Render the social cards with headless Chrome:
 #   paqtra-share-card.html  (1200x630) -> paqtra-share-card.png   README hero + website og:image
 #   paqtra-social-card.html (1600x900) -> paqtra-social-card.jpg  LinkedIn / X

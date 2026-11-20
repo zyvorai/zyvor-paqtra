@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 use crate::ebpf::{CiliumMapReader, EnrichedMapReader, MockMapReader};
 use crate::endpoints::{Endpoint, EndpointManager};
 use crate::hubble::{Flow, HubbleClient};

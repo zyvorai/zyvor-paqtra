@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 /// Integration tests for the What-If Simulator module.
 ///
 /// Tests the simulator's scenario preparation, risk scoring, and

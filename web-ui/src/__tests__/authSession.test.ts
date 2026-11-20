@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import api, { UNAUTHORIZED_EVENT } from '../services/api';

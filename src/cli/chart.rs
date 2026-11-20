@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 //! Where the Helm chart comes from. The chart is compiled into the binary, so a
 //! downloaded `paqtra` can install itself with no files beside it, and it
 //! always matches the CLI's version (CLI vX installs chart vX, image tag vX).

@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { useCallback, useState } from 'react';
 import { generateAutopolicy } from '../../services/api';
 import { Board, Card, Eyebrow, Warning, Empty, Toolbar } from '../../components/Board';

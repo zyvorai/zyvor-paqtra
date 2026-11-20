@@ -1,3 +1,6 @@
+// Copyright 2026 Zyvor AI Labs · https://zyvor.dev
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+
 import { useEffect, useRef, useState } from 'react';
 import api, { apiErrorMessage } from '../services/api';
 import { streamMaxWindow, streamSocketURL, type MetricResult, type StreamQuery } from '../utils/metrics';
