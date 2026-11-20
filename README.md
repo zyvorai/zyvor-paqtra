@@ -2,8 +2,6 @@
 
 # Paqtra
 
-[Client overview (PDF)](docs/Paqtra-Client-Overview.pdf)
-
 [![CI](https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml)
 [![License: Zyvor Production 1.0](https://img.shields.io/badge/License-Zyvor_Production_1.0-1d1d1f.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-API%20%C2%B7%20agent%20%C2%B7%20CLI%20%C2%B7%20TUI-000000?logo=rust)](Cargo.toml)
@@ -61,25 +59,6 @@ Full history: [CHANGELOG.md](CHANGELOG.md).
 Paqtra is observe-first. Flows come from Hubble; node-local enrichment may read the BPF map inventory. **Enforcement stays with Cilium**: policy changes go through `CiliumNetworkPolicy` (CNP), never through Paqtra's own datapath.
 
 ![Capabilities at a glance: Observe, Investigate, Secure, Operate](docs/ux/readme-capabilities.jpg)
-
----
-
-## Paqtra vs Hubble UI
-
-![Paqtra vs Hubble UI: from live flows to a verdict you can act on](docs/ux/readme-vs.jpg)
-
-Paqtra does not replace Hubble; it reads Hubble's flows through Hubble Relay and builds on them.
-
-| | **Paqtra** | **Hubble UI** (ships with Cilium) |
-|---|---|---|
-| Flow source | Hubble Observer gRPC follow-stream | Hubble Relay |
-| Flow history | Local SQLite flow store, queried by time window | Live flows from Hubble's in-memory buffers |
-| Service map | Service map and observed-traffic topology | Service map per namespace |
-| "Why can't A reach B?" | Path explain with observed / inferred / unavailable evidence | Inspect the flows yourself |
-| Drops | Drop analytics by Cilium reason, Why denied? per flow | Verdict and drop reason on each flow |
-| Policy | Rule builder, YAML editor, AutoPolicy, simulate, apply as CNP | Not a policy editor |
-| Interfaces | Web dashboard, REST API, terminal UI, CLI | Web UI (plus the `hubble` CLI) |
-| **Choose Hubble UI when** | | Live flows and a service map are all you need and you want only what ships with Cilium |
 
 ---
 
@@ -188,30 +167,6 @@ Build from source, Docker, Helm, environment variables and testing: **[Install g
 
 ---
 
-## Paqtra vs PacketWolf
-
-![Paqtra vs PacketWolf — what the commercial platform adds](docs/social/paqtra-vs-packetwolf-card.jpg)
-
-Paqtra is the community edition, free for non-production use under the Zyvor Production License v1.0. **PacketWolf** is Zyvor's commercial platform on the same Cilium-native foundation, for teams that need to go from *seeing* the network to *securing and operating* it.
-
-| | **Paqtra** (Zyvor Production 1.0, free non-production) | **PacketWolf** (commercial) |
-|---|---|---|
-| Flows, verdicts, service map, drops, root cause | ✅ | ✅ |
-| AutoPolicy, simulator, healer, chaos, canary, replay, multi-cluster | ✅ | ✅ |
-| Which **process** opened each socket (kernel attribution, syscall tracing, `netpred explain`) | — | ✅ |
-| Custom eBPF probes with honest attach status | — (read-only by design) | ✅ opt-in |
-| **Threat detection**: learned baselines, DGA and beaconing, attack graph, GeoThreat, Tetragon correlation | — | ✅ |
-| **Containment**: six profiles, gated auto-response with rollback, forensic pack | — | ✅ |
-| Zero-Trust Pilot, policy insight scorecard, blast radius, drift scan, KubePosture | — | ✅ |
-| **Ask Zyra** network copilot (58 read-only tools, gated write actions) | — | ✅ |
-| Compliance Lens (SOC 2, PCI-DSS, HIPAA), CVE posture, cost-aware egress, risk forecast | Basic audits (CIS, NIST, SOC 2) | ✅ |
-| Kubernetes operator and CRDs, `netpred` CLI | — | ✅ |
-| OIDC, SAML, LDAP sign-in, tenant views, SIEM export | JWT | ✅ |
-| KubeVirt VM console and VNC, in-browser shell, podman/docker visibility | — | ✅ |
-| Support | Community | ZyvorAI Labs |
-
-Full breakdown: [docs/paqtra-vs-packetwolf.md](docs/paqtra-vs-packetwolf.md). For a demo, a trial or pricing, book a [demo](https://zyvor.dev/schedule?utm_source=github&utm_medium=paqtra&utm_campaign=readme_footer), start a [30-day PoC](https://zyvor.dev/poc?utm_source=github&utm_medium=paqtra&utm_campaign=readme_footer) or contact [sales@zyvor.dev](mailto:sales@zyvor.dev) or visit [zyvor.dev](https://zyvor.dev/?utm_source=github&utm_medium=paqtra&utm_campaign=readme_footer).
-
 ## Paqtra or Netra?
 
 **Netra** is the independent eBPF sibling: its own programs and maps under `/sys/fs/bpf/netra`, with leased emergency control. The two must not fight.
@@ -241,7 +196,6 @@ Report vulnerabilities through [SECURITY.md](SECURITY.md). Deeper reading: [docs
 | Use the terminal UI | [TUI](docs/tui.md) |
 | Watch node and app metrics | [Metrics platform](docs/metrics.md) · [Metric alerts](docs/metric-alerts.md) · [Anomaly detection](docs/anomaly-detection.md) · [App collectors](docs/app-collectors.md) |
 | Browse the repository | [Repository layout](docs/repository-layout.md) |
-| Compare with PacketWolf | [Paqtra vs PacketWolf](docs/paqtra-vs-packetwolf.md) |
 | Contribute | [CONTRIBUTING.md](CONTRIBUTING.md) · [AGENTS.md](AGENTS.md) · [CHANGELOG.md](CHANGELOG.md) |
 
 ---

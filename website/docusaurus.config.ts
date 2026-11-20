@@ -111,11 +111,6 @@ const config: Config = {
         },
         {to: '/docs/integrations/mcp-integration', label: 'MCP', position: 'left'},
         {to: '/gallery', label: 'Gallery', position: 'left'},
-        {
-          to: '/docs/paqtra-vs-packetwolf',
-          label: 'PacketWolf',
-          position: 'left',
-        },
         {to: '/support', label: 'Support', position: 'right'},
         {
           href: 'https://github.com/zyvorai/zyvor-paqtra',
@@ -136,7 +131,6 @@ const config: Config = {
             {label: 'Gallery', to: '/gallery'},
             {label: 'Cilium boundary', to: '/docs/core-concepts/cilium-brotherhood'},
             {label: 'Security', to: '/docs/security'},
-            {label: 'Paqtra vs PacketWolf', to: '/docs/paqtra-vs-packetwolf'},
           ],
         },
         {

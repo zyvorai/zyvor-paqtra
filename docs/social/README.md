@@ -4,7 +4,6 @@
 |---|---|---|
 | `paqtra-share-card.html` / `.png` | 1200×630 card: the README hero and the website's social preview (`website/docusaurus.config.ts` serves this folder as static files) | `./docs/social/build-social-card.sh` |
 | `paqtra-social-card.html` / `.jpg` | 1600×900 (16:9) card for LinkedIn and X: the flow → verdict → drop → investigate → policy story | `./docs/social/build-social-card.sh` |
-| `paqtra-vs-packetwolf-card.html` / `.jpg` | 1600×900 comparison of Paqtra (community) and PacketWolf (commercial), with a demo call to action. Only shipped PacketWolf features appear; see [`paqtra-vs-packetwolf.md`](../paqtra-vs-packetwolf.md) | `./docs/social/build-social-card.sh` |
 | `readme/*.html` | Three cards used by the README, in the same dark look: `readme-how-it-works.jpg`, `readme-capabilities.jpg`, `readme-boundary.jpg` (written to `docs/ux/`) | `./docs/social/readme/build.sh` |
 
 The build needs Google Chrome (set `CHROME=...` to override the path) and macOS `sips` for the JPEG. Nothing is installed.

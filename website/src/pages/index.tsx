@@ -71,9 +71,6 @@ export default function Home(): ReactNode {
           <Link className={`${s.btn} ${s.btnPrimary}`} to="/docs/getting-started/quickstart">
             Quickstart
           </Link>
-          <Link className={`${s.btn} ${s.btnGhost}`} to="/docs/paqtra-vs-packetwolf">
-            Compare with PacketWolf
-          </Link>
         </CtaBand>
       </Page>
     </Layout>

@@ -5,7 +5,6 @@
 # Render the social cards with headless Chrome:
 #   paqtra-share-card.html  (1200x630) -> paqtra-share-card.png   README hero + website og:image
 #   paqtra-social-card.html (1600x900) -> paqtra-social-card.jpg  LinkedIn / X
-#   paqtra-vs-packetwolf-card.html (1600x900) -> paqtra-vs-packetwolf-card.jpg  edition comparison
 # Needs Google Chrome; the JPEG step uses macOS `sips`. Nothing is installed.
 #   ./docs/social/build-social-card.sh
 set -euo pipefail
@@ -23,7 +22,7 @@ echo "wrote $HERE/paqtra-share-card.png ($(du -k "$HERE/paqtra-share-card.png" |
 
 PNG="$(mktemp "${TMPDIR:-/tmp}/paqtra-card.XXXXXX.png")"
 trap 'rm -f "$PNG"' EXIT
-for card in paqtra-social-card paqtra-vs-packetwolf-card; do
+for card in paqtra-social-card; do
   shot "$card.html" 1600 900 "$PNG"
   sips -s format jpeg -s formatOptions 92 "$PNG" --out "$HERE/$card.jpg" >/dev/null
   echo "wrote $HERE/$card.jpg ($(du -k "$HERE/$card.jpg" | cut -f1) KB)"

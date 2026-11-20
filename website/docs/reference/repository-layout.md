@@ -16,7 +16,6 @@ custom_edit_url: https://github.com/zyvorai/zyvor-paqtra/edit/main/docs/reposito
 | [docs/web-architecture.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/web-architecture.md) | API + UI architecture |
 | [docs/web-deployment.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/web-deployment.md) | Deploy options |
 | [docs/cilium-brotherhood.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/cilium-brotherhood.md) | Cilium / Netra boundaries |
-| [docs/paqtra-vs-packetwolf.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/paqtra-vs-packetwolf.md) | Community vs commercial edition |
 | [docs/investigate.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/investigate.md) | Path investigation + policy preview |
 | [docs/autopolicy.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/autopolicy.md) | AutoPolicy guide |
 | [docs/simulator.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/simulator.md) | Policy simulator |

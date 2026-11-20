@@ -10,7 +10,6 @@
 | [docs/web-architecture.md](web-architecture.md) | API + UI architecture |
 | [docs/web-deployment.md](web-deployment.md) | Deploy options |
 | [docs/cilium-brotherhood.md](cilium-brotherhood.md) | Cilium / Netra boundaries |
-| [docs/paqtra-vs-packetwolf.md](paqtra-vs-packetwolf.md) | Community vs commercial edition |
 | [docs/investigate.md](investigate.md) | Path investigation + policy preview |
 | [docs/autopolicy.md](autopolicy.md) | AutoPolicy guide |
 | [docs/simulator.md](simulator.md) | Policy simulator |

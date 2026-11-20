@@ -172,11 +172,6 @@
       "src": "repository-layout.md",
       "dest": "reference/repository-layout",
       "position": 3
-    },
-    {
-      "src": "paqtra-vs-packetwolf.md",
-      "dest": "paqtra-vs-packetwolf",
-      "position": 5
     }
   ],
   "changelog": {
