@@ -227,6 +227,8 @@ Evaluation is free for 30 days per organization; a commercial license is require
 
 Paqtra is source-available under the **[Zyvor Production License v1.0](LICENSE)** (SPDX `LicenseRef-Zyvor-Production-1.0`; see [NOTICE](NOTICE)). Evaluation is free for 30 days per organization; production use requires a commercial license from Zyvor AI Labs ([zyvor.dev/buy](https://zyvor.dev/buy), 30-day trial key available). Contributions are accepted under the same license.
 
+**Price:** INR 25,499 per node per year incl. 18% GST in India; US$257 per node per year excl. tax elsewhere. Buy: [zyvor.dev/buy](https://zyvor.dev/buy). Orders of USD 5,000 or more and quotes are invoiced in USD through Skydo.
+
 **Zyvor Enterprise** adds what production teams ask for: supported releases, deployment and upgrade guidance, priority incident triage, a named technical contact and 24x7 critical intake. Plans and terms: [docs/SUBSCRIPTION-MODEL.md](docs/SUBSCRIPTION-MODEL.md) · [Pricing](https://zyvor.dev/pricing?utm_source=github&utm_medium=paqtra&utm_campaign=readme_license) · [sales@zyvor.dev](mailto:sales@zyvor.dev).
 
 Report vulnerabilities privately per [SECURITY.md](SECURITY.md). Contributing: [CONTRIBUTING.md](CONTRIBUTING.md).
