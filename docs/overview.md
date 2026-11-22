@@ -14,7 +14,7 @@ header-includes:
   - \usepackage{fancyhdr}
   - \pagestyle{fancy}
   - \fancyhead[L]{Paqtra}
-  - \fancyhead[R]{Zyvor Production License v1.0}
+  - \fancyhead[R]{Zyvor Production Licence v2.0}
   - \fancyfoot[C]{\thepage}
 ---
 
@@ -207,4 +207,4 @@ The tool auto-detects the cluster, verifies Cilium, enables Hubble relay, starts
 
 ---
 
-*Zyvor Production License v1.0*
+*Zyvor Production Licence v2.0*

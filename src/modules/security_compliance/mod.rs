@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Security & Compliance Module - Zero-trust, compliance frameworks, threat intelligence
 // Experimental: Enterprise-grade security and compliance features

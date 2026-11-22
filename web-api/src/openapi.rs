@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // OpenAPI 3.0 specification and Swagger UI handler
 use axum::{http::header, response::IntoResponse, Json};
@@ -49,7 +49,7 @@ pub fn openapi_spec() -> serde_json::Value {
                 "name": "Paqtra Team"
             },
             "license": {
-                "name": "Zyvor Production License v1.0",
+                "name": "Zyvor Production Licence v2.0",
                 "url": "https://github.com/zyvorai/zyvor-paqtra/blob/main/LICENSE"
             }
         },

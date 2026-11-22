@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 use super::{
     key_value_file, labels, pf, read_float, read_lines, read_trim, Chart, Collector, Emitter, Fsys,

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Native Hubble client: talks to the Observer gRPC API of Hubble Relay (or an
 // agent) directly, so the `hubble` binary is not needed.

@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 use super::{key_value_file, labels, pf, Chart, Collector, Emitter, Fsys, Get, Info};
 use std::collections::{HashMap, HashSet};

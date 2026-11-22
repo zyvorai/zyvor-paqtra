@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Compliance Engine - PCI-DSS, SOC2, HIPAA, GDPR, ISO 27001, NIST
 use anyhow::Result;

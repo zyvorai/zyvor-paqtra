@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 import type {ReactNode} from 'react';
 import Link from '@docusaurus/Link';
@@ -46,7 +46,7 @@ export default function Home(): ReactNode {
             [String(F.mcpTools), 'MCP tools, all read-only'],
             [String(F.builtinAlerts), 'built-in metric alerts'],
             [String(F.apiPaths), 'documented REST API paths'],
-            ['Zyvor Production 1.0', 'commercial license required'],
+            ['Zyvor Production Licence v2.0', 'commercial license required'],
           ]}
           cueHref="#why"
           cueLabel="Scroll to the next section"
