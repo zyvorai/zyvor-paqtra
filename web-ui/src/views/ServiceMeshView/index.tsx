@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 import React, { useState, useCallback } from 'react';
 import { Hexagon, Loader2, Lock, LockOpen, RotateCcw, Timer, Zap } from 'lucide-react';

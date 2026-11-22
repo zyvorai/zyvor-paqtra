@@ -3,7 +3,7 @@
 # Paqtra
 
 [![CI](https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml/badge.svg)](https://github.com/zyvorai/zyvor-paqtra/actions/workflows/ci.yml)
-[![License: Zyvor Production 1.0](https://img.shields.io/badge/License-Zyvor_Production_1.0-1d1d1f.svg)](LICENSE)
+[![License: Zyvor Production Licence v2.0](https://img.shields.io/badge/License-Zyvor_Production_Licence_v2.0-1d1d1f.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-API%20%C2%B7%20agent%20%C2%B7%20CLI%20%C2%B7%20TUI-000000?logo=rust)](Cargo.toml)
 [![Cilium](https://img.shields.io/badge/cilium-1.14%2B-purple.svg)](https://cilium.io/)
 [![Changelog](https://img.shields.io/badge/changelog-Keep%20a%20Changelog-informational.svg)](CHANGELOG.md)
@@ -221,11 +221,11 @@ Paqtra is at **2.2.3** ([CHANGELOG.md](CHANGELOG.md)). Its boundary is fixed by 
 
 ## Support
 
-Evaluation is free for 30 days per organization; a commercial license is required for production use (sales@zyvor.dev). If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: sales@zyvor.dev.
+A 30-day trial is available on request from sales@zyvor.dev (a paid evaluation Order at no charge); production and any other use needs a paid Order under the Zyvor Production Licence v2.0. If it helps you, you can donate any amount you like: <https://rzp.io/rzp/utwdYh3>. A donation is voluntary and supports development and maintenance. It is not a purchase: it buys no support, SLA, features, priority or license, and it is not tax-deductible (Zyvor AI Labs Private Limited is a company, not a charity). Zyvor Enterprise (supported releases, SLAs, a named contact and enterprise features) is separate: sales@zyvor.dev.
 
 ## License
 
-Paqtra is source-available under the **[Zyvor Production License v1.0](LICENSE)** (SPDX `LicenseRef-Zyvor-Production-1.0`; see [NOTICE](NOTICE)). Evaluation is free for 30 days per organization; production use requires a commercial license from Zyvor AI Labs ([zyvor.dev/buy](https://zyvor.dev/buy), 30-day trial key available). Contributions are accepted under the same license.
+Paqtra is source-available under the **[Zyvor Production Licence v2.0](LICENSE)** (SPDX `LicenseRef-Zyvor-Production-2.0`; see [NOTICE](NOTICE)). A 30-day trial is available on request from [sales@zyvor.dev](mailto:sales@zyvor.dev) (a paid evaluation Order at no charge); production and any other use needs a paid Order under the Zyvor Production Licence v2.0 ([zyvor.dev/buy](https://zyvor.dev/buy)). Contributions are accepted under the same license.
 
 **Price:** INR 25,499 per node per year incl. 18% GST in India; US$257 per node per year excl. tax elsewhere. Buy: [zyvor.dev/buy](https://zyvor.dev/buy). Orders of USD 5,000 or more and quotes are invoiced in USD through Skydo.
 

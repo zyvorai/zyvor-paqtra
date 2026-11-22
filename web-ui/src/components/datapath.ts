@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // "kube-system/hubble-relay-59cc868d4d-jmg7l" -> "hubble-relay"
 export function workloadLabel(name: string, max = 18): string {

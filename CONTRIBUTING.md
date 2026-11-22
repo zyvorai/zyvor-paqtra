@@ -9,7 +9,7 @@ This project follows the [Contributor Covenant](CODE_OF_CONDUCT.md).
 3. Add tests for TUI, API, or UI behavior that you change.
 4. Run `make check-all` and `make test-all` before submitting a PR (same gates
    as CI for the Rust/UI stack).
-5. Contributions are accepted under the Zyvor Production License v1.0. See `LICENSE`.
+5. Contributions are accepted under the Zyvor Production Licence v2.0. See `LICENSE`.
 
 ## Layout
 

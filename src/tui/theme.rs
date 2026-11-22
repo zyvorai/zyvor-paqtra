@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Theme colors for Paqtra TUI
 // Inspired by GuestKit's Coral-Terracotta Orange Theme (Pantone 7416 C)

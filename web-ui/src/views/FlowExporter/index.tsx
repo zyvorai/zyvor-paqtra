@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { Download, RefreshCw, Loader2, Plus, Trash2, X } from 'lucide-react';

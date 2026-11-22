@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Cilium / Hubble observability endpoints: Hubble node health, metrics read
 // from Prometheus, and read-only queries against the Cilium agent.

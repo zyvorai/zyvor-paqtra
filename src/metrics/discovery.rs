@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 //! Pods on this node, from the Kubernetes API: maps pod cgroups to
 //! namespace/pod/workload and finds application endpoints from pod

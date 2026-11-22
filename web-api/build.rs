@@ -1,5 +1,5 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
-// SPDX-License-Identifier: LicenseRef-Zyvor-Production-1.0
+// SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 // Compiles the vendored Cilium/Hubble protos (see proto/cilium/README.md).
 // `protox` is a pure-Rust protobuf compiler, so no `protoc` is needed.
