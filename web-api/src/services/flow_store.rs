@@ -15,6 +15,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use super::flow_agg::PairCount;
 use crate::models::flow::Flow;
 
 pub const DEFAULT_RETENTION_DAYS: i64 = 7;
@@ -848,6 +849,61 @@ impl FlowStore {
         let mut filtered: Vec<_> = mem.iter().filter(|f| q.matches(f)).cloned().collect();
         filtered.sort_by(|a, b| b.ts.cmp(&a.ts));
         Ok(filtered.into_iter().skip(offset).take(limit).collect())
+    }
+
+    /// Flows grouped by endpoint pair, protocol, port and drop reason, busiest
+    /// groups first, at most `max_groups` of them. The bool is true when more
+    /// groups existed (the quietest were left out). The grouping runs in SQL so
+    /// a busy window costs one pass, not one row per flow in memory.
+    pub fn pair_counts(&self, q: &FlowQuery, max_groups: usize) -> Result<(Vec<PairCount>, bool)> {
+        let max_groups = max_groups.clamp(1, super::flow_agg::MAX_GROUPS);
+        if let Some(db) = self.read_conn() {
+            let (conds, mut vals) = q.where_sql();
+            let sql = format!(
+                "SELECT src_namespace, src_pod, dst_namespace, dst_pod, protocol, port,
+                        CASE WHEN verdict = 'DROPPED' THEN drop_reason ELSE '' END AS r,
+                        SUM(verdict = 'FORWARDED'), SUM(verdict = 'DROPPED'), COUNT(*)
+                 FROM {} WHERE 1=1{conds}
+                 GROUP BY src_namespace, src_pod, dst_namespace, dst_pod, protocol, port, r
+                 ORDER BY COUNT(*) DESC LIMIT ?",
+                q.table()
+            );
+            vals.push(Box::new(max_groups as i64 + 1));
+            let mut rows = self.read(db, |conn| {
+                let mut stmt = conn.prepare(&sql)?;
+                let params_ref: Vec<&dyn rusqlite::types::ToSql> =
+                    vals.iter().map(|b| b.as_ref()).collect();
+                let rows = stmt.query_map(params_ref.as_slice(), |r| {
+                    let fwd: i64 = r.get(7)?;
+                    let drp: i64 = r.get(8)?;
+                    let all: i64 = r.get(9)?;
+                    Ok(PairCount {
+                        src_namespace: r.get(0)?,
+                        src_pod: r.get(1)?,
+                        dst_namespace: r.get(2)?,
+                        dst_pod: r.get(3)?,
+                        protocol: r.get(4)?,
+                        port: r.get::<_, i64>(5)? as u16,
+                        drop_reason: r.get(6)?,
+                        forwarded: fwd.max(0) as u64,
+                        dropped: drp.max(0) as u64,
+                        other: (all - fwd - drp).max(0) as u64,
+                    })
+                })?;
+                rows.collect::<rusqlite::Result<Vec<_>>>()
+            })?;
+            let truncated = rows.len() > max_groups;
+            rows.truncate(max_groups);
+            return Ok((rows, truncated));
+        }
+        let mem = self
+            .memory
+            .lock()
+            .map_err(|_| anyhow::anyhow!("flow memory lock poisoned"))?;
+        let mut rows = super::flow_agg::group_stored(mem.iter().filter(|f| q.matches(f)));
+        let truncated = rows.len() > max_groups;
+        rows.truncate(max_groups);
+        Ok((rows, truncated))
     }
 
     /// How many stored flows match, ignoring limit and offset.
@@ -1949,6 +2005,60 @@ mod tests {
                 .sum::<u64>() as usize,
             expected
         );
+        let _ = std::fs::remove_dir_all(dir);
+    }
+
+    #[test]
+    fn pair_counts_group_in_sql_and_in_memory_alike() {
+        let mk = |verdict: &str, pod: &str, reason: &str, n: usize| -> Vec<StoredFlow> {
+            (0..n)
+                .map(|i| {
+                    let mut f = sample(&format!("{verdict}-{pod}-{reason}-{i}"));
+                    f.verdict = verdict.into();
+                    f.src_pod = pod.into();
+                    f.drop_reason = reason.into();
+                    f.ts = format!("2026-09-25T10:00:{:02}.{:06}Z", i % 60, i);
+                    f
+                })
+                .collect()
+        };
+        let mut rows = mk("FORWARDED", "a", "", 5);
+        rows.extend(mk("DROPPED", "a", "Policy denied", 3));
+        rows.extend(mk("DROPPED", "a", "TTL exceeded", 1));
+        rows.extend(mk("FORWARDED", "b", "", 2));
+
+        let (disk, dir) = temp_store();
+        disk.insert_batch(&rows).unwrap();
+        let mem = FlowStore::memory_only();
+        mem.insert_batch(&rows).unwrap();
+        let q = FlowQuery::default();
+        let (d, d_trunc) = disk.pair_counts(&q, 100).unwrap();
+        let (m, m_trunc) = mem.pair_counts(&q, 100).unwrap();
+        assert!(!d_trunc && !m_trunc);
+        assert_eq!(d.len(), 4);
+        let by = |v: &[PairCount], pod: &str, reason: &str| {
+            v.iter()
+                .find(|r| r.src_pod == pod && r.drop_reason == reason)
+                .map(|r| (r.forwarded, r.dropped, r.other))
+        };
+        for v in [&d, &m] {
+            assert_eq!(by(v, "a", ""), Some((5, 0, 0)));
+            assert_eq!(by(v, "a", "Policy denied"), Some((0, 3, 0)));
+            assert_eq!(by(v, "a", "TTL exceeded"), Some((0, 1, 0)));
+            assert_eq!(by(v, "b", ""), Some((2, 0, 0)));
+        }
+        // Busiest first, and a small cap reports that it cut the tail.
+        let (top, trunc) = disk.pair_counts(&q, 2).unwrap();
+        assert!(trunc && top.len() == 2 && top[0].total() >= top[1].total());
+        assert_eq!(top[0].forwarded, 5);
+        let (top, trunc) = mem.pair_counts(&q, 2).unwrap();
+        assert!(trunc && top.len() == 2);
+        // Filters apply: scope to nothing matches nothing.
+        let none = FlowQuery {
+            scope: Some(vec!["nope".into()]),
+            ..Default::default()
+        };
+        assert!(disk.pair_counts(&none, 10).unwrap().0.is_empty());
         let _ = std::fs::remove_dir_all(dir);
     }
 }

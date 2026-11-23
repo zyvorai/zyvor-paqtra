@@ -26,6 +26,8 @@ curl -X POST http://localhost:9191/api/v1/modules/autopolicy/generate \
   -d '{"namespace":"default","observation_duration":"5m"}'
 ```
 
+Flow-history views (read-only): `GET /api/v1/flows/history/edges`, `/cardinality` and `/otlp`, and `GET /api/v1/slo/targets/{id}/burn-rate`. See [flow-insights.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/flow-insights.md).
+
 Full endpoint list: [docs/web-architecture.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/web-architecture.md) and [docs/client/api-reference.html](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/client/api-reference.html).
 
 | Interface | URL |

@@ -102,6 +102,7 @@ against a checksum built into the CLI. For air-gapped hosts pass
 | `paqtra version [--client]` | client, installed release and running API versions, with a skew warning |
 | `paqtra info` | context, namespace, Hubble address, node and agent counts |
 | `paqtra config view [--all]` / `get KEY` / `set KEY=VALUE...` | the release's Helm values |
+| `paqtra flows edges\|cardinality\|burn-rate` | read-only views over stored flow history through the API: service edges with drop ratios, Hubble `labelsContext` series estimates, SLO burn rate ([flow-insights.md](flow-insights.md)) |
 | `paqtra hubble enable [--no-relay] [--metrics LIST]` / `disable` | switch Hubble on the Cilium Helm release |
 | `paqtra hubble port-forward [--port 4245]` | forward a local port to Hubble Relay |
 | `paqtra ui [--port 8443] [--no-open]` | port-forward the Paqtra console |

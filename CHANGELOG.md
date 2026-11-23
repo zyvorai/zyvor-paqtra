@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **SLO burn rate.** `GET /api/v1/slo/targets/{id}/burn-rate`, `paqtra flows burn-rate`, MCP `paqtra_slo_burn_rate`: multiwindow, multi-burn-rate evaluation (SRE Workbook table 5-8: page at 14.4x over 1h/5m and 6x over 6h/30m, ticket at 1x over 3d/6h) over stored flow history. Windows the store does not reach back over report `insufficient_history`; windows with under 20 judged flows report `insufficient_data`. Notifies only. [docs/flow-insights.md](docs/flow-insights.md)
+- **Service edges with golden signals.** `GET /api/v1/flows/history/edges`, `paqtra flows edges`, MCP `paqtra_flow_edges`: per edge and per service traffic, drop ratio, top Cilium drop reasons and ports at namespace, workload or pod granularity. Output is bounded (50,000 groups read, `max_edges` listed, the rest folded into totals, world endpoints collapsed to `external`).
+- **Hubble metric cardinality advisor.** `GET /api/v1/flows/history/cardinality`, `paqtra flows cardinality`, MCP `paqtra_metric_cardinality`: series the `flow` and `drop` handlers would have produced for each `labelsContext` choice, risk against a series budget and the most detailed context that fits. Advisory; changes no Cilium or Hubble setting.
+- **OTLP flow export.** `GET /api/v1/flows/history/otlp`, MCP `paqtra_flows_otlp`: stored flows as an OTLP/JSON logs document with OpenTelemetry network attributes. Malformed addresses and timestamps are dropped or skipped, strings bounded.
+- MCP: `paqtra_slos` (list), and the five tools above; 39 tools become 44, still all read-only.
+- `docs/RESEARCH.md`: comparison with Hubble, Retina, Inspektor Gadget, Beyla, Coroot, Pixie, Kentik and OpenTelemetry conventions, with ranked ideas and rejected ones.
+
+### Fixed
+
+- `paqtra_flow_history` and `paqtra_flow_timeline` MCP tools could not pass `from`, `to`, `verdict`, `pod`, `port` or `bucket_secs`, so an agent could only read the last hour; they now can.
+- A window value ending in a multi-byte character (for example `3é`) panicked `slo::window_minutes` when creating an SLO; it is now rejected with the normal 400.
+
 ### Changed
 
 - Dependency refresh (all three lockfiles via `cargo update`, `web-ui` and `website` via `npm update`). Major bumps:

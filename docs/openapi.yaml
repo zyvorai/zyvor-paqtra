@@ -1742,6 +1742,65 @@ paths:
                     items:
                       $ref: "#/components/schemas/SLOTarget"
 
+  /api/v1/slo/targets/{id}/burn-rate:
+    get:
+      operationId: sloBurnRate
+      tags: [SLO]
+      summary: Multiwindow error-budget burn rate over stored flow history
+      description: >
+        Page and ticket tiers from the SRE Workbook (1h/5m 14.4x, 6h/30m 6x,
+        3d/6h 1x). Windows the stored history does not cover are reported as
+        insufficient_history. Read-only; notifies, never applies policy.
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: string}}
+      responses:
+        "200": {description: Burn-rate report, content: {application/json: {schema: {type: object}}}}
+        "404": {description: SLO not found}
+
+  /api/v1/flows/history/edges:
+    get:
+      operationId: flowEdges
+      tags: [Flows]
+      summary: Service edges with traffic, drop ratio and drop reasons
+      parameters:
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {name: namespace, in: query, schema: {type: string}}
+        - {name: granularity, in: query, schema: {type: string, enum: [namespace, workload, pod], default: workload}}
+        - {name: max_edges, in: query, schema: {type: integer, minimum: 1, maximum: 1000, default: 200}}
+      responses:
+        "200": {description: Edges and services, content: {application/json: {schema: {type: object}}}}
+        "400": {description: Invalid parameter}
+
+  /api/v1/flows/history/cardinality:
+    get:
+      operationId: flowMetricCardinality
+      tags: [Flows]
+      summary: Hubble flow and drop series per labelsContext choice
+      parameters:
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {name: namespace, in: query, schema: {type: string}}
+        - {name: budget, in: query, schema: {type: integer, minimum: 100, maximum: 10000000, default: 20000}}
+      responses:
+        "200": {description: Estimates and recommendation, content: {application/json: {schema: {type: object}}}}
+        "400": {description: Invalid parameter}
+
+  /api/v1/flows/history/otlp:
+    get:
+      operationId: flowsOtlp
+      tags: [Flows]
+      summary: Stored flows as an OTLP/JSON logs document
+      parameters:
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {name: namespace, in: query, schema: {type: string}}
+        - {name: verdict, in: query, schema: {type: string}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 1000, default: 1000}}
+      responses:
+        "200": {description: OTLP logs under the otlp key, content: {application/json: {schema: {type: object}}}}
+        "400": {description: Invalid parameter}
+
   # ── Incidents ───────────────────────────────────────────────
   /api/v1/incidents:
     get:

@@ -39,7 +39,7 @@ const VERDICTS: [&str; 7] = [
     "TRANSLATED",
 ];
 
-fn bad(msg: &str) -> (StatusCode, Json<Value>) {
+pub(crate) fn bad(msg: &str) -> (StatusCode, Json<Value>) {
     (StatusCode::BAD_REQUEST, Json(json!({ "error": msg })))
 }
 
@@ -134,7 +134,7 @@ pub fn fill_buckets(
 }
 
 /// The namespace limit to enforce inside the query, if the caller has one.
-fn scope_of(state: &AppState, claims: &Claims) -> Option<Vec<String>> {
+pub(crate) fn scope_of(state: &AppState, claims: &Claims) -> Option<Vec<String>> {
     if state.config.auth_disabled {
         return None;
     }
@@ -144,7 +144,7 @@ fn scope_of(state: &AppState, claims: &Claims) -> Option<Vec<String>> {
     }
 }
 
-fn build_query(
+pub(crate) fn build_query(
     p: &HistoryParams,
     range: &Range,
     scope: Option<Vec<String>>,
@@ -204,7 +204,7 @@ fn flow_json(f: &StoredFlow) -> Value {
 }
 
 /// What a reader must know to interpret the numbers.
-fn context(state: &AppState, range: &Range, cov: &Coverage) -> Value {
+pub(crate) fn context(state: &AppState, range: &Range, cov: &Coverage) -> Value {
     let from_ts = format_ts(range.from);
     // What is known for certain is where the stored flows begin, not whether
     // anything earlier was missed: a quiet cluster and a late start look the
@@ -238,7 +238,7 @@ fn context(state: &AppState, range: &Range, cov: &Coverage) -> Value {
     })
 }
 
-async fn on_pool<T: Send + 'static>(
+pub(crate) async fn on_pool<T: Send + 'static>(
     f: impl FnOnce() -> anyhow::Result<T> + Send + 'static,
 ) -> Result<T, (StatusCode, Json<Value>)> {
     let internal = |m: &str| {

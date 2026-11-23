@@ -11,6 +11,7 @@ mod config;
 mod connectivity;
 mod doctor;
 mod features;
+pub mod flows;
 mod global;
 mod helm;
 mod hubble;

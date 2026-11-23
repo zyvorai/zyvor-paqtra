@@ -39,13 +39,26 @@ struct Tool {
 const NS: (&str, &str) = ("namespace", "Kubernetes namespace to filter on");
 const LIMIT: (&str, &str) = ("limit", "Maximum rows to return");
 const OFFSET: (&str, &str) = ("offset", "Rows to skip, for paging");
+const FROM: (&str, &str) = (
+    "from",
+    "Range start, RFC 3339 (default: one hour before 'to')",
+);
+const TO: (&str, &str) = (
+    "to",
+    "Range end, exclusive, RFC 3339 (default: now); at most 30 days after 'from'",
+);
 
 const TOOLS: &[Tool] = &[
     Tool { name: "paqtra_flows", description: "List recent Hubble flows, optionally filtered by namespace or verdict (FORWARDED, DROPPED).", method: Method::Get, path: "/api/v1/flows", params: &[NS, ("verdict", "FORWARDED or DROPPED"), LIMIT, OFFSET] },
     Tool { name: "paqtra_flow", description: "Get one flow by id.", method: Method::Get, path: "/api/v1/flows/{id}", params: &[("id", "Flow id")] },
     Tool { name: "paqtra_flow_stats", description: "Flow totals: forwarded, dropped, requests per second, average latency.", method: Method::Get, path: "/api/v1/flows/stats", params: &[] },
-    Tool { name: "paqtra_flow_history", description: "Query stored flow history.", method: Method::Get, path: "/api/v1/flows/history", params: &[NS, LIMIT, OFFSET] },
-    Tool { name: "paqtra_flow_timeline", description: "Flow counts over time from stored history.", method: Method::Get, path: "/api/v1/flows/history/timeline", params: &[NS] },
+    Tool { name: "paqtra_flow_history", description: "Query stored flow history.", method: Method::Get, path: "/api/v1/flows/history", params: &[NS, FROM, TO, ("pod", "Either side's pod name contains this text"), ("port", "Destination port"), ("verdict", "FORWARDED, DROPPED, ..."), LIMIT, OFFSET] },
+    Tool { name: "paqtra_flow_timeline", description: "Flow counts over time from stored history.", method: Method::Get, path: "/api/v1/flows/history/timeline", params: &[NS, FROM, TO, ("bucket_secs", "60, 300, 900, 3600, 21600 or 86400 (default: automatic)")] },
+    Tool { name: "paqtra_flow_edges", description: "Service map with golden signals from stored flows: per edge and per service traffic, drop ratio and top Cilium drop reasons. Bounded: the long tail is folded into totals.", method: Method::Get, path: "/api/v1/flows/history/edges", params: &[NS, FROM, TO, ("granularity", "namespace, workload (default) or pod"), ("max_edges", "Edges listed, 1 to 1000 (default 200)")] },
+    Tool { name: "paqtra_metric_cardinality", description: "Advisor for Hubble flow and drop metric labelsContext: how many Prometheus series each choice (none, namespace, workload, pod) would have produced for this cluster's traffic, and the most detailed one that fits a series budget.", method: Method::Get, path: "/api/v1/flows/history/cardinality", params: &[NS, FROM, TO, ("budget", "Series budget for the flow and drop handlers together (default 20000)")] },
+    Tool { name: "paqtra_flows_otlp", description: "Stored flows as an OTLP/JSON logs document using OpenTelemetry network attributes. Read only; nothing is sent anywhere.", method: Method::Get, path: "/api/v1/flows/history/otlp", params: &[NS, FROM, TO, ("verdict", "FORWARDED, DROPPED, ..."), LIMIT] },
+    Tool { name: "paqtra_slos", description: "Availability SLOs with their projected status from the latest flow sample.", method: Method::Get, path: "/api/v1/slo/targets", params: &[] },
+    Tool { name: "paqtra_slo_burn_rate", description: "Multiwindow error-budget burn rate of one SLO over the last hour, 6 hours and 3 days of stored flows (page and ticket tiers from the SRE Workbook). Windows the stored history does not cover are reported as insufficient_history, not judged.", method: Method::Get, path: "/api/v1/slo/targets/{id}/burn-rate", params: &[("id", "SLO id")] },
     Tool { name: "paqtra_flow_store", description: "Size, retention and health of the flow history store.", method: Method::Get, path: "/api/v1/flows/store", params: &[] },
     Tool { name: "paqtra_policies", description: "List network policies (Cilium CNP/CCNP) Paqtra can see.", method: Method::Get, path: "/api/v1/policies", params: &[NS] },
     Tool { name: "paqtra_policy", description: "Get one network policy by id.", method: Method::Get, path: "/api/v1/policies/{id}", params: &[("id", "Policy id")] },
@@ -238,7 +251,13 @@ fn tool_schema(t: &Tool) -> Value {
     let mut required = Vec::new();
     for (name, desc) in t.params {
         let ty = match *name {
-            "limit" | "offset" | "port" | "time_window_minutes" => "integer",
+            "limit"
+            | "offset"
+            | "port"
+            | "time_window_minutes"
+            | "bucket_secs"
+            | "max_edges"
+            | "budget" => "integer",
             "source" | "destination" => "object",
             _ => "string",
         };

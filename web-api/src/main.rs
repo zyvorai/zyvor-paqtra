@@ -214,6 +214,18 @@ async fn main() -> anyhow::Result<()> {
             "/api/v1/flows/history/timeline",
             get(handlers::flow_history::flow_timeline),
         )
+        .route(
+            "/api/v1/flows/history/edges",
+            get(handlers::flow_insights::service_edges),
+        )
+        .route(
+            "/api/v1/flows/history/cardinality",
+            get(handlers::flow_insights::metric_cardinality),
+        )
+        .route(
+            "/api/v1/flows/history/otlp",
+            get(handlers::flow_insights::flows_otlp),
+        )
         .route("/api/v1/flows/{id}", get(handlers::flows::get_flow))
         .route("/api/v1/flows/stats", get(handlers::flows::flow_stats))
         // Policy management
@@ -720,6 +732,10 @@ async fn main() -> anyhow::Result<()> {
         .route(
             "/api/v1/slo/targets/{id}",
             axum::routing::delete(handlers::slo_incidents::delete_slo),
+        )
+        .route(
+            "/api/v1/slo/targets/{id}/burn-rate",
+            get(handlers::slo_incidents::slo_burn_rate),
         )
         // Incidents
         .route(
