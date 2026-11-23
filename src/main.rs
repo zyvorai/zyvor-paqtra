@@ -3,7 +3,6 @@
 // Copyright 2026 Zyvor AI Labs · https://zyvor.dev
 // SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
-
 mod bootstrap;
 mod cilium;
 mod cli;
@@ -162,6 +161,25 @@ enum Commands {
         output: String,
         #[command(subcommand)]
         command: MetricsCommands,
+    },
+    /// Views derived from stored flow history: service edges, metric cardinality, SLO burn rate (read-only)
+    Flows {
+        /// Paqtra API base URL
+        #[arg(
+            long,
+            env = "PAQTRA_API_URL",
+            default_value = "http://127.0.0.1:9191",
+            global = true
+        )]
+        api: String,
+        /// Paqtra API token (env PAQTRA_API_TOKEN)
+        #[arg(long, env = "PAQTRA_API_TOKEN", hide_env_values = true, global = true)]
+        api_token: Option<String>,
+        /// Output format: summary | json
+        #[arg(short, long, default_value = "summary", global = true)]
+        output: String,
+        #[command(subcommand)]
+        command: FlowsCommands,
     },
     /// Display client, release and server versions
     Version {
@@ -369,6 +387,43 @@ enum EbpfCommands {
 }
 
 #[derive(Subcommand, Debug)]
+enum FlowsCommands {
+    /// Who talks to whom, with traffic, drop ratio and drop reasons per edge
+    Edges {
+        /// Range start, RFC 3339 (default: one hour before --to)
+        #[arg(long, default_value = "")]
+        from: String,
+        /// Range end, RFC 3339 (default: now)
+        #[arg(long, default_value = "")]
+        to: String,
+        #[arg(long, default_value = "")]
+        namespace: String,
+        /// namespace | workload | pod
+        #[arg(long, default_value = "workload")]
+        granularity: String,
+        #[arg(long, default_value_t = 50)]
+        max_edges: usize,
+    },
+    /// Series each Hubble labelsContext choice would produce for this traffic
+    Cardinality {
+        #[arg(long, default_value = "")]
+        from: String,
+        #[arg(long, default_value = "")]
+        to: String,
+        #[arg(long, default_value = "")]
+        namespace: String,
+        /// Series the Prometheus can afford for the flow and drop handlers
+        #[arg(long, default_value_t = 20_000)]
+        budget: u64,
+    },
+    /// Multiwindow error-budget burn rate of an SLO
+    BurnRate {
+        /// SLO id (see the SLO list in the API)
+        id: String,
+    },
+}
+
+#[derive(Subcommand, Debug)]
 enum MetricsCommands {
     /// Ingest, alert engine and exporter status
     Status,
@@ -444,6 +499,7 @@ async fn main() -> Result<()> {
             | Some(Commands::Features { .. })
             | Some(Commands::Ebpf { .. })
             | Some(Commands::Metrics { .. })
+            | Some(Commands::Flows { .. })
     );
     if !quiet_cmds || args.verbose {
         tracing_subscriber::fmt()
@@ -622,6 +678,54 @@ async fn main() -> Result<()> {
                     m::cmd_anomalies(&api, after, top, &output)
                 }
                 MetricsCommands::Alerts { all } => m::cmd_alerts(&api, all, &output),
+            })
+            .await?
+        }
+        Some(Commands::Flows {
+            api,
+            api_token,
+            output,
+            command,
+        }) => {
+            use cli::flows as f;
+            let api = cli::metrics::Api {
+                url: api,
+                token: api_token,
+            };
+            tokio::task::spawn_blocking(move || match command {
+                FlowsCommands::Edges {
+                    from,
+                    to,
+                    namespace,
+                    granularity,
+                    max_edges,
+                } => f::cmd_edges(
+                    &api,
+                    &f::Window {
+                        from: &from,
+                        to: &to,
+                        namespace: &namespace,
+                    },
+                    &granularity,
+                    max_edges,
+                    &output,
+                ),
+                FlowsCommands::Cardinality {
+                    from,
+                    to,
+                    namespace,
+                    budget,
+                } => f::cmd_cardinality(
+                    &api,
+                    &f::Window {
+                        from: &from,
+                        to: &to,
+                        namespace: &namespace,
+                    },
+                    budget,
+                    &output,
+                ),
+                FlowsCommands::BurnRate { id } => f::cmd_burn_rate(&api, &id, &output),
             })
             .await?
         }

@@ -17,7 +17,8 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 GROUPS = [
-    ("Flows", ("flow",)),
+    ("Flows", ("flow", "metric_card")),
+    ("SLOs", ("slo",)),
     ("Policies and Cilium", ("polic", "hubble", "cilium")),
     ("Investigate", ("investigat", "connectivity", "rootcause", "healer")),
     ("Anomalies", ("anomal",)),

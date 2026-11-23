@@ -27,7 +27,7 @@ CMD ["agent"]
 # ─── CLI for CI: `docker run ... paqtra install`, ghcr.io/zyvorai/paqtra-cli ─
 # Carries helm so `paqtra install` needs no download at run time. Mount a
 # kubeconfig (-v ~/.kube:/home/paqtra/.kube:ro) or run in-cluster.
-FROM docker.io/alpine/helm:3.16.4 AS helm
+FROM docker.io/alpine/helm:3.22.1 AS helm
 FROM base AS cli
 COPY --from=helm /usr/bin/helm /usr/local/bin/helm
 USER paqtra

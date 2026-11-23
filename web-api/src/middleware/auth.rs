@@ -238,7 +238,17 @@ pub async fn auth_middleware(
         }
     };
 
-    let decoding_key = DecodingKey::from_secret(state.config.jwt_secret.as_bytes());
+    let decoding_key = match DecodingKey::from_secret(state.config.jwt_secret.as_bytes()) {
+        Ok(k) => k,
+        Err(e) => {
+            tracing::error!("JWT key rejected: {}", e);
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({ "error": "Authentication is misconfigured" })),
+            )
+                .into_response();
+        }
+    };
     let validation = Validation::new(Algorithm::HS256);
 
     match decode::<Claims>(token, &decoding_key, &validation) {

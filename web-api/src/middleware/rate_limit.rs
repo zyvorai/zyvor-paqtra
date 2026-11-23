@@ -74,8 +74,8 @@ fn classify(method: &Method, path: &str) -> RateTier {
         return RateTier::Mutating;
     }
 
-    // Heavy read paths.
-    if HEAVY_PREFIXES.iter().any(|pfx| path.starts_with(pfx)) {
+    // Heavy read paths. A burn-rate read scans three days of flow history.
+    if HEAVY_PREFIXES.iter().any(|pfx| path.starts_with(pfx)) || path.ends_with("/burn-rate") {
         return RateTier::Heavy;
     }
 

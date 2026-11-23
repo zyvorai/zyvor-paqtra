@@ -154,6 +154,11 @@
       "position": 6
     },
     {
+      "src": "flow-insights.md",
+      "dest": "operate/flow-insights",
+      "position": 7
+    },
+    {
       "src": "mcp-integration.md",
       "dest": "integrations/mcp-integration",
       "position": 1

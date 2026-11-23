@@ -17,7 +17,7 @@ pub struct Api {
 }
 
 impl Api {
-    fn get(&self, path: &str, query: &[(&str, String)]) -> Result<Value> {
+    pub(crate) fn get(&self, path: &str, query: &[(&str, String)]) -> Result<Value> {
         let agent = ureq::Agent::new_with_config(
             ureq::config::Config::builder()
                 .timeout_global(Some(Duration::from_secs(30)))

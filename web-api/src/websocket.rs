@@ -39,7 +39,14 @@ async fn validate_ws_token(
         StatusCode::UNAUTHORIZED,
         "Missing 'token' query parameter for WebSocket authentication".to_string(),
     ))?;
-    let decoding_key = DecodingKey::from_secret(state.config.jwt_secret.as_bytes());
+    let decoding_key =
+        DecodingKey::from_secret(state.config.jwt_secret.as_bytes()).map_err(|e| {
+            tracing::error!("JWT key rejected: {}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Authentication is misconfigured".to_string(),
+            )
+        })?;
     let validation = Validation::new(Algorithm::HS256);
     let claims = decode::<Claims>(token, &decoding_key, &validation)
         .map_err(|e| {

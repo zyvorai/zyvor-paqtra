@@ -4,7 +4,7 @@
 # ─────────────────────────────────────────────────────────────
 
 # ── Stage 1: Build UI ────────────────────────────────────────
-FROM docker.io/library/node:22-alpine AS ui-builder
+FROM docker.io/library/node:24-alpine AS ui-builder
 WORKDIR /ui
 COPY web-ui/package*.json ./
 RUN npm ci --silent

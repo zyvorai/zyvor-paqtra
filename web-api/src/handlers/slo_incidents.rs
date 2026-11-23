@@ -6,6 +6,8 @@
 use super::{
     actor_from_claims, audit_log as emit_audit, paginate_json, track_request, PaginationQuery,
 };
+use crate::services::burn_rate;
+use crate::services::flow_store::{format_ts, FlowQuery};
 use crate::services::incidents;
 use crate::services::notifier::is_valid_severity;
 use crate::services::slo::{self, Slo, SLOS_PREFIX};
@@ -158,6 +160,62 @@ pub async fn create_slo(
     )
     .await;
     Ok(Json(serde_json::to_value(&created).unwrap_or_default()))
+}
+
+/// GET /api/v1/slo/targets/{id}/burn-rate: how fast the SLO's error budget is
+/// being spent over the last hour, 6 hours and 3 days of stored flows, with
+/// the multiwindow alert state. Notifies only; nothing here applies policy.
+pub async fn slo_burn_rate(
+    State(state): State<Arc<AppState>>,
+    claims: Claims,
+    Path(id): Path<String>,
+) -> ApiResult {
+    track_request(&state, |_| {}).await;
+    if id.len() > 64 || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
+        return Err(err(StatusCode::NOT_FOUND, "SLO not found"));
+    }
+    let slo: Slo = state
+        .cache
+        .get::<Slo>(&format!("{SLOS_PREFIX}{id}"))
+        .await
+        .ok()
+        .flatten()
+        .ok_or_else(|| err(StatusCode::NOT_FOUND, "SLO not found"))?;
+    let window_secs = slo::window_minutes(&slo.window).unwrap_or(0) as i64 * 60;
+
+    let now = chrono::Utc::now();
+    let q = FlowQuery {
+        namespace: slo.namespace.clone(),
+        since_rfc3339: Some(format_ts(
+            now - chrono::Duration::seconds(burn_rate::MAX_WINDOW_SECS),
+        )),
+        until_rfc3339: Some(format_ts(now + chrono::Duration::seconds(1))),
+        scope: super::flow_history::scope_of(&state, &claims),
+        ..Default::default()
+    };
+    let store = state.flow_store.clone();
+    let (buckets, coverage) = super::flow_history::on_pool(move || {
+        Ok((
+            store.timeline(&q, burn_rate::BUCKET_SECS)?,
+            store.coverage(q.scope.as_deref())?,
+        ))
+    })
+    .await?;
+    let oldest = coverage
+        .oldest
+        .as_deref()
+        .and_then(|t| chrono::DateTime::parse_from_rfc3339(t).ok())
+        .map(|t| t.timestamp());
+    let report = burn_rate::evaluate(slo.target, window_secs, &buckets, now.timestamp(), oldest);
+    Ok(Json(json!({
+        "id": slo.id,
+        "name": slo.name,
+        "namespace": slo.namespace,
+        "window": slo.window,
+        "evaluated_at": format_ts(now),
+        "history": { "oldest": coverage.oldest, "retention_days": coverage.retention_days, "durable": coverage.durable },
+        "burn_rate": report,
+    })))
 }
 
 pub async fn delete_slo(
