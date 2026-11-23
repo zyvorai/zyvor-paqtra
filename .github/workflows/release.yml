@@ -241,7 +241,7 @@ jobs:
 
       - name: Install cosign
         if: needs.meta.outputs.publish == 'true'
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4
 
       - name: Sign checksums (keyless)
         if: needs.meta.outputs.publish == 'true'

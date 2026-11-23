@@ -28,5 +28,5 @@ paqtra/
 ## Prerequisites
 
 - Rust 1.75+
-- Node.js 18+ (20+ recommended for web-ui)
+- Node.js 24 (what CI and the web-ui image use)
 - Kubernetes cluster with Cilium 1.14+ (for end-to-end work)

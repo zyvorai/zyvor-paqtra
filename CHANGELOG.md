@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Dependency refresh (all three lockfiles via `cargo update`, `web-ui` and `website` via `npm update`). Major bumps:
+  - `kube` 4.2 to 5.1 and `k8s-openapi` 0.28 to 0.29; the `v1_32` feature is gone in 0.29, so the binding is now `v1_35` (no source changes needed, timestamps were already `jiff`).
+  - `axum-server` 0.8 to 0.9 (no source changes).
+  - `jsonwebtoken` 11 to 12: `EncodingKey::from_secret` and `DecodingKey::from_secret` now return `Result`; the login, auth middleware and WebSocket paths map a rejected key to a 500 and log it (the 32-byte `JWT_SECRET` minimum already makes this unreachable in a valid config).
+  - `rusqlite` 0.41 to 0.43 (no source changes).
+  - `@testing-library/jest-dom` 7 to 8 and `jsdom` 30 to 31.
+  - Node 22 to 24 in CI, `pages.yml`, `web-ui/Dockerfile` and `Dockerfile.combined`.
+  - `sigstore/cosign-installer` v3 to v4 (cosign 3; `sign-blob --bundle` is unchanged, the release path is not exercised until the next tag).
+  - Helm pin 3.16.x to 3.22.1 (CI and `Dockerfile.release`; the tag was verified on Docker Hub and GitHub).
+- Held back: `typescript` 7 (`typescript-eslint` 8.73 throws "does not support TS 7.0", so `npm run lint` fails); Helm 4 (chart and `helm push` flow not validated against it); `debian:bookworm-slim` / `rust:bookworm` / `distroless cc-debian12` (still supported, and a Debian 13 move cannot be build-tested without Docker on this host); Terraform providers (`aws ~> 5.0`, `kubernetes ~> 2.25`, `helm ~> 2.12`, EKS module `~> 20.0`: major bumps need a plan against a real account). All other `uses:` pins were already on the latest tag (checkout v7, setup-node v7, upload-artifact v7, download-artifact v8, build-push-action v7, buildx v4, login v4, qemu v4, setup-helm v5, deploy-pages v5, upload-pages-artifact v5, action-gh-release v3, setup-zig v2, kind-action v1, sbom-action v0, trivy-action v0.36.0, rust-cache v2, install-action v2).
+- Removed the unused `nix` dependency from the CLI crate (cargo reported it unused; nothing imported it).
+
 - Gateway API front door is now Setura Gateway (GatewayClass `setura`): `docs/envoy-gateway.md` is `docs/setura-gateway.md`, and the Envoy Gateway only `gateway.backendTrafficPolicy` chart value is removed.
 
 ## [2.2.6] - 2026-11-20

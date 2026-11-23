@@ -620,7 +620,7 @@ fn test_jwt_encode_decode_roundtrip() {
     let token = encode(
         &Header::new(Algorithm::HS256),
         &claims,
-        &EncodingKey::from_secret(secret.as_bytes()),
+        &EncodingKey::from_secret(secret.as_bytes()).unwrap(),
     )
     .expect("JWT encoding must succeed");
 
@@ -629,7 +629,7 @@ fn test_jwt_encode_decode_roundtrip() {
     // Decode
     let decoded = decode::<Claims>(
         &token,
-        &DecodingKey::from_secret(secret.as_bytes()),
+        &DecodingKey::from_secret(secret.as_bytes()).unwrap(),
         &Validation::new(Algorithm::HS256),
     )
     .expect("JWT decoding must succeed");
@@ -655,13 +655,13 @@ fn test_jwt_decode_wrong_secret() {
     let token = encode(
         &Header::new(Algorithm::HS256),
         &claims,
-        &EncodingKey::from_secret(b"correct-secret-that-is-long-enough!!"),
+        &EncodingKey::from_secret(b"correct-secret-that-is-long-enough!!").unwrap(),
     )
     .expect("JWT encoding must succeed");
 
     let result = decode::<Claims>(
         &token,
-        &DecodingKey::from_secret(b"wrong-secret-that-is-also-long-enough!!"),
+        &DecodingKey::from_secret(b"wrong-secret-that-is-also-long-enough!!").unwrap(),
         &Validation::new(Algorithm::HS256),
     );
 
@@ -686,13 +686,13 @@ fn test_jwt_decode_expired_token() {
     let token = encode(
         &Header::new(Algorithm::HS256),
         &claims,
-        &EncodingKey::from_secret(secret),
+        &EncodingKey::from_secret(secret).unwrap(),
     )
     .expect("JWT encoding must succeed");
 
     let result = decode::<Claims>(
         &token,
-        &DecodingKey::from_secret(secret),
+        &DecodingKey::from_secret(secret).unwrap(),
         &Validation::new(Algorithm::HS256),
     );
 
