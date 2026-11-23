@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Gateway API front door is now Setura Gateway (GatewayClass `setura`): `docs/envoy-gateway.md` is `docs/setura-gateway.md`, and the Envoy Gateway only `gateway.backendTrafficPolicy` chart value is removed.
+
 ## [2.2.6] - 2026-11-20
 
 ### Changed

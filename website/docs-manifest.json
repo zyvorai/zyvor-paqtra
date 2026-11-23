@@ -29,7 +29,7 @@
     "integrations": {
       "label": "Integrations",
       "position": 5,
-      "description": "MCP for AI agents, the REST API and Envoy in front of Paqtra."
+      "description": "MCP for AI agents, the REST API and Setura Gateway in front of Paqtra."
     },
     "reference": {
       "label": "Reference",
@@ -164,8 +164,8 @@
       "position": 2
     },
     {
-      "src": "envoy-gateway.md",
-      "dest": "integrations/envoy-gateway",
+      "src": "setura-gateway.md",
+      "dest": "integrations/setura-gateway",
       "position": 3
     },
     {

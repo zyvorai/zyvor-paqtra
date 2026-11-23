@@ -314,7 +314,7 @@ export function Receipts(): ReactNode {
 const SHIPPED = [
   {v: '2.2.3', d: '2026-10-15', t: 'MCP server and registry listing', p: 'paqtra-mcp ships as an OCI image with read-only tools and is listed as io.github.zyvorai/paqtra.'},
   {v: '2.2.3', d: '2026-10-15', t: 'Per-second metrics platform', p: 'Agent metrics with tiered storage, Hubble-derived series, anomaly detection and built-in alert rules.'},
-  {v: 'main', d: 'unreleased', t: 'Envoy in front', p: 'Optional Gateway API route and backend TLS policy in the Helm chart.'},
+  {v: 'main', d: 'unreleased', t: 'Setura Gateway in front', p: 'Optional Gateway API route and backend TLS policy in the Helm chart.'},
 ];
 
 export function Shipped(): ReactNode {

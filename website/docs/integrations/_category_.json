@@ -3,6 +3,6 @@
   "position": 5,
   "link": {
     "type": "generated-index",
-    "description": "MCP for AI agents, the REST API and Envoy in front of Paqtra."
+    "description": "MCP for AI agents, the REST API and Setura Gateway in front of Paqtra."
   }
 }
