@@ -217,20 +217,20 @@ ingress:
   #   hosts:
   #     - paqtra.example.com
 
-# -- Envoy in front of the UI and API through Gateway API (Envoy Gateway or any
+# -- Setura Gateway in front of the UI and API through Gateway API (or any
 # Gateway API implementation). Off by default; Paqtra auth is unchanged. See
-# docs/envoy-gateway.md.
+# docs/setura-gateway.md.
 gateway:
   enabled: false
-  # Gateway to attach to, e.g. [{name: eg, namespace: envoy-gateway-system}].
+  # Gateway to attach to, e.g. [{name: setura, namespace: default}].
   parentRefs: []
   hostnames: []
   apiPaths: ["/api", "/swagger-ui"]
   uiPath: /
   annotations: {}
-  # "0s" keeps long-lived streams from being cut by Envoy.
+  # "0s" keeps long-lived streams from being cut by the gateway.
   requestTimeout: "0s"
-  # The UI serves HTTPS by default, so Envoy must verify the pod cert. The
+  # The UI serves HTTPS by default, so the gateway must verify the pod cert. The
   # per-pod self-signed cert cannot be verified; behind the gateway set
   # tls.enabled=false and backendTLS.enabled=false, or supply a CA.
   backendTLS:
@@ -239,10 +239,6 @@ gateway:
     hostname: ""
     caCertificateRefs: []
     wellKnownCACertificates: ""
-  # Envoy Gateway only. Needed for WebSocket streams when backendTLS is on.
-  backendTrafficPolicy:
-    enabled: false
-    useClientProtocol: true
 
 # -- Authentication (empty password/apiKey → auto-generated on install)
 auth:
