@@ -36,7 +36,9 @@ pub struct Slo {
 
 /// Minutes in a window string (`<n>h|d|w`), limited to 1 hour..=90 days.
 pub fn window_minutes(window: &str) -> Option<u64> {
-    let (num, unit) = window.split_at(window.len().checked_sub(1)?);
+    // `split_at(len - 1)` would panic inside a multi-byte last character.
+    let unit_start = window.char_indices().next_back()?.0;
+    let (num, unit) = window.split_at(unit_start);
     let n: u64 = num.parse().ok()?;
     let per = match unit {
         "h" => 60,
@@ -165,7 +167,20 @@ mod tests {
         assert_eq!(window_minutes("30d"), Some(43_200));
         assert_eq!(window_minutes("12h"), Some(720));
         assert_eq!(window_minutes("2w"), Some(20_160));
-        for bad in ["", "d", "30", "30x", "-1d", "0h", "91d", "1.5d", "30dd"] {
+        for bad in [
+            "",
+            "d",
+            "30",
+            "30x",
+            "-1d",
+            "0h",
+            "91d",
+            "1.5d",
+            "30dd",
+            "3é",
+            "é",
+            "30\u{1F4A5}",
+        ] {
             assert_eq!(window_minutes(bad), None, "{bad:?}");
         }
     }
