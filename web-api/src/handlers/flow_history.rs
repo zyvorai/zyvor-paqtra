@@ -26,9 +26,9 @@ const DEFAULT_RANGE_MINUTES: i64 = 60;
 const DEFAULT_LIMIT: usize = 100;
 const MAX_LIMIT: usize = 500;
 const MAX_OFFSET: usize = 100_000;
-const MAX_BUCKETS: i64 = 1000;
+pub(crate) const MAX_BUCKETS: i64 = 1000;
 /// Bucket sizes a timeline may use, in seconds: 1m, 5m, 15m, 1h, 6h, 1d.
-const BUCKETS: [i64; 6] = [60, 300, 900, 3600, 21_600, 86_400];
+pub(crate) const BUCKETS: [i64; 6] = [60, 300, 900, 3600, 21_600, 86_400];
 const VERDICTS: [&str; 7] = [
     "FORWARDED",
     "DROPPED",
@@ -363,10 +363,7 @@ pub struct PurgeRequest {
 }
 
 /// GET /api/v1/flows/store — retention + coverage + recent ingest gaps.
-pub async fn flow_store_info(
-    State(state): State<Arc<AppState>>,
-    claims: Claims,
-) -> ApiResult {
+pub async fn flow_store_info(State(state): State<Arc<AppState>>, claims: Claims) -> ApiResult {
     track_request(&state, |_| {}).await;
     let scope = scope_of(&state, &claims);
     let store = state.flow_store.clone();

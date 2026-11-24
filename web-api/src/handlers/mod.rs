@@ -16,6 +16,7 @@ pub mod extended3;
 pub mod extended4;
 pub mod flow_history;
 pub mod flow_insights;
+pub mod flow_reports;
 pub mod flows;
 pub mod health;
 pub mod investigate;
@@ -27,6 +28,9 @@ pub mod notifications;
 pub mod policies;
 pub mod slo_incidents;
 pub mod users;
+
+#[cfg(test)]
+mod flow_http_tests;
 
 use crate::{AppMetrics, AppState};
 use axum::{http::StatusCode, Json};

@@ -742,10 +742,7 @@ mod tests {
         );
         assert_eq!(m.dns_rcode, Some(3));
         assert_eq!(m.dns_rcode_name.as_deref(), Some("NXDOMAIN"));
-        assert_eq!(
-            m.dns_ips.as_ref().map(|v| v.as_slice()),
-            Some(&["10.0.0.9".to_string()][..])
-        );
+        assert_eq!(m.dns_ips.as_deref(), Some(&["10.0.0.9".to_string()][..]));
         assert_eq!(m.dns_latency_ns, Some(2_500_000));
         // A drop without L7 DNS must not invent an rcode.
         let bare = flow_to_model(&tcp_flow("d", Verdict::Dropped, 53));

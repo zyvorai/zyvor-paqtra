@@ -167,14 +167,15 @@ pub async fn login(
         namespaces: vec![],
     };
 
-    let encoding_key = EncodingKey::from_secret(state.config.jwt_secret.as_bytes()).map_err(|e| {
-        tracing::error!("JWT key rejected: {}", e);
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"error": "Could not issue session token"})),
-        )
-            .into_response()
-    })?;
+    let encoding_key =
+        EncodingKey::from_secret(state.config.jwt_secret.as_bytes()).map_err(|e| {
+            tracing::error!("JWT key rejected: {}", e);
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": "Could not issue session token"})),
+            )
+                .into_response()
+        })?;
     let token = encode(&Header::new(Algorithm::HS256), &claims, &encoding_key).map_err(|e| {
         tracing::error!("JWT encode failed: {}", e);
         (

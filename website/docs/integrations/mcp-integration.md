@@ -14,8 +14,8 @@ authentication, RBAC and namespace scoping apply unchanged.
 
 ## What it can and cannot do
 
-- 46 tools, all read-only with respect to the cluster: flows, flow history,
-  service edges, flow diff, fan-out, metric cardinality, OTLP flow export, SLOs and burn rate,
+- 50 tools, all read-only with respect to the cluster: flows, flow history,
+  service edges, flow diff, fan-out, drops by cause, top talkers, policy audit, drop spikes, metric cardinality, OTLP flow export, SLOs and burn rate,
   policies, Hubble and Cilium state, anomalies, compliance, security posture,
   root-cause drops, endpoints, nodes, dependencies and BPF attachment inventory.
 - `paqtra_investigate_path` and `paqtra_investigate_flow` POST an analysis

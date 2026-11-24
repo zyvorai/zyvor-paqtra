@@ -214,26 +214,7 @@ async fn main() -> anyhow::Result<()> {
             "/api/v1/flows/history/timeline",
             get(handlers::flow_history::flow_timeline),
         )
-        .route(
-            "/api/v1/flows/history/edges",
-            get(handlers::flow_insights::service_edges),
-        )
-        .route(
-            "/api/v1/flows/history/cardinality",
-            get(handlers::flow_insights::metric_cardinality),
-        )
-        .route(
-            "/api/v1/flows/history/otlp",
-            get(handlers::flow_insights::flows_otlp),
-        )
-        .route(
-            "/api/v1/flows/history/diff",
-            get(handlers::flow_insights::flow_diff),
-        )
-        .route(
-            "/api/v1/flows/history/fanout",
-            get(handlers::flow_insights::flow_fanout),
-        )
+        .merge(handlers::flow_insights::routes())
         .route("/api/v1/flows/{id}", get(handlers::flows::get_flow))
         .route("/api/v1/flows/stats", get(handlers::flows::flow_stats))
         // Policy management

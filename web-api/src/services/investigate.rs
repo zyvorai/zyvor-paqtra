@@ -487,7 +487,6 @@ pub async fn investigate_path(state: &AppState, req: &InvestigatePathRequest) ->
     result
 }
 
-
 /// Explain a single stored (or snapshot) flow — especially DROPPED connections.
 #[derive(Debug, Clone, Deserialize)]
 pub struct InvestigateFlowRequest {
@@ -534,15 +533,39 @@ pub async fn investigate_flow(state: &AppState, req: &InvestigateFlowRequest) ->
             let src = v.get("source").cloned().unwrap_or(json!({}));
             let dst = v.get("destination").cloned().unwrap_or(json!({}));
             (
-                src.get("namespace").and_then(|x| x.as_str()).unwrap_or("").to_string(),
-                src.get("pod").and_then(|x| x.as_str()).unwrap_or("").to_string(),
-                dst.get("namespace").and_then(|x| x.as_str()).unwrap_or("").to_string(),
-                dst.get("pod").and_then(|x| x.as_str()).unwrap_or("").to_string(),
+                src.get("namespace")
+                    .and_then(|x| x.as_str())
+                    .unwrap_or("")
+                    .to_string(),
+                src.get("pod")
+                    .and_then(|x| x.as_str())
+                    .unwrap_or("")
+                    .to_string(),
+                dst.get("namespace")
+                    .and_then(|x| x.as_str())
+                    .unwrap_or("")
+                    .to_string(),
+                dst.get("pod")
+                    .and_then(|x| x.as_str())
+                    .unwrap_or("")
+                    .to_string(),
                 v.get("port").and_then(|x| x.as_u64()).unwrap_or(0) as u16,
-                v.get("protocol").and_then(|x| x.as_str()).unwrap_or("TCP").to_string(),
-                v.get("verdict").and_then(|x| x.as_str()).unwrap_or("").to_string(),
-                v.get("drop_reason").and_then(|x| x.as_str()).unwrap_or("").to_string(),
-                v.get("timestamp").and_then(|x| x.as_str()).unwrap_or("").to_string(),
+                v.get("protocol")
+                    .and_then(|x| x.as_str())
+                    .unwrap_or("TCP")
+                    .to_string(),
+                v.get("verdict")
+                    .and_then(|x| x.as_str())
+                    .unwrap_or("")
+                    .to_string(),
+                v.get("drop_reason")
+                    .and_then(|x| x.as_str())
+                    .unwrap_or("")
+                    .to_string(),
+                v.get("timestamp")
+                    .and_then(|x| x.as_str())
+                    .unwrap_or("")
+                    .to_string(),
             )
         } else {
             return InvestigateResult {
@@ -556,7 +579,9 @@ pub async fn investigate_flow(state: &AppState, req: &InvestigateFlowRequest) ->
                     evidence: vec![],
                 }],
                 likely_owner: "unknown".into(),
-                next_actions: vec!["Select a DROPPED flow from Flows or pass a flow snapshot.".into()],
+                next_actions: vec![
+                    "Select a DROPPED flow from Flows or pass a flow snapshot.".into()
+                ],
                 flow_ingest: json!({
                     "total": stats.total,
                     "last_ok": stats.last_ingest_ok,
@@ -588,8 +613,15 @@ pub async fn investigate_flow(state: &AppState, req: &InvestigateFlowRequest) ->
 
     let k8s_ok = state.k8s.is_healthy().await;
     let identity_detail = if k8s_ok {
-        let ids = state.k8s.kubectl_json(&["get", "ciliumendpoints", "-A", "-o", "json"]).await;
-        let count = ids.get("items").and_then(|i| i.as_array()).map(|a| a.len()).unwrap_or(0);
+        let ids = state
+            .k8s
+            .kubectl_json(&["get", "ciliumendpoints", "-A", "-o", "json"])
+            .await;
+        let count = ids
+            .get("items")
+            .and_then(|i| i.as_array())
+            .map(|a| a.len())
+            .unwrap_or(0);
         format!("Cluster has {count} CiliumEndpoint(s). Source {src_ns}/{src_pod}, dest {dst_ns}/{dst_pod}.")
     } else {
         "Kubernetes unavailable — cannot resolve CiliumEndpoint identities.".into()
@@ -598,7 +630,11 @@ pub async fn investigate_flow(state: &AppState, req: &InvestigateFlowRequest) ->
         id: "identity".into(),
         title: "Endpoint identities".into(),
         detail: identity_detail,
-        confidence: if k8s_ok { Confidence::Inferred } else { Confidence::Unavailable },
+        confidence: if k8s_ok {
+            Confidence::Inferred
+        } else {
+            Confidence::Unavailable
+        },
         evidence: vec![],
     });
 
@@ -606,14 +642,28 @@ pub async fn investigate_flow(state: &AppState, req: &InvestigateFlowRequest) ->
     let mut denying_guess: Option<String> = None;
     if k8s_ok {
         for ns in [&src_ns, &dst_ns] {
-            if ns.is_empty() { continue; }
-            let data = state.k8s.kubectl_json(&["get", "cnp", "-n", ns, "-o", "json"]).await;
+            if ns.is_empty() {
+                continue;
+            }
+            let data = state
+                .k8s
+                .kubectl_json(&["get", "cnp", "-n", ns, "-o", "json"])
+                .await;
             if let Some(items) = data.get("items").and_then(|i| i.as_array()) {
                 for it in items {
-                    let name = it.pointer("/metadata/name").and_then(|n| n.as_str()).unwrap_or("").to_string();
-                    if name.is_empty() { continue; }
+                    let name = it
+                        .pointer("/metadata/name")
+                        .and_then(|n| n.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    if name.is_empty() {
+                        continue;
+                    }
                     matching_policies.push(format!("cnp/{ns}/{name}"));
-                    if denying_guess.is_none() && port > 0 && it.to_string().contains(&port.to_string()) {
+                    if denying_guess.is_none()
+                        && port > 0
+                        && it.to_string().contains(&port.to_string())
+                    {
                         denying_guess = Some(name);
                     }
                 }
@@ -633,31 +683,59 @@ pub async fn investigate_flow(state: &AppState, req: &InvestigateFlowRequest) ->
         id: "policy".into(),
         title: "CNP / CCNP candidates".into(),
         detail: if matching_policies.is_empty() {
-            if k8s_ok { "No CNP/CCNP listed — default-deny or remote identity may apply (inferred).".into() }
-            else { "Cannot list policies without Kubernetes.".into() }
+            if k8s_ok {
+                "No CNP/CCNP listed — default-deny or remote identity may apply (inferred).".into()
+            } else {
+                "Cannot list policies without Kubernetes.".into()
+            }
         } else {
             format!("Candidates: {}", matching_policies.join(", "))
         },
-        confidence: if k8s_ok { Confidence::Inferred } else { Confidence::Unavailable },
-        evidence: matching_policies.iter().take(5).map(|p| EvidenceRef { kind: "policy".into(), id: p.clone() }).collect(),
+        confidence: if k8s_ok {
+            Confidence::Inferred
+        } else {
+            Confidence::Unavailable
+        },
+        evidence: matching_policies
+            .iter()
+            .take(5)
+            .map(|p| EvidenceRef {
+                kind: "policy".into(),
+                id: p.clone(),
+            })
+            .collect(),
     });
 
-    let is_drop = verdict.eq_ignore_ascii_case("DROPPED") || drop_reason.to_uppercase().contains("POLICY");
+    let is_drop =
+        verdict.eq_ignore_ascii_case("DROPPED") || drop_reason.to_uppercase().contains("POLICY");
     steps.push(InvestigateStep {
         id: "drop".into(),
         title: "Drop reason".into(),
         detail: if drop_reason.is_empty() {
-            if is_drop { "Verdict is DROPPED but Hubble did not include drop_reason_desc.".into() }
-            else { format!("Verdict is {verdict} — not a deny.") }
+            if is_drop {
+                "Verdict is DROPPED but Hubble did not include drop_reason_desc.".into()
+            } else {
+                format!("Verdict is {verdict} — not a deny.")
+            }
         } else {
             format!("Hubble drop_reason_desc: {drop_reason}")
         },
-        confidence: if drop_reason.is_empty() { Confidence::Inferred } else { Confidence::Observed },
+        confidence: if drop_reason.is_empty() {
+            Confidence::Inferred
+        } else {
+            Confidence::Observed
+        },
         evidence: vec![],
     });
 
     let mut next_actions = Vec::new();
-    let likely_owner = if port == 53 && is_drop { "dns" } else if is_drop { "policy" } else { "unknown" };
+    let likely_owner = if port == 53 && is_drop {
+        "dns"
+    } else if is_drop {
+        "policy"
+    } else {
+        "unknown"
+    };
 
     if is_drop && !src_ns.is_empty() && !dst_ns.is_empty() && port > 0 {
         let fix = format!(
@@ -671,15 +749,25 @@ pub async fn investigate_flow(state: &AppState, req: &InvestigateFlowRequest) ->
             confidence: Confidence::Inferred,
             evidence: vec![],
         });
-        next_actions.push("Simulate the draft CNP (POST /api/v1/policies/simulate), then apply via GitOps/CRD.".into());
+        next_actions.push(
+            "Simulate the draft CNP (POST /api/v1/policies/simulate), then apply via GitOps/CRD."
+                .into(),
+        );
     }
     if let Some(n) = denying_guess {
-        next_actions.push(format!("Review policy '{n}' selectors against this flow's identities."));
+        next_actions.push(format!(
+            "Review policy '{n}' selectors against this flow's identities."
+        ));
     }
     if stats.gap_count > 0 {
-        next_actions.push(format!("Ingest reported {} gap(s) — evidence may be incomplete.", stats.gap_count));
+        next_actions.push(format!(
+            "Ingest reported {} gap(s) — evidence may be incomplete.",
+            stats.gap_count
+        ));
     }
-    next_actions.push("Enforcement stays in Cilium CRDs — Paqtra will not attach or rewrite BPF programs.".into());
+    next_actions.push(
+        "Enforcement stays in Cilium CRDs — Paqtra will not attach or rewrite BPF programs.".into(),
+    );
 
     let result = InvestigateResult {
         id: id.clone(),
@@ -717,7 +805,6 @@ pub async fn investigate_flow(state: &AppState, req: &InvestigateFlowRequest) ->
 
     result
 }
-
 
 fn count_name_matches(list: &Value, hint: &str) -> usize {
     let hint = hint.to_lowercase();
@@ -850,7 +937,10 @@ fn build_bundle(
 
 /// Render a concise Markdown incident summary from a stored (redacted) bundle.
 pub fn bundle_to_markdown(bundle: &Value) -> String {
-    let id = bundle.get("id").and_then(|v| v.as_str()).unwrap_or("unknown");
+    let id = bundle
+        .get("id")
+        .and_then(|v| v.as_str())
+        .unwrap_or("unknown");
     let owner = bundle
         .get("likely_owner")
         .and_then(|v| v.as_str())
@@ -922,7 +1012,12 @@ pub fn bundle_to_markdown(bundle: &Value) -> String {
 pub fn bundle_namespaces(bundle: &Value) -> Vec<String> {
     let mut out = Vec::new();
     if let Some(req) = bundle.get("request") {
-        for path in ["/source/namespace", "/destination/namespace", "/path/source/namespace", "/path/destination/namespace"] {
+        for path in [
+            "/source/namespace",
+            "/destination/namespace",
+            "/path/source/namespace",
+            "/path/destination/namespace",
+        ] {
             if let Some(ns) = req.pointer(path).and_then(|v| v.as_str()) {
                 if !ns.is_empty() {
                     out.push(ns.to_string());
@@ -934,7 +1029,6 @@ pub fn bundle_namespaces(bundle: &Value) -> Vec<String> {
     out.dedup();
     out
 }
-
 
 // ---------------------------------------------------------------------------
 // Policy preview (replaces heuristic simulate)

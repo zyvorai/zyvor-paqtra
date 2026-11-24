@@ -463,6 +463,66 @@ enum FlowsCommands {
         #[arg(long, default_value_t = 20)]
         limit: usize,
     },
+    /// Why flows were dropped, split by cause (policy, datapath capacity, routing, invalid packets)
+    Drops {
+        #[arg(long, default_value = "")]
+        from: String,
+        #[arg(long, default_value = "")]
+        to: String,
+        #[arg(long, default_value = "")]
+        namespace: String,
+        /// namespace | workload | pod
+        #[arg(long, default_value = "workload")]
+        granularity: String,
+        #[arg(long, default_value_t = 10)]
+        max_reasons: usize,
+    },
+    /// Busiest sources, destinations and ports by flow count
+    Top {
+        #[arg(long, default_value = "")]
+        from: String,
+        #[arg(long, default_value = "")]
+        to: String,
+        #[arg(long, default_value = "")]
+        namespace: String,
+        /// namespace | workload | pod
+        #[arg(long, default_value = "workload")]
+        granularity: String,
+        #[arg(long, default_value_t = 10)]
+        limit: usize,
+    },
+    /// Edges that policy audit mode flagged as would-be-denied (read this before enforcing default deny)
+    Audit {
+        #[arg(long, default_value = "")]
+        from: String,
+        #[arg(long, default_value = "")]
+        to: String,
+        #[arg(long, default_value = "")]
+        namespace: String,
+        /// namespace | workload | pod
+        #[arg(long, default_value = "workload")]
+        granularity: String,
+        #[arg(long, default_value_t = 20)]
+        max_items: usize,
+    },
+    /// Episodes where drops jumped above the window's typical level
+    Spikes {
+        #[arg(long, default_value = "")]
+        from: String,
+        #[arg(long, default_value = "")]
+        to: String,
+        #[arg(long, default_value = "")]
+        namespace: String,
+        /// Bucket size in seconds: 60, 300, 900, 3600, 21600 or 86400 (default: automatic)
+        #[arg(long)]
+        bucket_secs: Option<i64>,
+        /// Scaled deviations above the median that make a bucket a spike (1 to 20)
+        #[arg(long, default_value_t = 3.0)]
+        sensitivity: f64,
+        /// Drops a bucket needs at least
+        #[arg(long, default_value_t = 10)]
+        min_drops: u64,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -811,6 +871,78 @@ async fn main() -> Result<()> {
                         min_targets,
                         min_drop_ratio,
                         limit,
+                    },
+                    &output,
+                ),
+                FlowsCommands::Drops {
+                    from,
+                    to,
+                    namespace,
+                    granularity,
+                    max_reasons,
+                } => f::cmd_drops(
+                    &api,
+                    &f::Window {
+                        from: &from,
+                        to: &to,
+                        namespace: &namespace,
+                    },
+                    &granularity,
+                    max_reasons,
+                    &output,
+                ),
+                FlowsCommands::Top {
+                    from,
+                    to,
+                    namespace,
+                    granularity,
+                    limit,
+                } => f::cmd_top(
+                    &api,
+                    &f::Window {
+                        from: &from,
+                        to: &to,
+                        namespace: &namespace,
+                    },
+                    &granularity,
+                    limit,
+                    &output,
+                ),
+                FlowsCommands::Audit {
+                    from,
+                    to,
+                    namespace,
+                    granularity,
+                    max_items,
+                } => f::cmd_audit(
+                    &api,
+                    &f::Window {
+                        from: &from,
+                        to: &to,
+                        namespace: &namespace,
+                    },
+                    &granularity,
+                    max_items,
+                    &output,
+                ),
+                FlowsCommands::Spikes {
+                    from,
+                    to,
+                    namespace,
+                    bucket_secs,
+                    sensitivity,
+                    min_drops,
+                } => f::cmd_spikes(
+                    &api,
+                    &f::Window {
+                        from: &from,
+                        to: &to,
+                        namespace: &namespace,
+                    },
+                    &f::SpikeArgs {
+                        bucket_secs,
+                        sensitivity,
+                        min_drops,
                     },
                     &output,
                 ),

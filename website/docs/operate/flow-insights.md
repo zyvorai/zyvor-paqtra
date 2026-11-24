@@ -209,6 +209,56 @@ healthy traffic is listed but not a suspect. Endpoints outside the cluster are
 a single `external` node whose addresses are not kept, so external sources are
 not measured. It notifies; it never blocks or applies policy.
 
+## Drops by cause
+
+`GET /api/v1/flows/history/drops`, CLI `paqtra flows drops`, MCP `paqtra_flow_drops`.
+
+Groups Cilium's drop reasons into a class and lists the edges behind each:
+`policy` (a decision: policy denied, denylist, authentication required),
+`datapath_capacity` (conntrack or NAT map insertion failures: the datapath ran
+out of room and editing policy will not help), `invalid_packet`,
+`routing_or_service` (unroutable IP, missing tunnel, backend not found, TTL) and
+`other` / `unspecified`. `classes` gives the shares, `reasons` the ranked
+reasons with their top three edges (`max_reasons` 1 to 200, default 20; the rest
+is summed in `omitted_reasons`). The class is read from the reason text, so it
+is a reading aid, not a verdict.
+
+## Top talkers
+
+`GET /api/v1/flows/history/top`, CLI `paqtra flows top`, MCP `paqtra_flow_top`.
+
+Three rankings over the window: sources, destinations and protocol/port, each
+with flows, share of all flows and dropped share. Flow records carry no byte
+counts, so this ranks flow count, not bandwidth. `limit` 1 to 100 (default 10);
+`other_flows` sums what was not listed and `distinct` counts every name seen.
+
+## Policy audit readiness
+
+`GET /api/v1/flows/history/audit`, CLI `paqtra flows audit`, MCP
+`paqtra_policy_audit`.
+
+With Cilium policy audit mode on, traffic a policy would drop is allowed and
+reported with the `AUDIT` verdict. This lists those edges and ports worst first,
+and which destination namespaces would be hit, so default deny can be rolled
+out by reading what it would break. The verdict filter is fixed to `AUDIT`
+whatever is passed. An empty result means audit mode is off, or nothing would
+be denied; the reply says to check `policyAuditMode` before reading it as
+safe. Nothing is changed: draft the allow rules with the policy builder and
+simulator. `max_items` 1 to 1000 (default 50).
+
+## Drop spikes
+
+`GET /api/v1/flows/history/spikes`, CLI `paqtra flows spikes`, MCP
+`paqtra_drop_spikes`.
+
+Finds episodes where dropped flows per time bucket sit well above the window's
+own typical level: threshold = median + `sensitivity` x 1.4826 x MAD (1 to 20,
+default 3), never below `min_drops` (default 10). Adjacent spiking buckets are
+one episode with start, end, drops and peak; an episode list is capped at 50
+(`episodes_total` has the count). Fewer than 8 buckets is `insufficient_data`.
+`bucket_secs` as for the timeline. A window that is mostly spike has no quiet
+baseline to compare with. Notifies only.
+
 ## CLI
 
 ```bash
@@ -218,6 +268,10 @@ paqtra flows burn-rate slo-1a2b3c4d
 paqtra flows diff --namespace prod --granularity workload
 paqtra flows diff --baseline-from 2026-11-17T09:00:00Z --baseline-to 2026-11-17T10:00:00Z
 paqtra flows fanout --min-targets 15 --min-drop-ratio 0.5
+paqtra flows drops --namespace prod
+paqtra flows top --granularity namespace --limit 5
+paqtra flows audit --namespace prod
+paqtra flows spikes --bucket-secs 300 --sensitivity 4
 paqtra flows edges -o json        # the API reply
 ```
 

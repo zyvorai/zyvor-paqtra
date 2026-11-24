@@ -163,7 +163,8 @@ pub async fn get_change(state: &AppState, id: &str) -> Option<serde_json::Value>
         .list_values(CHANGES_PREFIX)
         .await
         .unwrap_or_default();
-    vals.into_iter().find(|c| c.get("id").and_then(|v| v.as_str()) == Some(id))
+    vals.into_iter()
+        .find(|c| c.get("id").and_then(|v| v.as_str()) == Some(id))
 }
 
 /// Check whether the event kind is relevant. For ConfigMaps, we only care

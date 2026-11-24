@@ -171,10 +171,7 @@ pub async fn analyze_change_impact(
         .ok_or((axum::http::StatusCode::NOT_FOUND, "change not found".into()))?;
 
     if let Some(want) = q.kind.as_deref().filter(|s| !s.is_empty()) {
-        let got = change
-            .get("type")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
+        let got = change.get("type").and_then(|v| v.as_str()).unwrap_or("");
         if !got.to_lowercase().contains(&want.to_lowercase()) {
             return Err((
                 axum::http::StatusCode::NOT_FOUND,
@@ -214,8 +211,7 @@ pub async fn analyze_change_impact(
         .map(|t| t.with_timezone(&Utc))
         .or_else(|_| {
             // Some events omit timezone; try treating as UTC.
-            DateTime::parse_from_str(ts_raw, "%Y-%m-%dT%H:%M:%SZ")
-                .map(|t| t.with_timezone(&Utc))
+            DateTime::parse_from_str(ts_raw, "%Y-%m-%dT%H:%M:%SZ").map(|t| t.with_timezone(&Utc))
         })
         .unwrap_or_else(|_| Utc::now());
 
@@ -387,9 +383,21 @@ mod tests {
 
     #[test]
     fn parse_window_caps_and_defaults() {
-        assert_eq!(parse_window("30m", Duration::minutes(10)), Duration::minutes(30));
-        assert_eq!(parse_window("1h", Duration::minutes(10)), Duration::hours(1));
-        assert_eq!(parse_window("9h", Duration::minutes(10)), Duration::hours(2));
-        assert_eq!(parse_window("", Duration::minutes(15)), Duration::minutes(15));
+        assert_eq!(
+            parse_window("30m", Duration::minutes(10)),
+            Duration::minutes(30)
+        );
+        assert_eq!(
+            parse_window("1h", Duration::minutes(10)),
+            Duration::hours(1)
+        );
+        assert_eq!(
+            parse_window("9h", Duration::minutes(10)),
+            Duration::hours(2)
+        );
+        assert_eq!(
+            parse_window("", Duration::minutes(15)),
+            Duration::minutes(15)
+        );
     }
 }

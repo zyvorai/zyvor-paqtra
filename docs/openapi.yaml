@@ -1842,6 +1842,71 @@ paths:
         "200": {description: Ranked sources with evidence, content: {application/json: {schema: {type: object}}}}
         "400": {description: Invalid parameter}
 
+  /api/v1/flows/history/drops:
+    get:
+      operationId: flowDrops
+      tags: [Flows]
+      summary: Drops split by cause (policy, datapath capacity, invalid packet, routing or Service)
+      description: Ranked Cilium drop reasons with their class and the top edges behind each. Read-only.
+      parameters:
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {name: namespace, in: query, schema: {type: string}}
+        - {name: granularity, in: query, schema: {type: string, enum: [namespace, workload, pod], default: workload}}
+        - {name: max_reasons, in: query, schema: {type: integer, minimum: 1, maximum: 200, default: 20}}
+      responses:
+        "200": {description: Classes and reasons, content: {application/json: {schema: {type: object}}}}
+        "400": {description: Invalid parameter}
+
+  /api/v1/flows/history/top:
+    get:
+      operationId: flowTop
+      tags: [Flows]
+      summary: Busiest sources, destinations and ports by flow count
+      description: Flow records carry no byte counts, so this ranks flow count. Read-only.
+      parameters:
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {name: namespace, in: query, schema: {type: string}}
+        - {name: granularity, in: query, schema: {type: string, enum: [namespace, workload, pod], default: workload}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 10}}
+      responses:
+        "200": {description: Three bounded rankings, content: {application/json: {schema: {type: object}}}}
+        "400": {description: Invalid parameter}
+
+  /api/v1/flows/history/audit:
+    get:
+      operationId: flowPolicyAudit
+      tags: [Flows]
+      summary: Edges that policy audit mode flagged as would-be-denied
+      description: Flows with the AUDIT verdict grouped by edge and port, worst first. The verdict filter is fixed to AUDIT. Changes no policy.
+      parameters:
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {name: namespace, in: query, schema: {type: string}}
+        - {name: granularity, in: query, schema: {type: string, enum: [namespace, workload, pod], default: workload}}
+        - {name: max_items, in: query, schema: {type: integer, minimum: 1, maximum: 1000, default: 50}}
+      responses:
+        "200": {description: Audit edges, content: {application/json: {schema: {type: object}}}}
+        "400": {description: Invalid parameter}
+
+  /api/v1/flows/history/spikes:
+    get:
+      operationId: flowDropSpikes
+      tags: [Flows]
+      summary: Episodes where drops jumped above the window's typical level
+      description: Median and MAD of dropped flows per bucket; adjacent spiking buckets form one episode. Notifies only.
+      parameters:
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {name: namespace, in: query, schema: {type: string}}
+        - {name: bucket_secs, in: query, schema: {type: integer, enum: [60, 300, 900, 3600, 21600, 86400]}}
+        - {name: sensitivity, in: query, schema: {type: number, minimum: 1, maximum: 20, default: 3}}
+        - {name: min_drops, in: query, schema: {type: integer, minimum: 1, maximum: 1000000, default: 10}}
+      responses:
+        "200": {description: Episodes, content: {application/json: {schema: {type: object}}}}
+        "400": {description: Invalid parameter}
+
   # ── Incidents ───────────────────────────────────────────────
   /api/v1/incidents:
     get:

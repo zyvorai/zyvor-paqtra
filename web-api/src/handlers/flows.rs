@@ -167,7 +167,10 @@ pub async fn list_flows(
             return Err(ApiError::InternalError(e.to_string()));
         }
         Err(_) => {
-            tracing::error!("Hubble get_flows timed out after {:?}", HUBBLE_FETCH_TIMEOUT);
+            tracing::error!(
+                "Hubble get_flows timed out after {:?}",
+                HUBBLE_FETCH_TIMEOUT
+            );
             track_error(&state).await;
             return Err(ApiError::InternalError(
                 "timed out reading flows from Hubble".into(),
@@ -234,20 +237,19 @@ pub async fn get_flow(
         };
     }
 
-    let flows = match tokio::time::timeout(HUBBLE_FETCH_TIMEOUT, state.hubble.get_flows(500, None))
-        .await
-    {
-        Ok(Ok(f)) => f,
-        Ok(Err(e)) => {
-            tracing::error!("Failed to fetch flows from Hubble: {}", e);
-            return Err(ApiError::InternalError(e.to_string()));
-        }
-        Err(_) => {
-            return Err(ApiError::InternalError(
-                "timed out reading flows from Hubble".into(),
-            ));
-        }
-    };
+    let flows =
+        match tokio::time::timeout(HUBBLE_FETCH_TIMEOUT, state.hubble.get_flows(500, None)).await {
+            Ok(Ok(f)) => f,
+            Ok(Err(e)) => {
+                tracing::error!("Failed to fetch flows from Hubble: {}", e);
+                return Err(ApiError::InternalError(e.to_string()));
+            }
+            Err(_) => {
+                return Err(ApiError::InternalError(
+                    "timed out reading flows from Hubble".into(),
+                ));
+            }
+        };
 
     match flows.into_iter().find(|f| f.id == id) {
         Some(flow) => {

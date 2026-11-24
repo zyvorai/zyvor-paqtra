@@ -143,7 +143,9 @@ impl K8sService {
     /// Run `args` inside the `cilium-agent` container of one Cilium agent pod
     /// and return stdout (empty on any failure, like [`Self::run_cmd`]).
     pub async fn exec_cilium_agent(&self, args: &[&str]) -> String {
-        self.exec_cilium_agent_result(args).await.unwrap_or_default()
+        self.exec_cilium_agent_result(args)
+            .await
+            .unwrap_or_default()
     }
 
     /// Like [`Self::exec_cilium_agent`], but says why it failed.

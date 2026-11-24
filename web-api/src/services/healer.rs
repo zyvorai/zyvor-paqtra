@@ -213,9 +213,9 @@ mod tests {
             .into_iter()
             .map(|p| (p.id.clone(), p.auto_fixable()))
             .collect();
-        assert_eq!(by_id["heal-dns-team-a"], true);
-        assert_eq!(by_id["heal-pol-team-a"], false);
-        assert_eq!(by_id["heal-dns-unknown"], false);
+        assert!(by_id["heal-dns-team-a"]);
+        assert!(!by_id["heal-pol-team-a"]);
+        assert!(!by_id["heal-dns-unknown"]);
     }
 
     #[test]

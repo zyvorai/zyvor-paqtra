@@ -115,7 +115,8 @@ impl CacheService {
                         tokio::spawn(async move {
                             let _ = tokio::task::spawn_blocking(move || {
                                 if let Ok(conn) = db.lock() {
-                                    let _ = conn.execute("DELETE FROM kv WHERE key = ?1", params![key]);
+                                    let _ =
+                                        conn.execute("DELETE FROM kv WHERE key = ?1", params![key]);
                                 }
                             })
                             .await;
