@@ -421,6 +421,48 @@ enum FlowsCommands {
         /// SLO id (see the SLO list in the API)
         id: String,
     },
+    /// What changed against a baseline window: new and gone edges, drop regressions, rate changes
+    Diff {
+        /// Range start, RFC 3339 (default: one hour before --to)
+        #[arg(long, default_value = "")]
+        from: String,
+        /// Range end, RFC 3339 (default: now)
+        #[arg(long, default_value = "")]
+        to: String,
+        #[arg(long, default_value = "")]
+        namespace: String,
+        /// Baseline start, RFC 3339 (default: the window just before --from; give both bounds or neither)
+        #[arg(long, default_value = "")]
+        baseline_from: String,
+        /// Baseline end, RFC 3339
+        #[arg(long, default_value = "")]
+        baseline_to: String,
+        /// namespace | workload | pod
+        #[arg(long, default_value = "workload")]
+        granularity: String,
+        #[arg(long, default_value_t = 20)]
+        max_items: usize,
+    },
+    /// Sources reaching many destinations or ports, flagged when mostly dropped (scan heuristic)
+    Fanout {
+        #[arg(long, default_value = "")]
+        from: String,
+        #[arg(long, default_value = "")]
+        to: String,
+        #[arg(long, default_value = "")]
+        namespace: String,
+        /// namespace | workload | pod
+        #[arg(long, default_value = "pod")]
+        granularity: String,
+        /// Destinations, or ports on one destination, that make a source listed
+        #[arg(long, default_value_t = 20)]
+        min_targets: usize,
+        /// Drop ratio (0 to 1) at which a listed source is a suspect
+        #[arg(long, default_value_t = 0.3)]
+        min_drop_ratio: f64,
+        #[arg(long, default_value_t = 20)]
+        limit: usize,
+    },
 }
 
 #[derive(Subcommand, Debug)]
@@ -726,6 +768,52 @@ async fn main() -> Result<()> {
                     &output,
                 ),
                 FlowsCommands::BurnRate { id } => f::cmd_burn_rate(&api, &id, &output),
+                FlowsCommands::Diff {
+                    from,
+                    to,
+                    namespace,
+                    baseline_from,
+                    baseline_to,
+                    granularity,
+                    max_items,
+                } => f::cmd_diff(
+                    &api,
+                    &f::Window {
+                        from: &from,
+                        to: &to,
+                        namespace: &namespace,
+                    },
+                    &f::DiffArgs {
+                        baseline_from: &baseline_from,
+                        baseline_to: &baseline_to,
+                        granularity: &granularity,
+                        max_items,
+                    },
+                    &output,
+                ),
+                FlowsCommands::Fanout {
+                    from,
+                    to,
+                    namespace,
+                    granularity,
+                    min_targets,
+                    min_drop_ratio,
+                    limit,
+                } => f::cmd_fanout(
+                    &api,
+                    &f::Window {
+                        from: &from,
+                        to: &to,
+                        namespace: &namespace,
+                    },
+                    &f::FanoutArgs {
+                        granularity: &granularity,
+                        min_targets,
+                        min_drop_ratio,
+                        limit,
+                    },
+                    &output,
+                ),
             })
             .await?
         }

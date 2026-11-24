@@ -226,6 +226,14 @@ async fn main() -> anyhow::Result<()> {
             "/api/v1/flows/history/otlp",
             get(handlers::flow_insights::flows_otlp),
         )
+        .route(
+            "/api/v1/flows/history/diff",
+            get(handlers::flow_insights::flow_diff),
+        )
+        .route(
+            "/api/v1/flows/history/fanout",
+            get(handlers::flow_insights::flow_fanout),
+        )
         .route("/api/v1/flows/{id}", get(handlers::flows::get_flow))
         .route("/api/v1/flows/stats", get(handlers::flows::flow_stats))
         // Policy management

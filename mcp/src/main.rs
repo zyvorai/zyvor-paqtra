@@ -56,6 +56,8 @@ const TOOLS: &[Tool] = &[
     Tool { name: "paqtra_flow_timeline", description: "Flow counts over time from stored history.", method: Method::Get, path: "/api/v1/flows/history/timeline", params: &[NS, FROM, TO, ("bucket_secs", "60, 300, 900, 3600, 21600 or 86400 (default: automatic)")] },
     Tool { name: "paqtra_flow_edges", description: "Service map with golden signals from stored flows: per edge and per service traffic, drop ratio and top Cilium drop reasons. Bounded: the long tail is folded into totals.", method: Method::Get, path: "/api/v1/flows/history/edges", params: &[NS, FROM, TO, ("granularity", "namespace, workload (default) or pod"), ("max_edges", "Edges listed, 1 to 1000 (default 200)")] },
     Tool { name: "paqtra_metric_cardinality", description: "Advisor for Hubble flow and drop metric labelsContext: how many Prometheus series each choice (none, namespace, workload, pod) would have produced for this cluster's traffic, and the most detailed one that fits a series budget.", method: Method::Get, path: "/api/v1/flows/history/cardinality", params: &[NS, FROM, TO, ("budget", "Series budget for the flow and drop handlers together (default 20000)")] },
+    Tool { name: "paqtra_flow_diff", description: "What changed between a baseline window and the requested one (default baseline: the window of the same length just before): new edges, vanished edges, drop-ratio regressions and large traffic-rate changes. Bounded lists; read only.", method: Method::Get, path: "/api/v1/flows/history/diff", params: &[NS, FROM, TO, ("baseline_from", "Baseline start, RFC 3339 (give both baseline bounds or neither)"), ("baseline_to", "Baseline end, exclusive, RFC 3339"), ("granularity", "namespace, workload (default) or pod"), ("max_items", "Entries per list, 1 to 1000 (default 100)")] },
+    Tool { name: "paqtra_flow_fanout", description: "Sources that reached many destinations, or many ports on one destination, flagged as suspects when Cilium dropped most of their flows (scan and lateral-movement heuristic over sampled flows). Notifies only.", method: Method::Get, path: "/api/v1/flows/history/fanout", params: &[NS, FROM, TO, ("granularity", "namespace, workload or pod (default)"), ("min_targets", "Destinations, or ports on one destination, that make a source listed (default 20)"), ("min_drop_ratio", "Drop ratio 0 to 1 at which a listed source is a suspect (default 0.3)"), LIMIT] },
     Tool { name: "paqtra_flows_otlp", description: "Stored flows as an OTLP/JSON logs document using OpenTelemetry network attributes. Read only; nothing is sent anywhere.", method: Method::Get, path: "/api/v1/flows/history/otlp", params: &[NS, FROM, TO, ("verdict", "FORWARDED, DROPPED, ..."), LIMIT] },
     Tool { name: "paqtra_slos", description: "Availability SLOs with their projected status from the latest flow sample.", method: Method::Get, path: "/api/v1/slo/targets", params: &[] },
     Tool { name: "paqtra_slo_burn_rate", description: "Multiwindow error-budget burn rate of one SLO over the last hour, 6 hours and 3 days of stored flows (page and ticket tiers from the SRE Workbook). Windows the stored history does not cover are reported as insufficient_history, not judged.", method: Method::Get, path: "/api/v1/slo/targets/{id}/burn-rate", params: &[("id", "SLO id")] },
@@ -257,7 +259,10 @@ fn tool_schema(t: &Tool) -> Value {
             | "time_window_minutes"
             | "bucket_secs"
             | "max_edges"
-            | "budget" => "integer",
+            | "budget"
+            | "min_targets"
+            | "max_items" => "integer",
+            "min_drop_ratio" => "number",
             "source" | "destination" => "object",
             _ => "string",
         };

@@ -81,6 +81,9 @@ pub struct TierResult {
     /// Share of the whole SLO window's budget the long window has burned at
     /// the observed rate; null when not evaluated.
     pub budget_consumed_pct: Option<f64>,
+    /// How long a full, untouched error budget would last at the long window's
+    /// burn rate, in hours; null when not evaluated or when nothing burns.
+    pub budget_lasts_hours: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, PartialEq)]
@@ -170,6 +173,13 @@ pub fn evaluate(
         } else {
             None
         };
+        let budget_lasts_hours = if status == "evaluated" {
+            long.burn_rate
+                .filter(|b| *b > 0.0)
+                .map(|b| round(slo_window_secs as f64 / 3_600.0 / b, 1))
+        } else {
+            None
+        };
         tiers.push(TierResult {
             severity: t.severity,
             long,
@@ -178,6 +188,7 @@ pub fn evaluate(
             status,
             firing,
             budget_consumed_pct,
+            budget_lasts_hours,
         });
     }
 
@@ -235,6 +246,8 @@ mod tests {
         assert_eq!(r.status, "ok");
         assert!(r.tiers.iter().all(|t| t.status == "evaluated" && !t.firing));
         assert_eq!(r.tiers[0].long.error_ratio, Some(0.0));
+        // Nothing burns, so there is no exhaustion time.
+        assert_eq!(r.tiers[0].budget_lasts_hours, None);
     }
 
     #[test]
@@ -249,6 +262,8 @@ mod tests {
         assert_eq!(t.long.burn_rate, Some(20.0));
         // 20x for one hour of a 30-day window = 20 / 720 = 2.78%.
         assert_eq!(t.budget_consumed_pct, Some(2.778));
+        // A full 30-day budget (720 h) at 20x lasts 36 hours.
+        assert_eq!(t.budget_lasts_hours, Some(36.0));
     }
 
     #[test]
