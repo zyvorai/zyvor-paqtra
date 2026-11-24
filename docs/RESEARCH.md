@@ -91,3 +91,23 @@ noted. Built = shipped in this change.
   14.4x for 1h of a 30d window prints 2%, matching the table.
 - Because Hubble flows reach Paqtra by polling, ratios are over sampled flows.
   Every new view carries that statement.
+
+## Round 2 (2026-11-24)
+
+Three web searches, result snippets only (none of the pages was fetched, so
+treat as leads, **[U]**).
+
+- Hubble has no built-in comparison of two time windows; practitioners save
+  JSON exports before and after a change and diff them by hand, and Red Hat
+  ACS offers `roxctl netpol connectivity diff` for manifests, not live flows
+  [U]. Built: `flows diff` (new/gone edges, drop regressions, rate changes).
+- Isovalent/Splunk treat port scanning (MITRE T1046) as an early lateral
+  movement signal, mostly from Tetragon; no source gives a fan-out threshold,
+  and the suggested approach is counting distinct destination ip:port pairs
+  per source and tuning thresholds [U]. Built: `flows fanout` with
+  configurable `min_targets` / `min_drop_ratio`, flagged as a heuristic.
+- Datadog documents time until the budget is gone as SLO window divided by
+  burn rate (2x on 30 days is 15 days) [U]. Built: `budget_lasts_hours` on
+  each burn-rate tier.
+- Not pursued: flow-derived latency SLO (still needs L7 schema work),
+  per-namespace retention (data-loss decision), packet capture (payload).

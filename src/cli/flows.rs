@@ -3,7 +3,7 @@
 
 //! `paqtra flows` — read-only views derived from stored flow history through
 //! the API: service edges with golden signals, the Hubble metric cardinality
-//! advisor and SLO burn rate. Nothing here changes the cluster.
+//! advisor, SLO burn rate, window-to-window diff and source fan-out. Nothing here changes the cluster.
 
 use super::metrics::Api;
 use anyhow::Result;
@@ -206,6 +206,146 @@ pub fn cmd_burn_rate(api: &Api, id: &str, output: &str) -> Result<()> {
     Ok(())
 }
 
+pub struct DiffArgs<'a> {
+    pub baseline_from: &'a str,
+    pub baseline_to: &'a str,
+    pub granularity: &'a str,
+    pub max_items: usize,
+}
+
+fn edge_name(e: &Value) -> String {
+    format!(
+        "{} -> {} ({})",
+        e["source"].as_str().unwrap_or("-"),
+        e["destination"].as_str().unwrap_or("-"),
+        e["protocol"].as_str().unwrap_or("-")
+    )
+}
+
+pub fn cmd_diff(api: &Api, w: &Window, d: &DiffArgs, output: &str) -> Result<()> {
+    let mut q = w.query();
+    q.push(("baseline_from", d.baseline_from.to_string()));
+    q.push(("baseline_to", d.baseline_to.to_string()));
+    q.push(("granularity", d.granularity.to_string()));
+    q.push(("max_items", d.max_items.to_string()));
+    let v = api.get("/api/v1/flows/history/diff", &q)?;
+    if output == "json" {
+        return print_json(&v);
+    }
+    let c = &v["counts"];
+    println!(
+        "{} {} new, {} gone, {} drop regressions, {} rate changes ({} vs {} edges)",
+        "Flow diff".bold(),
+        c["new_edges"],
+        c["gone_edges"],
+        c["drop_regressions"],
+        c["rate_changes"],
+        c["current_edges"],
+        c["baseline_edges"]
+    );
+    println!(
+        "  baseline {} to {}",
+        v["baseline"]["from"].as_str().unwrap_or("-"),
+        v["baseline"]["to"].as_str().unwrap_or("-")
+    );
+    let list = |title: &str, key: &str, line: &dyn Fn(&Value) -> String| {
+        let items = v[key].as_array().cloned().unwrap_or_default();
+        if items.is_empty() {
+            return;
+        }
+        println!("\n  {}", title.bold());
+        for i in items {
+            println!("    {}", line(&i));
+        }
+    };
+    list("New edges", "new_edges", &|e| {
+        format!(
+            "{}  {} flows, {} dropped",
+            edge_name(e),
+            e["flows"],
+            e["dropped"]
+        )
+    });
+    list("Gone edges", "gone_edges", &|e| {
+        format!("{}  {} flows before", edge_name(e), e["flows"])
+    });
+    list("Drop regressions", "drop_regressions", &|e| {
+        format!(
+            "{}  {} -> {}",
+            edge_name(e),
+            pct(&e["baseline_drop_ratio"]),
+            pct(&e["current_drop_ratio"]).red()
+        )
+    });
+    list("Traffic rate changes", "rate_changes", &|e| {
+        format!(
+            "{}  {}/s -> {}/s ({}x)",
+            edge_name(e),
+            e["baseline_flows_per_sec"],
+            e["current_flows_per_sec"],
+            e["factor"]
+        )
+    });
+    if c["omitted"].as_u64().unwrap_or(0) > 0 {
+        println!("\n  {} more not listed (raise --max-items)", c["omitted"]);
+    }
+    for n in v["warnings"].as_array().cloned().unwrap_or_default() {
+        println!("  ! {}", n.as_str().unwrap_or("").yellow());
+    }
+    Ok(())
+}
+
+pub struct FanoutArgs<'a> {
+    pub granularity: &'a str,
+    pub min_targets: usize,
+    pub min_drop_ratio: f64,
+    pub limit: usize,
+}
+
+pub fn cmd_fanout(api: &Api, w: &Window, f: &FanoutArgs, output: &str) -> Result<()> {
+    let mut q = w.query();
+    q.push(("granularity", f.granularity.to_string()));
+    q.push(("min_targets", f.min_targets.to_string()));
+    q.push(("min_drop_ratio", f.min_drop_ratio.to_string()));
+    q.push(("limit", f.limit.to_string()));
+    let v = api.get("/api/v1/flows/history/fanout", &q)?;
+    if output == "json" {
+        return print_json(&v);
+    }
+    println!(
+        "{} {} of {} sources reach {}+ targets, {} suspect",
+        "Fan-out".bold(),
+        v["sources_over_threshold"],
+        v["sources_seen"],
+        v["min_targets"],
+        v["suspects"]
+    );
+    println!(
+        "  {:36} {:>6} {:>8} {:>8} {:>8}",
+        "SOURCE", "DESTS", "PORTS/1", "FLOWS", "DROPPED"
+    );
+    for s in v["sources"].as_array().cloned().unwrap_or_default() {
+        let name = s["source"].as_str().unwrap_or("-").to_string();
+        let name = if s["suspect"] == true {
+            format!("{name} (suspect)").red().to_string()
+        } else {
+            name
+        };
+        println!(
+            "  {:36} {:>6} {:>8} {:>8} {:>8}",
+            name,
+            s["destinations"],
+            s["max_ports_on_one_destination"],
+            s["flows"],
+            pct(&s["drop_ratio"])
+        );
+    }
+    if let Some(n) = v["caveat"].as_str() {
+        println!("\n  {}", n.dimmed());
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -282,5 +422,75 @@ mod tests {
             .recv()
             .unwrap()
             .starts_with("GET /api/v1/slo/targets/slo-1/burn-rate "));
+    }
+
+    #[test]
+    fn diff_sends_baseline_and_renders_every_list() {
+        let (url, rx) = stub(
+            r#"{"counts":{"new_edges":1,"gone_edges":1,"drop_regressions":1,"rate_changes":1,"omitted":2},
+"baseline":{"from":"a","to":"b"},
+"new_edges":[{"source":"p/a","destination":"p/b","protocol":"TCP","flows":5,"dropped":1}],
+"gone_edges":[{"source":"p/c","destination":"p/d","protocol":"UDP","flows":9}],
+"drop_regressions":[{"source":"p/e","destination":"p/f","protocol":"TCP","baseline_drop_ratio":null,"current_drop_ratio":0.2}],
+"rate_changes":[{"source":"p/g","destination":"p/h","protocol":"TCP","baseline_flows_per_sec":1.0,"current_flows_per_sec":4.0,"factor":4.0}],
+"warnings":["w"]}"#,
+        );
+        let api = Api { url, token: None };
+        let w = Window {
+            from: "",
+            to: "",
+            namespace: "",
+        };
+        let d = DiffArgs {
+            baseline_from: "2026-11-01T00:00:00Z",
+            baseline_to: "2026-11-01T01:00:00Z",
+            granularity: "pod",
+            max_items: 9,
+        };
+        cmd_diff(&api, &w, &d, "summary").unwrap();
+        let line = rx.recv().unwrap();
+        assert!(
+            line.starts_with("GET /api/v1/flows/history/diff?"),
+            "{line}"
+        );
+        for want in [
+            "baseline_from=2026-11-01",
+            "baseline_to=2026-11-01",
+            "granularity=pod",
+            "max_items=9",
+        ] {
+            assert!(line.contains(want), "{line}");
+        }
+    }
+
+    #[test]
+    fn fanout_sends_thresholds_and_tolerates_an_empty_reply() {
+        let (url, rx) = stub(r#"{"sources":[]}"#);
+        let api = Api { url, token: None };
+        let w = Window {
+            from: "",
+            to: "",
+            namespace: "prod",
+        };
+        let f = FanoutArgs {
+            granularity: "pod",
+            min_targets: 12,
+            min_drop_ratio: 0.5,
+            limit: 3,
+        };
+        cmd_fanout(&api, &w, &f, "summary").unwrap();
+        let line = rx.recv().unwrap();
+        assert!(
+            line.starts_with("GET /api/v1/flows/history/fanout?"),
+            "{line}"
+        );
+        for want in [
+            "namespace=prod",
+            "min_targets=12",
+            "min_drop_ratio=0.5",
+            "limit=3",
+        ] {
+            assert!(line.contains(want), "{line}");
+        }
     }
 }

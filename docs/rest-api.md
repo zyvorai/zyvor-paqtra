@@ -20,7 +20,7 @@ curl -X POST http://localhost:9191/api/v1/modules/autopolicy/generate \
   -d '{"namespace":"default","observation_duration":"5m"}'
 ```
 
-Flow-history views (read-only): `GET /api/v1/flows/history/edges`, `/cardinality` and `/otlp`, and `GET /api/v1/slo/targets/{id}/burn-rate`. See [flow-insights.md](flow-insights.md).
+Flow-history views (read-only): `GET /api/v1/flows/history/edges`, `/cardinality`, `/otlp`, `/diff` and `/fanout`, and `GET /api/v1/slo/targets/{id}/burn-rate`. See [flow-insights.md](flow-insights.md).
 
 Full endpoint list: [docs/web-architecture.md](web-architecture.md) and [docs/client/api-reference.html](client/api-reference.html).
 

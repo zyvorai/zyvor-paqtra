@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Hubble metric cardinality advisor.** `GET /api/v1/flows/history/cardinality`, `paqtra flows cardinality`, MCP `paqtra_metric_cardinality`: series the `flow` and `drop` handlers would have produced for each `labelsContext` choice, risk against a series budget and the most detailed context that fits. Advisory; changes no Cilium or Hubble setting.
 - **OTLP flow export.** `GET /api/v1/flows/history/otlp`, MCP `paqtra_flows_otlp`: stored flows as an OTLP/JSON logs document with OpenTelemetry network attributes. Malformed addresses and timestamps are dropped or skipped, strings bounded.
 - MCP: `paqtra_slos` (list), and the five tools above; 39 tools become 44, still all read-only.
+- **Flow diff.** `GET /api/v1/flows/history/diff`, `paqtra flows diff`, MCP `paqtra_flow_diff`: compares a window with a baseline (default: the window of equal length just before) and lists new edges, vanished edges, drop-ratio regressions and 3x traffic-rate changes. Bounded lists with true totals; warns when the baseline predates stored history or a window was truncated. [docs/flow-insights.md](docs/flow-insights.md)
+- **Fan-out.** `GET /api/v1/flows/history/fanout`, `paqtra flows fanout`, MCP `paqtra_flow_fanout`: sources reaching many destinations or many ports on one destination, marked suspect when Cilium dropped most of their flows. Heuristic, notify only.
+- SLO burn rate: each evaluated tier reports `budget_lasts_hours`, how long a full error budget would last at that burn rate.
+- MCP now 46 tools, still all read-only.
 - `docs/RESEARCH.md`: comparison with Hubble, Retina, Inspektor Gadget, Beyla, Coroot, Pixie, Kentik and OpenTelemetry conventions, with ranked ideas and rejected ones.
 
 ### Fixed

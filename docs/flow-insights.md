@@ -1,9 +1,9 @@
 # Flow insights
 
-Four read-only views derived from the flows Paqtra already stores. They answer
+Six read-only views derived from the flows Paqtra already stores. They answer
 questions the flow list cannot: is an SLO being burned right now, which edges
 are failing and why, what a Hubble `labelsContext` would cost in Prometheus,
-and how to hand flows to an OpenTelemetry collector.
+how to hand flows to an OpenTelemetry collector, what changed since a baseline, and which sources are probing many targets.
 
 All of them read the flow store, honour namespace scoping and rate limits like
 the other `/api/v1/flows` reads, and change nothing in the cluster. They do not
@@ -40,6 +40,10 @@ recommendation (chapter 5, table 5-8):
 | page | 1 h | 5 min | 14.4 | 2% |
 | page | 6 h | 30 min | 6 | 5% |
 | ticket | 3 d | 6 h | 1 | 10% |
+
+`budget_lasts_hours` on each evaluated tier says how long a full, untouched
+error budget would last at that tier's long-window burn rate (36 hours at 20x
+for a 30-day SLO); it is null when nothing burns.
 
 A tier fires only when both its windows exceed the threshold, so a recovered
 incident stops alerting as soon as the short window is clean. `status` is
@@ -147,12 +151,67 @@ to an OTLP/HTTP logs endpoint yourself. `network.*` and `source.*` /
 follow Grafana Beyla's network flow metric; `cilium.*` and `paqtra.*` are
 Paqtra's own.
 
+## What changed between two windows
+
+`GET /api/v1/flows/history/diff`, CLI `paqtra flows diff`, MCP
+`paqtra_flow_diff`.
+
+Compares the requested window with a baseline, edge by edge (source,
+destination, protocol), and reports:
+
+- `new_edges`: present now, absent in the baseline, with flows, drops and
+  distinct port count.
+- `gone_edges`: present in the baseline, absent now.
+- `drop_regressions`: the drop ratio rose by at least 5 points (absolute) and
+  there are at least 5 drops now. Edges that were already bad are not repeated.
+- `rate_changes`: flows per second moved by 3x or more (either way), with at
+  least 20 flows in both windows. Rates are per second, so windows of different
+  length compare fairly.
+
+The baseline is the window of the same length that ends where the requested
+one starts. Give `baseline_from` and `baseline_to` together to pick another
+one, for example the same hour last week; it must not overlap the requested
+range. `granularity` (`namespace`, `workload` default, `pod`) works as for
+edges, so a rolling deploy at workload level does not make every replica a new
+edge. `max_items` (1 to 1000, default 100) caps each list; `counts` always has
+the true totals and `omitted` how many are not listed.
+
+Honesty rules, repeated in `warnings` when they apply:
+
+- A baseline that starts before the oldest stored flow cannot show what was
+  absent, so "new" edges may only be missing from history.
+- When either window had more groups than the 50,000 read, the quietest edges
+  were left out and new/gone edges near the bottom can be artefacts.
+- The thresholds used are returned under `thresholds`.
+
+## Fan-out and scan suspects
+
+`GET /api/v1/flows/history/fanout`, CLI `paqtra flows fanout`, MCP
+`paqtra_flow_fanout`.
+
+Ranks sources by how many distinct destinations they reached, and how many
+distinct ports on a single destination. A source is listed from `min_targets`
+(default 20, 2 to 100,000) in either dimension, and is a `suspect` when
+Cilium also dropped at least `min_drop_ratio` (default 0.3) of its judged
+flows: probing targets you are not allowed to reach is mostly denied. Each
+entry carries the evidence (`reasons`, `widest_destination`, a few
+`sample_destinations`). `granularity` defaults to `pod`; `limit` caps the list
+(1 to 1000, default 50).
+
+It is a heuristic over sampled L3/L4 flows. A scraper or health checker with
+healthy traffic is listed but not a suspect. Endpoints outside the cluster are
+a single `external` node whose addresses are not kept, so external sources are
+not measured. It notifies; it never blocks or applies policy.
+
 ## CLI
 
 ```bash
 paqtra flows edges --namespace prod --granularity workload --max-edges 30
 paqtra flows cardinality --budget 50000 --from 2026-11-20T00:00:00Z
 paqtra flows burn-rate slo-1a2b3c4d
+paqtra flows diff --namespace prod --granularity workload
+paqtra flows diff --baseline-from 2026-11-17T09:00:00Z --baseline-to 2026-11-17T10:00:00Z
+paqtra flows fanout --min-targets 15 --min-drop-ratio 0.5
 paqtra flows edges -o json        # the API reply
 ```
 

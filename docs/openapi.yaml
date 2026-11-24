@@ -1801,6 +1801,47 @@ paths:
         "200": {description: OTLP logs under the otlp key, content: {application/json: {schema: {type: object}}}}
         "400": {description: Invalid parameter}
 
+  /api/v1/flows/history/diff:
+    get:
+      operationId: flowDiff
+      tags: [Flows]
+      summary: What changed between a baseline window and the requested one
+      description: >
+        New and vanished edges, drop-ratio regressions and large traffic-rate
+        changes. The default baseline is the window of equal length just before
+        the requested one. Read-only.
+      parameters:
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {name: baseline_from, in: query, description: Give both baseline bounds or neither, schema: {type: string, format: date-time}}
+        - {name: baseline_to, in: query, schema: {type: string, format: date-time}}
+        - {name: namespace, in: query, schema: {type: string}}
+        - {name: granularity, in: query, schema: {type: string, enum: [namespace, workload, pod], default: workload}}
+        - {name: max_items, in: query, schema: {type: integer, minimum: 1, maximum: 1000, default: 100}}
+      responses:
+        "200": {description: Counts and bounded lists, content: {application/json: {schema: {type: object}}}}
+        "400": {description: Invalid parameter or overlapping baseline}
+
+  /api/v1/flows/history/fanout:
+    get:
+      operationId: flowFanout
+      tags: [Flows]
+      summary: Sources reaching many destinations or ports, flagged when mostly dropped
+      description: >
+        Scan and lateral-movement heuristic over sampled flows. Notifies only;
+        nothing is blocked.
+      parameters:
+        - {name: from, in: query, schema: {type: string, format: date-time}}
+        - {name: to, in: query, schema: {type: string, format: date-time}}
+        - {name: namespace, in: query, schema: {type: string}}
+        - {name: granularity, in: query, schema: {type: string, enum: [namespace, workload, pod], default: pod}}
+        - {name: min_targets, in: query, schema: {type: integer, minimum: 2, maximum: 100000, default: 20}}
+        - {name: min_drop_ratio, in: query, schema: {type: number, minimum: 0, maximum: 1, default: 0.3}}
+        - {name: limit, in: query, schema: {type: integer, minimum: 1, maximum: 1000, default: 50}}
+      responses:
+        "200": {description: Ranked sources with evidence, content: {application/json: {schema: {type: object}}}}
+        "400": {description: Invalid parameter}
+
   # ── Incidents ───────────────────────────────────────────────
   /api/v1/incidents:
     get:
