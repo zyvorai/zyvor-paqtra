@@ -141,12 +141,7 @@ pub async fn create_path(
         .cache
         .set_durable(&key, &val, PATHS_TTL)
         .await
-        .map_err(|e| {
-            (
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                e.to_string(),
-            )
-        })?;
+        .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     Ok(path)
 }
 
@@ -324,7 +319,11 @@ pub async fn status_for_path(state: &AppState, path: &Value) -> Value {
 }
 
 async fn evaluate_all(state: &AppState) -> anyhow::Result<()> {
-    let paths = state.cache.list_values(PATHS_PREFIX).await.unwrap_or_default();
+    let paths = state
+        .cache
+        .list_values(PATHS_PREFIX)
+        .await
+        .unwrap_or_default();
     for p in paths {
         if p.get("enabled").and_then(|v| v.as_bool()) == Some(false) {
             continue;
@@ -345,13 +344,11 @@ async fn evaluate_all(state: &AppState) -> anyhow::Result<()> {
             .ok()
             .flatten()
             .and_then(|v| {
-                v.get("statuses")
-                    .and_then(|s| s.as_array())
-                    .map(|a| {
-                        a.iter()
-                            .filter_map(|x| x.as_str().map(str::to_string))
-                            .collect()
-                    })
+                v.get("statuses").and_then(|s| s.as_array()).map(|a| {
+                    a.iter()
+                        .filter_map(|x| x.as_str().map(str::to_string))
+                        .collect()
+                })
             })
             .unwrap_or_default();
         samples.push(st.to_string());
@@ -448,12 +445,7 @@ pub async fn silence_alert(
         .cache
         .set_durable(&silence_key, &body, ttl)
         .await
-        .map_err(|e| {
-            (
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                e.to_string(),
-            )
-        })?;
+        .map_err(|e| (axum::http::StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
     // Drop active alert while silenced.
     let _ = state
         .cache

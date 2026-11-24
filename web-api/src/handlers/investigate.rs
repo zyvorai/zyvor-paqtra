@@ -272,9 +272,10 @@ pub async fn get_share(
     match state.cache.get::<Value>(&share_key).await {
         Ok(Some(v)) => {
             if let Some(nss) = v.get("namespaces").and_then(|x| x.as_array()) {
-                let allowed = nss.iter().filter_map(|n| n.as_str()).any(|ns| {
-                    super::has_namespace_access(&state, &claims, ns)
-                });
+                let allowed = nss
+                    .iter()
+                    .filter_map(|n| n.as_str())
+                    .any(|ns| super::has_namespace_access(&state, &claims, ns));
                 if !nss.is_empty() && !allowed {
                     return Err((
                         StatusCode::FORBIDDEN,

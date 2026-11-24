@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Zyvor-Production-2.0
 
 pub mod alerting;
+pub mod audit;
 pub mod burn_rate;
 pub mod cache;
 pub mod cardinality;
@@ -11,6 +12,7 @@ pub mod cilium_features;
 pub mod cilium_metrics;
 pub mod compliance;
 pub mod connectivity;
+pub mod drops;
 pub mod edges;
 pub mod exporter;
 pub mod fanout;
@@ -30,5 +32,7 @@ pub mod notifier;
 pub mod otel_flow;
 pub mod prometheus;
 pub mod slo;
+pub mod spikes;
+pub mod top;
 pub mod tracing_svc;
 pub mod users;

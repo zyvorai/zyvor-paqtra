@@ -111,3 +111,29 @@ treat as leads, **[U]**).
   each burn-rate tier.
 - Not pursued: flow-derived latency SLO (still needs L7 schema work),
   per-namespace retention (data-loss decision), packet capture (payload).
+
+## Round 3 (2026-11-24)
+
+Web searches, with pages fetched where noted. Read from fetched pages: the
+Perun Engineering "Cilium in production: five failure patterns"
+(<https://perun.au/insights/cilium-production/>) and Cilium issue 40228
+(<https://github.com/cilium/cilium/issues/40228>). Search snippets only
+**[U]**: Hubble flow retention and DNS visibility guides, top-talker rankings
+(no Hubble or Coroot source describes one), policy audit mode rollout guides.
+
+- Perun: denied flows should be split by reason because a conntrack map
+  insertion failure is read as a policy denial and sends operators to edit
+  policy; also asks for per-node flow buffer age and same-node versus
+  cross-node pair inventory. Built: `flows drops` (policy versus datapath
+  capacity versus routing). Not built: node-level buffer age and same-node
+  inventory (flows in the store carry no node).
+- Issue 40228: silent drops make clients hang for 20 to 30 seconds with no
+  fast failure, so a burst of drops is the only visible symptom. Built: `flows
+  spikes` (median and MAD per bucket).
+- Policy audit mode is the recommended way to roll out default deny, and its
+  flows carry the `AUDIT` verdict [U]. Built: `flows audit`.
+- Hubble UI and CLI show flows, not rankings [U]. Built: `flows top` (flow
+  count; no byte counts exist in the store).
+- Not pursued: per-node ring buffer age (not in the flow store), reject
+  actions (a Cilium feature request), DNS rcode views (needs L7 fields the
+  store does not keep).

@@ -20,7 +20,12 @@ The latest 20 entries. The full history is in [CHANGELOG.md](https://github.com/
 - **Flow diff.** `GET /api/v1/flows/history/diff`, `paqtra flows diff`, MCP `paqtra_flow_diff`: compares a window with a baseline (default: the window of equal length just before) and lists new edges, vanished edges, drop-ratio regressions and 3x traffic-rate changes. Bounded lists with true totals; warns when the baseline predates stored history or a window was truncated. [docs/flow-insights.md](https://github.com/zyvorai/zyvor-paqtra/blob/main/docs/flow-insights.md)
 - **Fan-out.** `GET /api/v1/flows/history/fanout`, `paqtra flows fanout`, MCP `paqtra_flow_fanout`: sources reaching many destinations or many ports on one destination, marked suspect when Cilium dropped most of their flows. Heuristic, notify only.
 - SLO burn rate: each evaluated tier reports `budget_lasts_hours`, how long a full error budget would last at that burn rate.
-- MCP now 46 tools, still all read-only.
+- **Drops by cause.** `GET /api/v1/flows/history/drops`, `paqtra flows drops`, MCP `paqtra_flow_drops`: Cilium drop reasons grouped into policy, datapath capacity (map insertion / NAT failures), invalid packet and routing or Service, with the top edges behind each reason.
+- **Top talkers.** `GET /api/v1/flows/history/top`, `paqtra flows top`, MCP `paqtra_flow_top`: busiest sources, destinations and ports by flow count (not bytes), bounded, with the rest summed.
+- **Policy audit readiness.** `GET /api/v1/flows/history/audit`, `paqtra flows audit`, MCP `paqtra_policy_audit`: edges and ports that Cilium policy audit mode flagged as would-be-denied, worst first, for reading before enforcing default deny. Changes no policy.
+- **Drop spikes.** `GET /api/v1/flows/history/spikes`, `paqtra flows spikes`, MCP `paqtra_drop_spikes`: episodes where drops exceed the window's own median plus scaled MAD. Notifies only.
+- Handler-level HTTP tests (real route table, query parsing, namespace scoping) for every flow-history view, including the diff and fan-out routes that shipped without them.
+- MCP now 50 tools, still all read-only.
 - `docs/RESEARCH.md`: comparison with Hubble, Retina, Inspektor Gadget, Beyla, Coroot, Pixie, Kentik and OpenTelemetry conventions, with ranked ideas and rejected ones.
 
 ### Fixed

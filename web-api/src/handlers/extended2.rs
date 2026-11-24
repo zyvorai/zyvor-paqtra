@@ -884,7 +884,10 @@ pub async fn dns_queries(
         if s.port != 53 {
             continue;
         }
-        if queries.iter().any(|q| q.get("id").and_then(|v| v.as_str()) == Some(&s.id)) {
+        if queries
+            .iter()
+            .any(|q| q.get("id").and_then(|v| v.as_str()) == Some(&s.id))
+        {
             continue;
         }
         let policy_corr = if s.verdict.eq_ignore_ascii_case("DROPPED") {

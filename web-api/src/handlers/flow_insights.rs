@@ -54,6 +54,23 @@ pub struct OtlpParams {
     pub limit: Option<usize>,
 }
 
+/// Routes of every view derived from stored flow history (except the plain
+/// list and timeline). One table, used by the server and by the handler tests.
+pub fn routes() -> axum::Router<Arc<AppState>> {
+    use axum::routing::get;
+    let r = axum::Router::new()
+        .route("/api/v1/flows/history/edges", get(service_edges))
+        .route("/api/v1/flows/history/cardinality", get(metric_cardinality))
+        .route("/api/v1/flows/history/otlp", get(flows_otlp))
+        .route("/api/v1/flows/history/diff", get(flow_diff))
+        .route("/api/v1/flows/history/fanout", get(flow_fanout));
+    use super::flow_reports as rep;
+    r.route("/api/v1/flows/history/drops", get(rep::drop_report))
+        .route("/api/v1/flows/history/top", get(rep::top_talkers))
+        .route("/api/v1/flows/history/audit", get(rep::policy_audit))
+        .route("/api/v1/flows/history/spikes", get(rep::drop_spikes))
+}
+
 /// GET /api/v1/flows/history/edges: who talks to whom over the range, with
 /// traffic, drop ratio and drop reasons per edge and per service.
 pub async fn service_edges(

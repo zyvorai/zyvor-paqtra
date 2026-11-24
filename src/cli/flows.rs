@@ -346,6 +346,189 @@ pub fn cmd_fanout(api: &Api, w: &Window, f: &FanoutArgs, output: &str) -> Result
     Ok(())
 }
 
+pub fn cmd_drops(
+    api: &Api,
+    w: &Window,
+    granularity: &str,
+    max_reasons: usize,
+    output: &str,
+) -> Result<()> {
+    let mut q = w.query();
+    q.push(("granularity", granularity.to_string()));
+    q.push(("max_reasons", max_reasons.to_string()));
+    let v = api.get("/api/v1/flows/history/drops", &q)?;
+    if output == "json" {
+        return print_json(&v);
+    }
+    println!(
+        "{} {} dropped of {} flows ({})",
+        "Drops".bold(),
+        v["total_dropped"],
+        v["total_flows"],
+        pct(&v["drop_ratio"])
+    );
+    for c in v["classes"].as_array().cloned().unwrap_or_default() {
+        println!(
+            "  {:20} {:>8} {:>8}",
+            c["class"].as_str().unwrap_or("-"),
+            c["dropped"],
+            pct(&c["share"])
+        );
+    }
+    println!(
+        "\n  {:44} {:18} {:>8} {:>6}",
+        "REASON", "CLASS", "DROPPED", "EDGES"
+    );
+    for r in v["reasons"].as_array().cloned().unwrap_or_default() {
+        println!(
+            "  {:44} {:18} {:>8} {:>6}",
+            r["reason"].as_str().unwrap_or("-"),
+            r["class"].as_str().unwrap_or("-"),
+            r["dropped"],
+            r["edges"]
+        );
+        for e in r["top_edges"].as_array().cloned().unwrap_or_default() {
+            println!(
+                "      {} -> {} {}/{} ({})",
+                e["source"].as_str().unwrap_or("-"),
+                e["destination"].as_str().unwrap_or("-"),
+                e["protocol"].as_str().unwrap_or("-"),
+                e["port"],
+                e["dropped"]
+            );
+        }
+    }
+    if v["omitted_reasons"].as_u64().unwrap_or(0) > 0 {
+        println!(
+            "\n  {} more reasons not listed (raise --max-reasons)",
+            v["omitted_reasons"]
+        );
+    }
+    if let Some(n) = v["caveat"].as_str() {
+        println!("\n  {}", n.dimmed());
+    }
+    Ok(())
+}
+
+pub fn cmd_top(api: &Api, w: &Window, granularity: &str, limit: usize, output: &str) -> Result<()> {
+    let mut q = w.query();
+    q.push(("granularity", granularity.to_string()));
+    q.push(("limit", limit.to_string()));
+    let v = api.get("/api/v1/flows/history/top", &q)?;
+    if output == "json" {
+        return print_json(&v);
+    }
+    println!("{} {} flows", "Top talkers".bold(), v["total_flows"]);
+    for (title, key) in [
+        ("SOURCES", "sources"),
+        ("DESTINATIONS", "destinations"),
+        ("PORTS", "ports"),
+    ] {
+        println!(
+            "\n  {:36} {:>9} {:>7} {:>8}",
+            title, "FLOWS", "SHARE", "DROPPED"
+        );
+        for e in v[key]["entries"].as_array().cloned().unwrap_or_default() {
+            println!(
+                "  {:36} {:>9} {:>7} {:>8}",
+                e["name"].as_str().unwrap_or("-"),
+                e["flows"],
+                pct(&e["share"]),
+                pct(&e["drop_ratio"])
+            );
+        }
+    }
+    if let Some(n) = v["note"].as_str() {
+        println!("\n  {}", n.dimmed());
+    }
+    Ok(())
+}
+
+pub fn cmd_audit(
+    api: &Api,
+    w: &Window,
+    granularity: &str,
+    max_items: usize,
+    output: &str,
+) -> Result<()> {
+    let mut q = w.query();
+    q.push(("granularity", granularity.to_string()));
+    q.push(("max_items", max_items.to_string()));
+    let v = api.get("/api/v1/flows/history/audit", &q)?;
+    if output == "json" {
+        return print_json(&v);
+    }
+    println!(
+        "{} {} would-be-denied flows on {} edges",
+        "Policy audit".bold(),
+        v["audit_flows"],
+        v["edges_total"]
+    );
+    println!(
+        "  {:34} {:34} {:>8}  PORTS",
+        "SOURCE", "DESTINATION", "FLOWS"
+    );
+    for e in v["edges"].as_array().cloned().unwrap_or_default() {
+        let ports: Vec<String> = e["ports"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default()
+            .iter()
+            .map(|p| p.to_string())
+            .collect();
+        println!(
+            "  {:34} {:34} {:>8}  {}/{}",
+            e["source"].as_str().unwrap_or("-"),
+            e["destination"].as_str().unwrap_or("-"),
+            e["flows"],
+            e["protocol"].as_str().unwrap_or("-"),
+            ports.join(",")
+        );
+    }
+    if let Some(n) = v["guidance"].as_str() {
+        println!("\n  {}", n.dimmed());
+    }
+    Ok(())
+}
+
+pub struct SpikeArgs {
+    pub bucket_secs: Option<i64>,
+    pub sensitivity: f64,
+    pub min_drops: u64,
+}
+
+pub fn cmd_spikes(api: &Api, w: &Window, s: &SpikeArgs, output: &str) -> Result<()> {
+    let mut q = w.query();
+    if let Some(b) = s.bucket_secs {
+        q.push(("bucket_secs", b.to_string()));
+    }
+    q.push(("sensitivity", s.sensitivity.to_string()));
+    q.push(("min_drops", s.min_drops.to_string()));
+    let v = api.get("/api/v1/flows/history/spikes", &q)?;
+    if output == "json" {
+        return print_json(&v);
+    }
+    println!(
+        "{} {} ({} buckets of {}s, typical {} drops, threshold {})",
+        "Drop spikes".bold(),
+        v["status"].as_str().unwrap_or("-"),
+        v["buckets"],
+        v["bucket_secs"],
+        v["typical_dropped_per_bucket"],
+        v["threshold_dropped_per_bucket"]
+    );
+    for e in v["episodes"].as_array().cloned().unwrap_or_default() {
+        println!(
+            "  {} .. {}  {} drops over {} bucket(s), peak {}",
+            e["start"], e["end"], e["dropped"], e["buckets"], e["peak_dropped"]
+        );
+    }
+    if let Some(n) = v["note"].as_str() {
+        println!("\n  {}", n.dimmed());
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -490,6 +673,65 @@ mod tests {
             "min_drop_ratio=0.5",
             "limit=3",
         ] {
+            assert!(line.contains(want), "{line}");
+        }
+    }
+
+    #[test]
+    fn drops_top_audit_and_spikes_send_their_parameters_and_render() {
+        let w = Window {
+            from: "",
+            to: "",
+            namespace: "prod",
+        };
+        let (url, rx) = stub(
+            r#"{"total_dropped":3,"total_flows":9,"drop_ratio":0.5,"classes":[{"class":"policy","dropped":3,"share":1.0}],
+"reasons":[{"reason":"Policy denied","class":"policy","dropped":3,"edges":1,"top_edges":[{"source":"a","destination":"b","protocol":"TCP","port":80,"dropped":3}]}],"omitted_reasons":2}"#,
+        );
+        cmd_drops(&Api { url, token: None }, &w, "pod", 7, "summary").unwrap();
+        let line = rx.recv().unwrap();
+        assert!(
+            line.starts_with("GET /api/v1/flows/history/drops?"),
+            "{line}"
+        );
+        for want in ["namespace=prod", "granularity=pod", "max_reasons=7"] {
+            assert!(line.contains(want), "{line}");
+        }
+
+        let (url, rx) = stub(
+            r#"{"total_flows":1,"sources":{"entries":[{"name":"a","flows":1,"share":1.0,"drop_ratio":null}]},"destinations":{"entries":[]},"ports":{"entries":[]}}"#,
+        );
+        cmd_top(&Api { url, token: None }, &w, "namespace", 4, "summary").unwrap();
+        let line = rx.recv().unwrap();
+        assert!(line.starts_with("GET /api/v1/flows/history/top?"), "{line}");
+        assert!(line.contains("limit=4") && line.contains("granularity=namespace"));
+
+        let (url, rx) = stub(
+            r#"{"audit_flows":2,"edges_total":1,"edges":[{"source":"a","destination":"b","protocol":"TCP","flows":2,"ports":[80,81]}]}"#,
+        );
+        cmd_audit(&Api { url, token: None }, &w, "workload", 5, "summary").unwrap();
+        let line = rx.recv().unwrap();
+        assert!(
+            line.starts_with("GET /api/v1/flows/history/audit?"),
+            "{line}"
+        );
+        assert!(line.contains("max_items=5"));
+
+        let (url, rx) = stub(
+            r#"{"status":"spikes","buckets":60,"bucket_secs":60,"episodes":[{"start":1,"end":2,"dropped":9,"buckets":1,"peak_dropped":9}]}"#,
+        );
+        let s = SpikeArgs {
+            bucket_secs: Some(300),
+            sensitivity: 4.5,
+            min_drops: 12,
+        };
+        cmd_spikes(&Api { url, token: None }, &w, &s, "summary").unwrap();
+        let line = rx.recv().unwrap();
+        assert!(
+            line.starts_with("GET /api/v1/flows/history/spikes?"),
+            "{line}"
+        );
+        for want in ["bucket_secs=300", "sensitivity=4.5", "min_drops=12"] {
             assert!(line.contains(want), "{line}");
         }
     }
